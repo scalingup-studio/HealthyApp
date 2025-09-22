@@ -4,6 +4,7 @@ import { Modal } from "../components/Modal.jsx";
 export function LoginPage({ onOpenSignup }) {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
   const [remember, setRemember] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -65,13 +66,14 @@ export function LoginPage({ onOpenSignup }) {
       <form className="form" onSubmit={onSubmit} noValidate>
         <div className="form-field">
           <label htmlFor="email">Email address</label>
-          <input id="email" name="email" type="email" placeholder="Placeholder" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input id="email" name="email" type="email" placeholder="Enter your email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <p className="field-hint">{emailHint}</p>
         </div>
 
-        <div className="form-field">
+        <div className="form-field password">
           <label htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Placeholder" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <button type="button" className="toggle-visibility" aria-label="Toggle password visibility" onClick={()=>setShowPassword(s=>!s)}>{showPassword?"Hide":"Show"}</button>
           <p className="field-hint">{passwordHint}</p>
         </div>
         <button type="submit" className="btn primary" disabled={loading}>{loading ? "Loading…" : "Log In"}</button>

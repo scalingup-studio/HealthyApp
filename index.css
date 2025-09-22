@@ -40,6 +40,9 @@ body {
 .form-field { margin-bottom:16px; }
 .form-field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
 .form-field input { width:100%; height:44px; border:1px solid var(--border); border-radius:10px; padding:0 12px; outline:none; background:#0b0b0b; color:var(--text); transition:border-color .2s, box-shadow .2s, background .2s; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0); }
+.form-field.password { position:relative; }
+.toggle-visibility { position:absolute; right:10px; top:42px; transform:translateY(-50%); background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px 6px; border-radius:6px; }
+.toggle-visibility:hover { color:#ffffff; }
 .form-field input::placeholder { color:var(--hint); }
 .form-field input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,186,206,.25); }
 .field-hint { margin:6px 0 0; font-size:12px; color:var(--error); min-height:16px; }

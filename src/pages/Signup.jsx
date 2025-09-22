@@ -6,6 +6,7 @@ export function SignupPage({ onClose }) {
   const [lastName, setLastName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
   const [terms, setTerms] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -44,9 +45,10 @@ export function SignupPage({ onClose }) {
           <input id="signupEmail" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
         </div>
 
-        <div className="form-field">
+        <div className="form-field password">
           <label htmlFor="signupPassword">Password</label>
-          <input id="signupPassword" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Create a password" required />
+          <input id="signupPassword" type={showPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Create a password" required />
+          <button type="button" className="toggle-visibility" aria-label="Toggle password visibility" onClick={()=>setShowPassword(s=>!s)}>{showPassword?"Hide":"Show"}</button>
         </div>
 
         <label className="checkbox" style={{marginBottom:12}}>
