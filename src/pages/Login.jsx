@@ -74,6 +74,7 @@ export function LoginPage({ onOpenSignup }) {
           <input id="password" name="password" type="password" placeholder="Placeholder" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <p className="field-hint">{passwordHint}</p>
         </div>
+        <button type="submit" className="btn primary" disabled={loading}>{loading ? "Loading…" : "Log In"}</button>
 
         <div className="form-row between">
           <label className="checkbox">
@@ -83,7 +84,6 @@ export function LoginPage({ onOpenSignup }) {
           <a className="link" href="#" onClick={(e)=>{e.preventDefault(); setForgotOpen(true);}}>Forgot Password?</a>
         </div>
 
-        <button type="submit" className="btn primary" disabled={loading}>{loading ? "Loading…" : "Log In"}</button>
 
         <div className="divider"><span>or</span></div>
 
@@ -93,7 +93,7 @@ export function LoginPage({ onOpenSignup }) {
             <span>Log in with Google</span>
           </button>
           <button type="button" className="btn outline" onClick={() => alert("Apple Sign-In integration depends on your backend") }>
-            <img src="https://www.svgrepo.com/show/521649/apple.svg" alt="Apple" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" />
             <span>Log in with Apple</span>
           </button>
         </div>

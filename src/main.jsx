@@ -6,10 +6,11 @@ import { SignupPage } from "./pages/Signup.jsx";
 function Artwork() {
   return (
     <aside className="artwork">
-      <div className="placeholder">
-        <div className="x-line"></div>
-        <div className="x-line"></div>
-      </div>
+      <img
+        src="https://ec6e1b45022cd081d4bf05b7b20ff381.cdn.bubble.io/f1736281035365x862458603754812200/img%20%285%29.svg"
+        alt="HealthyApp Illustration"
+        style={{maxWidth: "90%", height: "auto"}}
+      />
     </aside>
   );
 }
