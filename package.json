@@ -1,25 +1,24 @@
 {
   "name": "healthyapp",
   "version": "1.0.0",
-  "description": "",
+  "description": "HealthyApp React + Vite",
   "main": "index.js",
   "homepage": "https://scalingup-studio.github.io/HealthyApp",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.3",
-    "gh-pages": "^6.3.0",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "@vitejs/plugin-react": "^4.0.0",
+    "gh-pages": "^5.0.0"
   },
   "dependencies": {
     "axios": "^1.12.2",
