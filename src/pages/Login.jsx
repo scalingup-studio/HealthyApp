@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
 
 export function LoginPage({ onOpenSignup }) {
@@ -11,6 +12,7 @@ export function LoginPage({ onOpenSignup }) {
   const [emailHint, setEmailHint] = React.useState("");
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   // Реальний Xano login endpoint
   const XANO_LOGIN_URL =
@@ -44,19 +46,12 @@ export function LoginPage({ onOpenSignup }) {
     e.preventDefault();
     setError("");
     if (!validate()) return;
+    // Bypass real auth for now; navigate to dashboard
     try {
       setLoading(true);
-      const res = await fetch(XANO_LOGIN_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || data?.error || "Login failed");
-      const token = data.authToken || data.token || data.jwt;
-      if (!token) throw new Error("Server did not return a token");
-      persistToken(token, remember);
-      window.location.href = "/";
+      await new Promise(r=>setTimeout(r, 250));
+      persistToken("demo-token", remember);
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Unexpected error");
     } finally {
@@ -65,6 +60,7 @@ export function LoginPage({ onOpenSignup }) {
   }
 
   return (
+    <div className="auth-layout">
     <section className="auth-card">
       <h1 className="auth-title">Log In</h1>
       <form className="form" onSubmit={onSubmit} noValidate>
@@ -104,7 +100,12 @@ export function LoginPage({ onOpenSignup }) {
           </button>
         </div>
 
-        <p className="alt-action">No account yet? <a className="link" href="#" onClick={(e)=>{e.preventDefault(); onOpenSignup?.();}}>Sign up</a></p>
+        <p className="alt-action">No account yet? {onOpenSignup ? (
+          <a className="link" href="#" onClick={(e)=>{e.preventDefault(); onOpenSignup?.();}}>Sign up</a>
+        ) : (
+          <Link className="link" to="/signup">Sign up</Link>
+        )}
+        </p>
 
         {error ? <div className="alert">{error}</div> : null}
       </form>
@@ -113,6 +114,13 @@ export function LoginPage({ onOpenSignup }) {
         <ForgotForm onClose={()=>setForgotOpen(false)} />
       </Modal>
     </section>
+    <aside className="artwork">
+      <div className="placeholder" aria-hidden="true">
+        <div className="x-line"></div>
+        <div className="x-line"></div>
+      </div>
+    </aside>
+    </div>
   );
 }
 
