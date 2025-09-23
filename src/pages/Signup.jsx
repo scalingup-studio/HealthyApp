@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "../components/Modal.jsx";
+// import { API_BASE } from "../../apiConfig.js";
 
 export function SignupPage({ onClose }) {
   const [firstName, setFirstName] = React.useState("");
@@ -11,16 +12,54 @@ export function SignupPage({ onClose }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  async function onSubmit(e){
+  async function onSubmit(e) {
     e.preventDefault();
     setError("");
+    
+    if (!terms) {
+      setError("Please agree to the Terms");
+      return;
+    }
+  
+    if (!firstName || !lastName || !email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+  
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+  
     try {
       setLoading(true);
-      await new Promise(r=>setTimeout(r, 600));
-      alert("Account created (mock). Wire to Xano signup endpoint.");
+     
+     // Real request to your Xano API
+      const response = await fetch("https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          password: password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+  
+      // Successful registration
+      alert("Account created successfully!");
       onClose?.();
+      
     } catch (err) {
-      setError(err.message || "Unexpected error");
+      setError(err.message || "Unexpected error during signup");
     } finally {
       setLoading(false);
     }
