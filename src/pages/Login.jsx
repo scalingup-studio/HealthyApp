@@ -12,7 +12,11 @@ export function LoginPage({ onOpenSignup }) {
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
 
-  const XANO_LOGIN_URL = (window.ENV && window.ENV.XANO_LOGIN_URL) || "https://x8ki-letl-twmt.n7.xano.io/api:AUTH/login";
+  // Реальний Xano login endpoint
+  const XANO_LOGIN_URL =
+    (window.ENV && window.ENV.XANO_LOGIN_URL) ||
+    "https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5/auth/login";
+
   const TOKEN_STORAGE_KEY = "healthyapp_auth_token";
 
   function persistToken(token, rememberFlag) {
