@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
+import { AuthApi } from "../api/authApi";
 
 export function LoginPage({ onOpenSignup }) {
   const [email, setEmail] = React.useState("");
@@ -15,11 +16,7 @@ export function LoginPage({ onOpenSignup }) {
   const navigate = useNavigate();
 
   // Реальний Xano login endpoint
-  const XANO_LOGIN_URL =
-    (window.ENV && window.ENV.XANO_LOGIN_URL) ||
-    "https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5/auth/login";
-
-  const TOKEN_STORAGE_KEY = "healthyapp_auth_token";
+  const TOKEN_STORAGE_KEY = "authToken";
 
   function persistToken(token, rememberFlag) {
     if (!token) return;
@@ -49,9 +46,11 @@ export function LoginPage({ onOpenSignup }) {
     // Bypass real auth for now; navigate to dashboard
     try {
       setLoading(true);
-      await new Promise(r=>setTimeout(r, 250));
-      persistToken("demo-token", remember);
-      navigate("/dashboard", { replace: true });
+      const data = await AuthApi.login({ email, password });
+      const token = data.token || data.authToken || data.jwt;
+      if (!token) throw new Error("Server did not return a token");
+      persistToken(token, remember);
+      window.location.href = "/";
     } catch (err) {
       setError(err.message || "Unexpected error");
     } finally {
@@ -73,7 +72,7 @@ export function LoginPage({ onOpenSignup }) {
         <div className="form-field password">
           <label htmlFor="password">Password</label>
           <input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          <button type="button" className="toggle-visibility" aria-label="Toggle password visibility" onClick={()=>setShowPassword(s=>!s)}>{showPassword?"Hide":"Show"}</button>
+          <button type="button" className="toggle-visibility" aria-label="Toggle password visibility" onClick={() => setShowPassword(s => !s)}>{showPassword ? "Hide" : "Show"}</button>
           <p className="field-hint">{passwordHint}</p>
         </div>
         <button type="submit" className="btn primary" disabled={loading}>{loading ? "Loading…" : "Log In"}</button>
@@ -83,35 +82,33 @@ export function LoginPage({ onOpenSignup }) {
             <input id="remember" name="remember" type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
             <span>Remember me</span>
           </label>
-          <a className="link" href="#" onClick={(e)=>{e.preventDefault(); setForgotOpen(true);}}>Forgot Password?</a>
+          <a className="link" href="#" onClick={(e) => { e.preventDefault(); setForgotOpen(true); }}>Forgot Password?</a>
         </div>
 
 
         <div className="divider"><span>or</span></div>
 
         <div className="social-buttons">
-          <button type="button" className="btn outline" onClick={() => alert("Google OAuth integration depends on your backend") }>
+          <button type="button" className="btn outline" onClick={() => alert("Google OAuth integration depends on your backend")}>
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
             <span>Log in with Google</span>
           </button>
-          <button type="button" className="btn outline" onClick={() => alert("Apple Sign-In integration depends on your backend") }>
+          <button type="button" className="btn outline" onClick={() => alert("Apple Sign-In integration depends on your backend")}>
             <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" />
             <span>Log in with Apple</span>
           </button>
         </div>
-
         <p className="alt-action">No account yet? {onOpenSignup ? (
           <a className="link" href="#" onClick={(e)=>{e.preventDefault(); onOpenSignup?.();}}>Sign up</a>
         ) : (
           <Link className="link" to="/signup">Sign up</Link>
         )}
         </p>
-
         {error ? <div className="alert">{error}</div> : null}
       </form>
 
-      <Modal open={forgotOpen} title="Reset Password" onClose={()=>setForgotOpen(false)}>
-        <ForgotForm onClose={()=>setForgotOpen(false)} />
+      <Modal open={forgotOpen} title="Reset Password" onClose={() => setForgotOpen(false)}>
+        <ForgotForm onClose={() => setForgotOpen(false)} />
       </Modal>
     </section>
     <aside className="artwork">
@@ -129,10 +126,10 @@ function ForgotForm({ onClose }) {
   const [sent, setSent] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
-  async function submit(e){
+  async function submit(e) {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r=>setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 600));
     setSent(true);
     setLoading(false);
   }
@@ -148,9 +145,9 @@ function ForgotForm({ onClose }) {
     <form onSubmit={submit} className="form" noValidate>
       <div className="form-field">
         <label htmlFor="forgotEmail">Email address</label>
-        <input id="forgotEmail" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required />
+        <input id="forgotEmail" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
       </div>
-      <button className="btn primary" type="submit" disabled={loading}>{loading?"Sending…":"Send reset link"}</button>
+      <button className="btn primary" type="submit" disabled={loading}>{loading ? "Sending…" : "Send reset link"}</button>
     </form>
   );
 }
