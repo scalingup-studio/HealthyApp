@@ -4,7 +4,7 @@ import { CUSTOM_ENDPOINTS } from "./apiConfig";
 export const AuthApi = {
   login: (data) => request(CUSTOM_ENDPOINTS.auth.login, {
     method: "POST",
-    body: data,
+    body: JSON.stringify(data), 
   }),
 
   logout: () => request(CUSTOM_ENDPOINTS.auth.logout, { 
@@ -13,8 +13,9 @@ export const AuthApi = {
 
   refreshToken: () => request(CUSTOM_ENDPOINTS.auth.refreshToken),
 
-  register: (userData) => request(CUSTOM_ENDPOINTS.auth.register, {
+  
+  signup: (userData) => request(CUSTOM_ENDPOINTS.auth.signup, {
     method: "POST",
-    body: userData,
+    body: JSON.stringify(userData), 
   }),
 };

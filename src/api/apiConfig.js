@@ -25,6 +25,6 @@ export const CUSTOM_ENDPOINTS = {
     login: `${API_BASE}/auth/login`,
     logout: `${API_BASE}/auth/logout`,
     refreshToken: `${API_BASE}/auth/refresh`,
-    register: `${API_BASE}/auth/register`,
+    signup: `${API_BASE}/auth/signup`,
   },
 };
