@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
 import { AuthApi } from "../api/authApi";
 
@@ -11,6 +12,7 @@ export function SignupPage({ onClose }) {
   const [terms, setTerms] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const navigate = useNavigate?.() || (()=>{});
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -41,6 +43,7 @@ export function SignupPage({ onClose }) {
       });
       alert("Account created successfully!");
       onClose?.();
+      navigate("/login");
     } catch (err) {
       setError(err.message || "Unexpected error during signup");
     } finally {

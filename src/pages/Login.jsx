@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
 import { AuthApi } from "../api/authApi";
 
@@ -12,6 +13,7 @@ export function LoginPage({ onOpenSignup }) {
   const [emailHint, setEmailHint] = React.useState("");
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   // Реальний Xano login endpoint
   const TOKEN_STORAGE_KEY = "authToken";
@@ -41,6 +43,7 @@ export function LoginPage({ onOpenSignup }) {
     e.preventDefault();
     setError("");
     if (!validate()) return;
+    // Bypass real auth for now; navigate to dashboard
     try {
       setLoading(true);
       const data = await AuthApi.login({ email, password });
@@ -56,6 +59,7 @@ export function LoginPage({ onOpenSignup }) {
   }
 
   return (
+    <div className="auth-layout">
     <section className="auth-card">
       <h1 className="auth-title">Log In</h1>
       <form className="form" onSubmit={onSubmit} noValidate>
@@ -94,9 +98,12 @@ export function LoginPage({ onOpenSignup }) {
             <span>Log in with Apple</span>
           </button>
         </div>
-
-        <p className="alt-action">No account yet? <a className="link" href="#" onClick={(e) => { e.preventDefault(); onOpenSignup?.(); }}>Sign up</a></p>
-
+        <p className="alt-action">No account yet? {onOpenSignup ? (
+          <a className="link" href="#" onClick={(e)=>{e.preventDefault(); onOpenSignup?.();}}>Sign up</a>
+        ) : (
+          <Link className="link" to="/signup">Sign up</Link>
+        )}
+        </p>
         {error ? <div className="alert">{error}</div> : null}
       </form>
 
@@ -104,6 +111,13 @@ export function LoginPage({ onOpenSignup }) {
         <ForgotForm onClose={() => setForgotOpen(false)} />
       </Modal>
     </section>
+    <aside className="artwork">
+      <div className="placeholder" aria-hidden="true">
+        <div className="x-line"></div>
+        <div className="x-line"></div>
+      </div>
+    </aside>
+    </div>
   );
 }
 
