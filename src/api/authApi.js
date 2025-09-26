@@ -4,18 +4,28 @@ import { CUSTOM_ENDPOINTS } from "./apiConfig";
 export const AuthApi = {
   login: (data) => request(CUSTOM_ENDPOINTS.auth.login, {
     method: "POST",
-    body: JSON.stringify(data), 
+    body: JSON.stringify(data),
   }),
 
-  logout: () => request(CUSTOM_ENDPOINTS.auth.logout, { 
-    method: "POST" 
+  logout: () => request(CUSTOM_ENDPOINTS.auth.logout, {
+    method: "POST"
   }),
 
   refreshToken: () => request(CUSTOM_ENDPOINTS.auth.refreshToken),
 
-  
+
   signup: (userData) => request(CUSTOM_ENDPOINTS.auth.signup, {
     method: "POST",
-    body: JSON.stringify(userData), 
+    body: JSON.stringify(userData),
+  }),
+
+  requestPasswordReset: (email) => request(CUSTOM_ENDPOINTS.auth.forgotPassword, {
+    method: "POST",
+    body: { email },
+  }),
+
+  resetPassword: ({ token, new_password }) => request(CUSTOM_ENDPOINTS.auth.resetPassword, {
+    method: "POST",
+    body: { token, new_password },
   }),
 };

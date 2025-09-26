@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "./pages/Login.jsx";
 import { SignupPage } from "./pages/Signup.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
+import Layout from "./Layout.jsx";
 import DashboardLayout from "./routes/DashboardLayout.jsx";
 import DashboardHome from "./routes/pages/Home.jsx";
 import DashboardAnalytics from "./routes/pages/Analytics.jsx";
@@ -18,6 +20,8 @@ function AppRouter() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage open />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/HealthyApp" element={<Layout />}></Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />

@@ -1,51 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { AuthApi } from "../api/authApi";
 
-function ResetPasswordPage() {
+export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [isValidToken, setIsValidToken] = useState(true);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const token = searchParams.get('token');
 
-    // Перевіряємо токен при завантаженні компонента
     useEffect(() => {
         if (!token) {
             setIsValidToken(false);
-            setTimeout(() => navigate('/dashboard'), 3000);
+            const t = setTimeout(() => navigate('/dashboard'), 3000);
+            return () => clearTimeout(t);
         }
     }, [token, navigate]);
 
-    const handleResetPassword = async (e) => {
+    async function handleResetPassword(e) {
         e.preventDefault();
+        setError('');
+        setSuccess('');
 
         if (newPassword !== confirmPassword) {
-            alert('Passwords do not match');
+            setError('Passwords do not match');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters');
             return;
         }
 
         setLoading(true);
-
         try {
             await AuthApi.resetPassword({ token, new_password: newPassword });
-            alert('Password reset successfully!');
-            navigate('/dashboard');
-        } catch (error) {
-            alert('Error: ' + (error.message || 'Failed to reset password'));
+            setSuccess('Password reset successfully! Redirecting…');
+            setTimeout(() => navigate('/login'), 1200);
+        } catch (err) {
+            setError(err.message || 'Failed to reset password');
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     if (!isValidToken) {
         return (
             <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
                 <h2>Invalid Token</h2>
                 <p>The password reset link is invalid or has expired.</p>
+                <p>You can request a new link on the <Link to="/login">Login</Link> page.</p>
                 <p>Redirecting to dashboard...</p>
             </div>
         );
@@ -54,6 +63,8 @@ function ResetPasswordPage() {
     return (
         <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
             <h2>Reset Your Password</h2>
+            {error ? (<div className="alert" style={{ marginBottom: '12px' }}>{error}</div>) : null}
+            {success ? (<div className="alert" style={{ marginBottom: '12px', color: 'green' }}>{success}</div>) : null}
             <form onSubmit={handleResetPassword}>
                 <div style={{ marginBottom: '15px' }}>
                     <label>New Password:</label>
@@ -96,4 +107,4 @@ function ResetPasswordPage() {
     );
 }
 
-export default ResetPasswordPage;
+
