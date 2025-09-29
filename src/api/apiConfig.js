@@ -28,5 +28,7 @@ export const CUSTOM_ENDPOINTS = {
     logout: `${API_BASE_AUTH}/auth/logout`,
     refreshToken: `${API_BASE_AUTH}/auth/refresh`,
     signup: `${API_BASE_AUTH}/auth/signup`,
+    forgotPassword: `${API_BASE_AUTH}/auth/forgot-password`,
+    resetPassword: `${API_BASE_AUTH}/auth/reset-password`,
   },
 };
