@@ -30,5 +30,7 @@ export const CUSTOM_ENDPOINTS = {
     signup: `${API_BASE_AUTH}/auth/signup`,
     forgotPassword: `${API_BASE_AUTH}/auth/forgot-password`,
     resetPassword: `${API_BASE_AUTH}/auth/reset-password`,
+    google: `${API_BASE_AUTH}/auth/google`,
+    googleCallback: `${API_BASE_AUTH}/auth/callback/google`,
   },
 };

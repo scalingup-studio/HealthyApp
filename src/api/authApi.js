@@ -28,4 +28,15 @@ export const AuthApi = {
     method: "POST",
     body: { token, new_password },
   }),
+
+  // Google OAuth
+  // getGoogleAuthUrl: () => CUSTOM_ENDPOINTS.auth.google,
+
+  getGoogleAuthUrl: async () => {
+    const response = await request(CUSTOM_ENDPOINTS.auth.google);
+    return response.url; // Extract the URL from JSON
+  },
+
+
+  handleGoogleCallback: (queryString) => request(`${CUSTOM_ENDPOINTS.auth.googleCallback}?${queryString}`),
 };

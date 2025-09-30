@@ -89,7 +89,15 @@ export function LoginPage({ onOpenSignup }) {
           <div className="divider"><span>or</span></div>
 
           <div className="social-buttons">
-            <button type="button" className="btn outline" onClick={() => alert("Google OAuth integration depends on your backend")}>
+            <button type="button" className="btn outline" onClick={async () => {
+              try {
+                const url = await AuthApi.getGoogleAuthUrl(); // Fetch the URL
+                window.location.href = url; // Then redirect
+              } catch (err) {
+                console.error('Failed to initiate Google OAuth', err);
+                setError('Failed to start Google login. Please try again.');
+              }
+            }}>
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
               <span>Log in with Google</span>
             </button>
