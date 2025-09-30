@@ -1,33 +1,26 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const TOKEN_STORAGE_KEY = "authToken";
+import { AuthApi } from "../api/authApi";
 
 export default function OAuthCallbackGoogle() {
     const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
-        function handleRedirect() {
+        async function handle() {
             try {
-                // Отримуємо токен з URL параметрів
-                const urlParams = new URLSearchParams(location.search);
-                const token = urlParams.get('authToken');
-                
-                if (token) {
-                    localStorage.setItem(TOKEN_STORAGE_KEY, token);
-                    navigate("/dashboard", { replace: true });
-                } else {
-                    console.error("No token found in URL");
-                    navigate("/login", { replace: true });
-                }
+                const query = location.search?.replace(/^\?/, "") || "";
+                // Токен автоматично зберігається в HTTPOnly cookie
+                await AuthApi.handleGoogleCallback(query);
+                console.log("OAuthCallbackGoogle")
+                // Перенаправляємо на головну
+                window.location.href = "/"; // 🔴 Використовуємо window.location для повного перезавантаження
             } catch (err) {
                 console.error("Google OAuth callback failed", err);
                 navigate("/login", { replace: true });
             }
         }
-        
-        handleRedirect();
+        handle();
     }, [location.search, navigate]);
 
     return (

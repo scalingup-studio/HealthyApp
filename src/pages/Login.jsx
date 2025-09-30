@@ -16,13 +16,13 @@ export function LoginPage({ onOpenSignup }) {
   const navigate = useNavigate();
 
   // Реальний Xano login endpoint
-  const TOKEN_STORAGE_KEY = "authToken";
+  // const TOKEN_STORAGE_KEY = "authToken";
 
-  function persistToken(token, rememberFlag) {
-    if (!token) return;
-    if (rememberFlag) localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    else sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-  }
+  // function persistToken(token, rememberFlag) {
+  //   if (!token) return;
+  //   if (rememberFlag) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  //   else sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+  // }
 
   function validate() {
     let ok = true;
@@ -43,16 +43,16 @@ export function LoginPage({ onOpenSignup }) {
     e.preventDefault();
     setError("");
     if (!validate()) return;
-    // Bypass real auth for now; navigate to dashboard
+    
     try {
       setLoading(true);
-      const data = await AuthApi.login({ email, password });
-      const token = data.token || data.authToken || data.jwt;
-      if (!token) throw new Error("Server did not return a token");
-      persistToken(token, remember);
-      window.location.href = "/";
+      // Токен автоматично зберігається в HTTPOnly cookie
+      await AuthApi.login({ email, password });
+      
+      // Перенаправляємо на головну сторінку
+      window.location.href = "/"; // 🔴 Використовуємо window.location
     } catch (err) {
-      setError(err.message || "Unexpected error");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
