@@ -7,26 +7,36 @@ export default function OAuthCallbackGoogle() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        async function handle() {
+
+        console.log("🔵 OAuthCallbackGoogle MOUNTED");
+        console.log("🔵 Full URL search:", location.search);
+        async function handleGoogleCallback() {
             try {
                 const query = location.search?.replace(/^\?/, "") || "";
-                // Токен автоматично зберігається в HTTPOnly cookie
+                console.log("Processing Google OAuth callback with query:", query);
+                
+                // Вызываем API для обработки callback от Google
                 await AuthApi.handleGoogleCallback(query);
-                console.log("OAuthCallbackGoogle")
-                // Перенаправляємо на головну
-                window.location.href = "/"; // 🔴 Використовуємо window.location для повного перезавантаження
+                console.log("Google OAuth callback successful");
+                
+                // Перенаправляем на главную после успешной аутентификации
+                navigate("/", { replace: true });
+                
             } catch (err) {
                 console.error("Google OAuth callback failed", err);
-                navigate("/login", { replace: true });
+                // Перенаправляем на страницу логина при ошибке
+                navigate("/login", { replace: true, state: { error: "Google authentication failed" } });
             }
         }
-        handle();
+
+        handleGoogleCallback();
     }, [location.search, navigate]);
 
     return (
-        <div style={{ maxWidth: 360, margin: "64px auto", padding: 16 }}>
+        <div style={{ maxWidth: 360, margin: "64px auto", padding: 16, textAlign: "center" }}>
             <h3>Signing you in…</h3>
             <p>Please wait while we complete Google sign-in.</p>
+            <div>Processing authentication...</div>
         </div>
     );
 }

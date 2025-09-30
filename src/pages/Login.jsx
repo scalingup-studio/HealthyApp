@@ -46,11 +46,12 @@ export function LoginPage({ onOpenSignup }) {
     
     try {
       setLoading(true);
-      // Токен автоматично зберігається в HTTPOnly cookie
-      await AuthApi.login({ email, password });
+      const response = await AuthApi.login({ email, password });
+      console.log("response", response)
       
       // Перенаправляємо на головну сторінку
-      window.location.href = "/"; // 🔴 Використовуємо window.location
+      navigate("/");
+     
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
