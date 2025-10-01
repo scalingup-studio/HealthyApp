@@ -1,8 +1,7 @@
 export const API_BASE = "https://xu6p-ejbd-2ew4.n7e.xano.io/api:5PA_dIPO";
-export const API_BASE_AUTH = "https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5"
+export const API_BASE_AUTH = "https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5";
 
-
-// Function to create CRUD endpoints
+// CRUD helper
 function crud(table) {
   return {
     getAll: `${API_BASE}/${table}`,
@@ -14,7 +13,6 @@ function crud(table) {
 }
 
 export const ENDPOINTS = {
-  // Everyone uses {user_id}
   users: crud("users"),
   userSettings: crud("user_settings"),
   goals: crud("goals"),
@@ -32,5 +30,6 @@ export const CUSTOM_ENDPOINTS = {
     resetPassword: `${API_BASE_AUTH}/auth/reset-password`,
     google: `${API_BASE_AUTH}/auth/google`,
     googleCallback: `${API_BASE_AUTH}/auth/callback/google`,
+    // ❌ checkAuth видалено - не потрібен
   },
 };
