@@ -16,13 +16,13 @@ export function LoginPage({ onOpenSignup }) {
   const navigate = useNavigate();
 
   // Реальний Xano login endpoint
-  const TOKEN_STORAGE_KEY = "authToken";
+  // const TOKEN_STORAGE_KEY = "authToken";
 
-  function persistToken(token, rememberFlag) {
-    if (!token) return;
-    if (rememberFlag) localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    else sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-  }
+  // function persistToken(token, rememberFlag) {
+  //   if (!token) return;
+  //   if (rememberFlag) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  //   else sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+  // }
 
   function validate() {
     let ok = true;
@@ -43,16 +43,17 @@ export function LoginPage({ onOpenSignup }) {
     e.preventDefault();
     setError("");
     if (!validate()) return;
-    // Bypass real auth for now; navigate to dashboard
+    
     try {
       setLoading(true);
-      const data = await AuthApi.login({ email, password });
-      const token = data.token || data.authToken || data.jwt;
-      if (!token) throw new Error("Server did not return a token");
-      persistToken(token, remember);
-      window.location.href = "/";
+      const response = await AuthApi.login({ email, password });
+      console.log("response", response)
+      
+      // Перенаправляємо на головну сторінку
+      navigate("/");
+     
     } catch (err) {
-      setError(err.message || "Unexpected error");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -89,7 +90,15 @@ export function LoginPage({ onOpenSignup }) {
           <div className="divider"><span>or</span></div>
 
           <div className="social-buttons">
-            <button type="button" className="btn outline" onClick={() => alert("Google OAuth integration depends on your backend")}>
+            <button type="button" className="btn outline" onClick={async () => {
+              try {
+                const url = await AuthApi.getGoogleAuthUrl(); // Fetch the URL
+                window.location.href = url; // Then redirect
+              } catch (err) {
+                console.error('Failed to initiate Google OAuth', err);
+                setError('Failed to start Google login. Please try again.');
+              }
+            }}>
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
               <span>Log in with Google</span>
             </button>
