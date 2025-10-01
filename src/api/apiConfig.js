@@ -30,6 +30,7 @@ export const CUSTOM_ENDPOINTS = {
     resetPassword: `${API_BASE_AUTH}/auth/reset-password`,
     google: `${API_BASE_AUTH}/auth/google`,
     googleCallback: `${API_BASE_AUTH}/auth/callback/google`,
+    googleCallback: `${API_BASE_AUTH}/auth/success`,
     checkAuth: `${API_BASE_AUTH}/auth/check-auth`, // якщо бек підтримує
   },
 };

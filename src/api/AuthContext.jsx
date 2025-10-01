@@ -9,53 +9,43 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [refreshLoading, setRefreshLoading] = useState(false);
 
-  // Функція для перевірки наявності refresh_token cookie
-  const hasRefreshToken = () => {
-      const cookies = document.cookie;
-    return cookies.includes('refresh_token=');
-  };
-
   useEffect(() => {
     async function initAuth() {
-      // Перевіряємо чи взагалі є refresh_token перед запитом
-      if (!hasRefreshToken()) {
-        console.log("No refresh token found - user not authenticated");
-        setLoading(false);
-        return;
-      }
-
       try {
-        // 🔄 Спершу пробуємо отримати новий токен через refresh
+        console.log('🔄 Attempting auto-authentication with refresh token...');
+
+        // Try to get new authToken using refresh_token cookie
+        // If no cookie exists, this will fail and user stays logged out
         const refreshRes = await AuthApi.refreshToken();
-        
+
         if (refreshRes?.authToken) {
+          console.log('✅ Auto-authentication successful');
           setAuthToken(refreshRes.authToken);
           setUser(refreshRes.user ?? null);
         } else {
-          // Якщо refresh не вдався, користувач не авторизований
+          console.log('ℹ️ No valid session found');
           setAuthToken(null);
           setUser(null);
         }
       } catch (error) {
-        // Будь-яка помилка = не авторизований
-        console.log("Auto-authentication failed:", error.message);
+        // No valid refresh token = user not authenticated
+        console.log('ℹ️ Auto-authentication failed (no valid session):', error.message);
         setAuthToken(null);
         setUser(null);
       } finally {
         setLoading(false);
       }
     }
-    
+
     initAuth();
   }, []);
 
   async function login(email, password) {
     try {
       const res = await AuthApi.login({ email, password });
-      // ✅ Правильні назви полів з бекенду
-        setAuthToken(res.authToken);
-        setUser(res.user ?? null);
-        return { success: true };
+      setAuthToken(res.authToken);
+      setUser(res.user ?? null);
+      return { success: true };
     } catch (error) {
       console.error("Login error:", error);
       return { success: false, error: error.message };
@@ -73,22 +63,27 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Функція для ручного оновлення токена
+  // Manual token refresh function
   const refreshAuth = async () => {
     if (refreshLoading) return null;
-    
+
     setRefreshLoading(true);
     try {
+      console.log('🔄 Manually refreshing auth token...');
       const refreshRes = await AuthApi.refreshToken();
+
       if (refreshRes?.authToken) {
+        console.log('✅ Manual refresh successful');
         setAuthToken(refreshRes.authToken);
         setUser(refreshRes.user ?? null);
         return refreshRes.authToken;
-    }
+      }
+
+      console.log('❌ Refresh returned no token');
       return null;
     } catch (error) {
-      console.error("Manual refresh failed:", error);
-      // При неуспішному refresh - розлогінюємо
+      console.error("❌ Manual refresh failed:", error);
+      // On failed refresh, clear auth state
       setAuthToken(null);
       setUser(null);
       return null;
@@ -97,30 +92,27 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Функція для перевірки чи авторизований користувач
+  // Check if user is authenticated
   const isAuthenticated = () => {
     return !!authToken && !!user;
   };
 
   const value = {
-    // Стан
+    // State
     authToken,
     user,
     loading,
     refreshLoading,
-    
-    // Функції
+
+    // Functions
     login,
     logout,
     refreshAuth,
     isAuthenticated,
-    
-    // Сетери
+
+    // Setters (for manual updates if needed)
     setAuthToken,
     setUser,
-    
-    // Утиліти
-    hasRefreshToken
   };
 
   return (

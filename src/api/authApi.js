@@ -34,7 +34,12 @@ export const AuthApi = {
     return response.url;
   },
 
-  handleGoogleCallback: (queryString) =>
-    request(`${CUSTOM_ENDPOINTS.auth.googleCallback}?${queryString}`),
+  // handleGoogleCallback: (queryString) =>
+  //   request(`${CUSTOM_ENDPOINTS.auth.googleCallback}?${queryString}`),
     
+  handleGoogleCallback: (code) =>
+    request(`${CUSTOM_ENDPOINTS.auth.googleCallback}?code=${code}`, {
+      method: "GET",
+      credentials: "include" // Important for cookies
+    }),
 };
