@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
 
   // Функція для перевірки наявності refresh_token cookie
   const hasRefreshToken = () => {
-    const cookies = document.cookie;
+      const cookies = document.cookie;
     return cookies.includes('refresh_token=');
   };
 
@@ -53,9 +53,9 @@ export function AuthProvider({ children }) {
     try {
       const res = await AuthApi.login({ email, password });
       // ✅ Правильні назви полів з бекенду
-      setAuthToken(res.authToken);
-      setUser(res.user ?? null);
-      return { success: true };
+        setAuthToken(res.authToken);
+        setUser(res.user ?? null);
+        return { success: true };
     } catch (error) {
       console.error("Login error:", error);
       return { success: false, error: error.message };
@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
         setAuthToken(refreshRes.authToken);
         setUser(refreshRes.user ?? null);
         return refreshRes.authToken;
-      }
+    }
       return null;
     } catch (error) {
       console.error("Manual refresh failed:", error);

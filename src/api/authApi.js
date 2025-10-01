@@ -37,5 +37,4 @@ export const AuthApi = {
   handleGoogleCallback: (queryString) =>
     request(`${CUSTOM_ENDPOINTS.auth.googleCallback}?${queryString}`),
     
-  // ❌ checkAuth видалено - не використовується
 };
