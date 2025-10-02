@@ -1,12 +1,12 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+// import React from "react";
+// import { Outlet } from "react-router-dom";
 
-export default function Layout() {
-    return (
-        <div className="app-layout">
-            <Outlet />
-        </div>
-    );
-}
+// export default function Layout() {
+//     return (
+//         <div className="app-layout">
+//             <Outlet />
+//         </div>
+//     );
+// }
 
 

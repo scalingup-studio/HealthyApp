@@ -16,7 +16,7 @@ export function LoginPage({ onOpenSignup }) {
   const [forgotOpen, setForgotOpen] = React.useState(false);
   
   const navigate = useNavigate();
-  const { login, authToken, setAuthToken, setUser } = useAuth(); // ✅ Додаємо setAuthToken та setUser
+  const { login, authToken, setAuthToken, setUser } = useAuth(); 
 
   function validate() {
     let ok = true;
