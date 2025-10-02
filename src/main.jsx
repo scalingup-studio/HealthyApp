@@ -40,7 +40,7 @@ function AppRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage open />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/HealthyApp" element={<Layout />} />
+        {/* <Route path="/HealthyApp" element={<Layout />} /> */}
         
         {/* ✅ Google OAuth callback route */}
         <Route path="/auth/callback/google" element={<OAuthCallbackGoogle />} />
