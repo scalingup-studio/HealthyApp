@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
 import { AuthApi } from "../api/authApi";
+import { useAuth } from "../api/AuthContext";
 
 export function LoginPage({ onOpenSignup }) {
   const [email, setEmail] = React.useState("");
@@ -13,16 +14,9 @@ export function LoginPage({ onOpenSignup }) {
   const [emailHint, setEmailHint] = React.useState("");
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
+  
   const navigate = useNavigate();
-
-  // Реальний Xano login endpoint
-  // const TOKEN_STORAGE_KEY = "authToken";
-
-  // function persistToken(token, rememberFlag) {
-  //   if (!token) return;
-  //   if (rememberFlag) localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  //   else sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
-  // }
+  const { login, authToken, setAuthToken, setUser } = useAuth(); // ✅ Додаємо setAuthToken та setUser
 
   function validate() {
     let ok = true;
@@ -46,13 +40,24 @@ export function LoginPage({ onOpenSignup }) {
     
     try {
       setLoading(true);
-      const response = await AuthApi.login({ email, password });
-      console.log("response", response)
       
-      // Перенаправляємо на головну сторінку
-      navigate("/");
-     
+      // ✅ Використовуємо AuthApi напряму для більшого контролю
+      const response = await AuthApi.login({ email, password });
+      console.log('🔍 API Login response:', response);
+      
+      if (response.authToken) {
+        // ✅ Оновлюємо контекст вручну
+        setAuthToken(response.authToken);
+        setUser(response.user ?? null);
+        
+        console.log('✅ Auth context updated, navigating to dashboard...');
+        navigate("/dashboard");
+      } else {
+        setError("No authentication token received from server");
+      }
+      
     } catch (err) {
+      console.error('❌ Login error:', err);
       setError(err.message || "Login failed");
     } finally {
       setLoading(false);
@@ -66,53 +71,116 @@ export function LoginPage({ onOpenSignup }) {
         <form className="form" onSubmit={onSubmit} noValidate>
           <div className="form-field">
             <label htmlFor="email">Email address</label>
-            <input id="email" name="email" type="email" placeholder="Enter your email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input 
+              id="email" 
+              name="email" 
+              type="email" 
+              placeholder="Enter your email" 
+              autoComplete="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
             <p className="field-hint">{emailHint}</p>
           </div>
 
           <div className="form-field password">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <button type="button" className="toggle-visibility" aria-label="Toggle password visibility" onClick={() => setShowPassword(s => !s)}>{showPassword ? "Hide" : "Show"}</button>
+            <input 
+              id="password" 
+              name="password" 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Enter your password" 
+              autoComplete="current-password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+            <button 
+              type="button" 
+              className="toggle-visibility" 
+              aria-label="Toggle password visibility" 
+              onClick={() => setShowPassword(s => !s)}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
             <p className="field-hint">{passwordHint}</p>
           </div>
-          <button type="submit" className="btn primary" disabled={loading}>{loading ? "Loading…" : "Log In"}</button>
+          
+          <button type="submit" className="btn primary" disabled={loading}>
+            {loading ? "Loading…" : "Log In"}
+          </button>
 
           <div className="form-row between">
             <label className="checkbox">
-              <input id="remember" name="remember" type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+              <input 
+                id="remember" 
+                name="remember" 
+                type="checkbox" 
+                checked={remember} 
+                onChange={(e) => setRemember(e.target.checked)} 
+              />
               <span>Remember me</span>
             </label>
-            <a className="link" href="#" onClick={(e) => { e.preventDefault(); setForgotOpen(true); }}>Forgot Password?</a>
+            <a 
+              className="link" 
+              href="#" 
+              onClick={(e) => { 
+                e.preventDefault(); 
+                setForgotOpen(true); 
+              }}
+            >
+              Forgot Password?
+            </a>
           </div>
-
 
           <div className="divider"><span>or</span></div>
 
           <div className="social-buttons">
-            <button type="button" className="btn outline" onClick={async () => {
-              try {
-                const url = await AuthApi.getGoogleAuthUrl(); // Fetch the URL
-                window.location.href = url; // Then redirect
-              } catch (err) {
-                console.error('Failed to initiate Google OAuth', err);
-                setError('Failed to start Google login. Please try again.');
-              }
-            }}>
+            <button 
+              type="button" 
+              className="btn outline" 
+              onClick={async () => {
+                try {
+                  const url = await AuthApi.getGoogleAuthUrl();
+                  window.location.href = url;
+                } catch (err) {
+                  console.error('Failed to initiate Google OAuth', err);
+                  setError('Failed to start Google login. Please try again.');
+                }
+              }}
+            >
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
               <span>Log in with Google</span>
             </button>
-            <button type="button" className="btn outline" onClick={() => alert("Apple Sign-In integration depends on your backend")}>
+            
+            <button 
+              type="button" 
+              className="btn outline" 
+              onClick={() => alert("Apple Sign-In integration depends on your backend")}
+            >
               <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" />
               <span>Log in with Apple</span>
             </button>
           </div>
-          <p className="alt-action">No account yet? {onOpenSignup ? (
-            <a className="link" href="#" onClick={(e) => { e.preventDefault(); onOpenSignup?.(); }}>Sign up</a>
-          ) : (
-            <Link className="link" to="/signup">Sign up</Link>
-          )}
+          
+          <p className="alt-action">
+            No account yet? {onOpenSignup ? (
+              <a 
+                className="link" 
+                href="#" 
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  onOpenSignup?.(); 
+                }}
+              >
+                Sign up
+              </a>
+            ) : (
+              <Link className="link" to="/signup">Sign up</Link>
+            )}
           </p>
+          
           {error ? <div className="alert">{error}</div> : null}
         </form>
 
@@ -120,6 +188,7 @@ export function LoginPage({ onOpenSignup }) {
           <ForgotForm onClose={() => setForgotOpen(false)} />
         </Modal>
       </section>
+      
       <aside className="artwork">
         <div className="placeholder" aria-hidden="true">
           <div className="x-line"></div>
@@ -161,12 +230,19 @@ function ForgotForm({ onClose }) {
     <form onSubmit={submit} className="form" noValidate>
       <div className="form-field">
         <label htmlFor="forgotEmail">Email address</label>
-        <input id="forgotEmail" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+        <input 
+          id="forgotEmail" 
+          type="email" 
+          value={email} 
+          onChange={e => setEmail(e.target.value)} 
+          placeholder="you@example.com" 
+          required 
+        />
       </div>
       {error ? <div className="alert">{error}</div> : null}
-      <button className="btn primary" type="submit" disabled={loading}>{loading ? "Sending…" : "Send reset link"}</button>
+      <button className="btn primary" type="submit" disabled={loading}>
+        {loading ? "Sending…" : "Send reset link"}
+      </button>
     </form>
   );
 }
-
-
