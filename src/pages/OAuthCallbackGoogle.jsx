@@ -15,9 +15,10 @@ import { useAuth } from '../api/AuthContext';
  */
 export default function OAuthCallbackGoogle() {
   const navigate = useNavigate();
-  const { refreshAuth, authToken } = useAuth();
+  const { refreshAuth, authToken, setAuthToken, setUser } = useAuth();
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('Initializing...');
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
     async function handleCallback() {
@@ -28,7 +29,7 @@ export default function OAuthCallbackGoogle() {
         // Wait a moment for cookies to be set by browser
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Check if we already have authToken (shouldn't happen but just in case)
+        // Check if we already have authToken
         if (authToken) {
           console.log('✅ Auth token already present, redirecting...');
           navigate('/dashboard', { replace: true });
@@ -39,9 +40,19 @@ export default function OAuthCallbackGoogle() {
         console.log('🔄 Calling refreshAuth to exchange cookie for token...');
         
         // Use the refresh_token cookie to get authToken
-        // The cookie is HttpOnly so we can't read it, but it's automatically
-        // sent with the refresh request to Xano
         const newAuthToken = await refreshAuth();
+        
+        console.log('📋 refreshAuth result:', {
+          newAuthToken,
+          tokenLength: newAuthToken?.length,
+          tokenPreview: newAuthToken?.substring(0, 20) + '...'
+        });
+        
+        setDebugInfo({
+          hasToken: !!newAuthToken,
+          tokenLength: newAuthToken?.length,
+          authContext: { authToken, user: useAuth().user }
+        });
         
         if (!newAuthToken) {
           throw new Error('Failed to get authentication token. The login session may have expired.');
@@ -58,20 +69,30 @@ export default function OAuthCallbackGoogle() {
         
       } catch (err) {
         console.error('❌ OAuth callback error:', err);
+        console.error('Error details:', {
+          message: err.message,
+          status: err.status,
+          data: err.data
+        });
+        
         const errorMessage = err.message || 'Failed to complete Google login';
         setError(errorMessage);
+        setDebugInfo({
+          error: errorMessage,
+          errorStatus: err.status,
+          errorData: err.data
+        });
         
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate('/login', { 
-            replace: true,
-            state: { error: errorMessage }
-          });
-        }, 3000);
+        // Redirect to login after 5 seconds so user can read error
+        // setTimeout(() => {
+        //   navigate('/login', { 
+        //     replace: true,
+        //     state: { error: errorMessage }
+        //   });
+        // }, 5000);
       }
     }
     
-    // Start the process after a small delay
     const timer = setTimeout(handleCallback, 200);
     return () => clearTimeout(timer);
     
@@ -80,19 +101,37 @@ export default function OAuthCallbackGoogle() {
   if (error) {
     return (
       <div style={{ 
-        maxWidth: 400, 
+        maxWidth: 600, 
         margin: '100px auto', 
         padding: 24, 
-        textAlign: 'center',
         borderRadius: 8,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         backgroundColor: '#111',
         color: '#fff'
       }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
-        <h3 style={{ color: '#ff4c4c', marginTop: 0 }}>Authentication Failed</h3>
-        <p style={{ color: '#ccc', marginBottom: 8 }}>{error}</p>
-        <p style={{ fontSize: '14px', color: '#777' }}>Redirecting to login...</p>
+        <div style={{ fontSize: 48, marginBottom: 16, textAlign: 'center' }}>❌</div>
+        <h3 style={{ color: '#ff4c4c', marginTop: 0, textAlign: 'center' }}>Authentication Failed</h3>
+        <p style={{ color: '#ccc', marginBottom: 8, textAlign: 'center' }}>{error}</p>
+        
+        {debugInfo && (
+          <details style={{ marginTop: 20, padding: 12, backgroundColor: '#1a1a1a', borderRadius: 4 }}>
+            <summary style={{ cursor: 'pointer', color: '#00bace' }}>Debug Info</summary>
+            <pre style={{ 
+              fontSize: 11, 
+              overflow: 'auto', 
+              marginTop: 8,
+              padding: 8,
+              backgroundColor: '#0a0a0a',
+              borderRadius: 4
+            }}>
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </details>
+        )}
+        
+        <p style={{ fontSize: '14px', color: '#777', textAlign: 'center', marginTop: 16 }}>
+          Redirecting to login in 5 seconds...
+        </p>
       </div>
     );
   }
@@ -124,6 +163,23 @@ export default function OAuthCallbackGoogle() {
           animation: 'spin 1s linear infinite'
         }}></div>
       </div>
+      
+      {debugInfo && (
+        <details style={{ marginTop: 20, padding: 12, backgroundColor: '#1a1a1a', borderRadius: 4, textAlign: 'left' }}>
+          <summary style={{ cursor: 'pointer', color: '#00bace', textAlign: 'center' }}>Debug Info</summary>
+          <pre style={{ 
+            fontSize: 11, 
+            overflow: 'auto', 
+            marginTop: 8,
+            padding: 8,
+            backgroundColor: '#0a0a0a',
+            borderRadius: 4
+          }}>
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+        </details>
+      )}
+      
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

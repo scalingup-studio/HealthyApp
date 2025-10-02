@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
         // Try to get new authToken using refresh_token cookie
         // If no cookie exists, this will fail and user stays logged out
         const refreshRes = await AuthApi.refreshToken();
+        console.log('🔄 Attempting auto-authentication with refresh token... completed, token = ', JSON.stringify(refreshRes))
 
         if (refreshRes?.authToken) {
           console.log('✅ Auto-authentication successful');
@@ -71,7 +72,7 @@ export function AuthProvider({ children }) {
     try {
       console.log('🔄 Manually refreshing auth token...');
       const refreshRes = await AuthApi.refreshToken();
-
+      console.log('🔄 Manually refreshing auth token... completed, token = ', JSON.stringify(refreshRes))
       if (refreshRes?.authToken) {
         console.log('✅ Manual refresh successful');
         setAuthToken(refreshRes.authToken);
