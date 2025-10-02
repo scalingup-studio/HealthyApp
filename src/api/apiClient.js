@@ -23,7 +23,8 @@ function onRefreshed(authToken) {
   refreshSubscribers = [];
 }
 
-export const request = async (url, options = {}, retry = true) => {
+// ✅ Експортована функція authRequest
+export const authRequest = async (url, options = {}, retry = true) => {
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -32,6 +33,12 @@ export const request = async (url, options = {}, retry = true) => {
     credentials: "include",
     ...options,
   };
+
+  // Додаємо токен з localStorage до заголовків
+  const authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    config.headers["Authorization"] = `Bearer ${authToken}`;
+  }
 
   if (config.body && typeof config.body === "object") {
     config.body = JSON.stringify(config.body);
@@ -54,7 +61,7 @@ export const request = async (url, options = {}, retry = true) => {
                 "Authorization": `Bearer ${newAuthToken}`
               }
             };
-            request(url, retryConfig, false)
+            authRequest(url, retryConfig, false)
               .then(resolve)
               .catch(reject);
           });
@@ -82,7 +89,7 @@ export const request = async (url, options = {}, retry = true) => {
             }
           };
           
-          return request(url, retryConfig, false);
+          return authRequest(url, retryConfig, false);
         } else {
           throw new Error("No authToken received from refresh");
         }
@@ -145,33 +152,107 @@ export const request = async (url, options = {}, retry = true) => {
   }
 };
 
+// ✅ Базова функція request (без авторизації)
+export const request = async (url, options = {}) => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  if (config.body && typeof config.body === "object") {
+    config.body = JSON.stringify(config.body);
+  }
+
+  try {
+    const response = await fetch(url, config);
+    
+    let data = null;
+    const contentType = response.headers.get("content-type") || "";
+    
+    try {
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = text ? { message: text } : null;
+      }
+    } catch (parseError) {
+      console.warn("Failed to parse response:", parseError);
+      data = { message: "Failed to parse response" };
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        data?.message || `Request failed with status ${response.status}`, 
+        response.status, 
+        data
+      );
+    }
+
+    return data ?? {};
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw new ApiError(
+        "Network error: Unable to connect to server", 
+        0, 
+        { networkError: true }
+      );
+    }
+    
+    throw new ApiError(error.message || "Unknown error occurred", 0, null);
+  }
+};
+
 // Додаткові утиліти для роботи з API
 export const apiClient = {
-  // Основний метод
+  // Основні методи
   request,
+  authRequest,
   
-  // GET запит
+  // GET запити
   get: (url, options = {}) => request(url, { ...options, method: 'GET' }),
+  authGet: (url, options = {}) => authRequest(url, { ...options, method: 'GET' }),
   
-  // POST запит
+  // POST запити
   post: (url, data, options = {}) => request(url, { 
     ...options, 
     method: 'POST', 
     body: data 
   }),
+  authPost: (url, data, options = {}) => authRequest(url, { 
+    ...options, 
+    method: 'POST', 
+    body: data 
+  }),
   
-  // PUT запит
+  // PUT запити
   put: (url, data, options = {}) => request(url, { 
     ...options, 
     method: 'PUT', 
     body: data 
   }),
+  authPut: (url, data, options = {}) => authRequest(url, { 
+    ...options, 
+    method: 'PUT', 
+    body: data 
+  }),
   
-  // DELETE запит
+  // DELETE запити
   delete: (url, options = {}) => request(url, { ...options, method: 'DELETE' }),
+  authDelete: (url, options = {}) => authRequest(url, { ...options, method: 'DELETE' }),
   
-  // PATCH запит
+  // PATCH запити
   patch: (url, data, options = {}) => request(url, { 
+    ...options, 
+    method: 'PATCH', 
+    body: data 
+  }),
+  authPatch: (url, data, options = {}) => authRequest(url, { 
     ...options, 
     method: 'PATCH', 
     body: data 

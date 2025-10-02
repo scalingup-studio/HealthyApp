@@ -33,4 +33,8 @@ export const CUSTOM_ENDPOINTS = {
     googleCallback: `${API_BASE_AUTH}/auth/success`,
     checkAuth: `${API_BASE_AUTH}/auth/check-auth`, // якщо бек підтримує
   },
+  onboarding: {
+    step: (step) => `${API_BASE}/onboarding/${step}`,
+  },
 };
+

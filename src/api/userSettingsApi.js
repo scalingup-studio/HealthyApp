@@ -1,5 +1,5 @@
 import { authRequest } from "./apiClient";
-import { ENDPOINTS } from "./apiConfig";
+import { ENDPOINTS, CUSTOM_ENDPOINTS } from "./apiConfig";
 
 export const UserSettingsApi = {
   // GET /user_settings - Query all user_settings records
@@ -23,5 +23,12 @@ export const UserSettingsApi = {
   // DELETE /user_settings/{user_id} - Delete user_settings record
   delete: (user_id) => authRequest(ENDPOINTS.userSettings.remove(user_id), {
     method: "DELETE",
+  }),
+
+  // ✅ ONBOARDING METHOD
+  // POST /onboarding/{step} - Save data for specific onboarding step
+  saveOnboardingStep: (step, data) => authRequest(CUSTOM_ENDPOINTS.onboarding.step(step), {
+    method: "POST",
+    body: data,
   }),
 };
