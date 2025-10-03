@@ -64,6 +64,29 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // ✅ Додано функцію для завершення onboarding
+  async function completeOnboarding(status = "completed") {
+    try {
+      console.log('🎯 Completing onboarding with status:', status);
+      
+      // Оновлюємо стан користувача
+      setUser(prev => ({
+        ...prev,
+        onboarding_completed: true,
+        onboarding_status: status
+      }));
+      
+      // Тут можна додати виклик API для оновлення на сервері, якщо потрібно
+      // await AuthApi.updateOnboardingStatus({ onboarding_completed: true });
+      
+      console.log('✅ Onboarding marked as completed in AuthContext');
+      return { success: true };
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Manual token refresh function
   const refreshAuth = async () => {
     if (refreshLoading) return null;
@@ -98,6 +121,11 @@ export function AuthProvider({ children }) {
     return !!authToken && !!user;
   };
 
+  // ✅ Додано функцію для перевірки статусу onboarding
+  const hasCompletedOnboarding = () => {
+    return user?.onboarding_completed === true;
+  };
+
   const value = {
     // State
     authToken,
@@ -110,6 +138,8 @@ export function AuthProvider({ children }) {
     logout,
     refreshAuth,
     isAuthenticated,
+    completeOnboarding, // ✅ Додано
+    hasCompletedOnboarding, // ✅ Додано
 
     // Setters (for manual updates if needed)
     setAuthToken,

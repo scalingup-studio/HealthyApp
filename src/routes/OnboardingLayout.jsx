@@ -68,7 +68,8 @@ const OnboardingPage = () => {
       }
       setCurrentStep(prev => prev + 1);
     } else {
-      handleComplete();
+        // ✅ If it's the last step, call complete
+      await handleComplete();
     }
   };
 
@@ -200,10 +201,11 @@ const OnboardingPage = () => {
       await saveCurrentStep();
       
       // ✅ Викликаємо completeOnboarding для оновлення статусу в AuthContext
-      completeOnboarding();
-      
+      await completeOnboarding("completed"); // Змінено тут
+    
+      console.log('')
       // ✅ Перенаправляємо на dashboard
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
       
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -424,7 +426,7 @@ const OnboardingPage = () => {
           </div>
         );
 
-        case 4: // Health Goals
+      case 4: // Health Goals
         return (
           <div className="step-content">
             <h2>Health Goals</h2>
