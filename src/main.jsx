@@ -13,42 +13,41 @@ import DashboardWorkouts from "./routes/pages/Workouts.jsx";
 import DashboardNutrition from "./routes/pages/Nutrition.jsx";
 import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
-import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import OnboardingPage from "./routes/OnboardingLayout.jsx"; // ✅ Додано сторінку onboarding
-// import Layout from "./Layout.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
+import OnboardingPage from "./routes/OnboardingLayout-TEST.jsx";
 import "./index.css";
+import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
 
-// 🔐 Component for protecting private routes
+// 🔐 Component for authorization verification
 function PrivateRoute({ children }) {
-  const { authToken, loading } = useAuth();
+  const { authToken, loading, user } = useAuth();
 
-  console.log('PrivateRoute - authToken:', authToken);
-  console.log('PrivateRoute - loading:', loading);
+  // console.log('PrivateRoute - authToken:', authToken);
+  // console.log('PrivateRoute - loading:', loading);
+  // console.log('PrivateRoute - user:', user);
 
   if (loading) return <p>Loading…</p>;
   if (!authToken) {
     console.log('No authToken - redirecting to login');
     return <Navigate to="/login" replace />;
   }
+  
   return children;
 }
 
-// 🔐 Component for onboarding redirect - перенаправляє на onboarding якщо не завершено
-function OnboardingRoute({ children }) {
-  const { authToken, loading, user } = useAuth();
-
+// 🔄 Component for automatic redirection between onboarding and dashboard
+function AutoRedirectRoute() {
+  const { user, loading } = useAuth();
+  
   if (loading) return <p>Loading…</p>;
-  if (!authToken) return <Navigate to="/login" replace />;
   
-  // Перевіряємо, чи користувач завершив onboarding
-  // Тут можна додати логіку перевірки з бази даних або контексту
-  const hasCompletedOnboarding = user?.onboarding_completed; // Припустиме поле
-  
-  if (!hasCompletedOnboarding) {
+ // If onboarding is not completed - redirect to onboarding
+  if (!user?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
   
-  return children;
+ // If onboarding is complete - redirect to dashboard
+  return <Navigate to="/dashboard" replace />;
 }
 
 function AppRouter() {
@@ -64,26 +63,30 @@ function AppRouter() {
         <Route path="/auth/callback/google" element={<OAuthCallbackGoogle />} />
         <Route path="/auth/success" element={<OAuthCallbackGoogle />} />
 
-        {/* 🔐 Onboarding page - обов'язкова після авторизації */}
+        {/* 🔐 Onboarding page - only for non-completed users */}
         <Route 
           path="/onboarding" 
           element={
             <PrivateRoute>
-              <OnboardingPage />
+              <OnboardingGuard>
+                <OnboardingPage />
+              </OnboardingGuard>
             </PrivateRoute>
           } 
         />
 
-        {/* Redirect root to onboarding або dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+       {/* Automatic redirect from root */}
+        <Route path="/" element={<PrivateRoute><AutoRedirectRoute /></PrivateRoute>} />
 
-        {/* 🔐 Protected Dashboard - тепер з перевіркою onboarding */}
+       {/* 🔐 Protected Dashboard - for advanced users only */}
         <Route
-          path="/dashboard"
+          path="/dashboard/*"
           element={
-            <OnboardingRoute>
-              <DashboardLayout />
-            </OnboardingRoute>
+            <PrivateRoute>
+              <DashboardGuard>
+                <DashboardLayout />
+              </DashboardGuard>
+            </PrivateRoute>
           }
         >
           <Route index element={<DashboardHome />} />
@@ -92,15 +95,42 @@ function AppRouter() {
           <Route path="nutrition" element={<DashboardNutrition />} />
           <Route path="profile" element={<DashboardProfile />} />
           <Route path="settings" element={<DashboardSettings />} />
+          <Route path="health-history" element={<HealthHistoryPage />} />
         </Route>
 
         {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   );
 }
 
+// 🛡️ Захисник для onboarding - не дозволяє доступ якщо вже завершено
+function OnboardingGuard({ children }) {
+  const { user, loading, hasCompletedOnboarding } = useAuth();
+  
+  if (loading) return <p>Loading…</p>;
+  
+  // Якщо onboarding вже завершено - перенаправляємо на dashboard
+  if (hasCompletedOnboarding()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+}
+
+function DashboardGuard({ children }) {
+  const { user, loading, hasCompletedOnboarding } = useAuth();
+  
+  if (loading) return <p>Loading…</p>;
+  
+  // Якщо onboarding не завершено - перенаправляємо на onboarding
+  // if (!hasCompletedOnboarding()) {
+  //   return <Navigate to="/onboarding" replace />;
+  // }
+  
+  return children;
+}
 // 🔒 Wrap entire app in AuthProvider
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>

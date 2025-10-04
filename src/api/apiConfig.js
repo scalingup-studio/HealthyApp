@@ -18,6 +18,14 @@ export const ENDPOINTS = {
   goals: crud("goals"),
   healthData: crud("health_data"),
   profiles: crud("profiles"),
+  healthHistory: crud("health_history"),
+  medicalConditions: crud("medical_conditions"),
+  medications: crud("medications"),
+  allergies: crud("allergies"),
+  surgicalHistory: crud("surgical_history"),
+  vaccinations: crud("vaccinations"),
+  sensitivities: crud("sensitivities"),
+  familyHistory: crud("family_history"),
 };
 
 export const CUSTOM_ENDPOINTS = {
@@ -31,10 +39,12 @@ export const CUSTOM_ENDPOINTS = {
     google: `${API_BASE_AUTH}/auth/google`,
     googleCallback: `${API_BASE_AUTH}/auth/callback/google`,
     googleCallback: `${API_BASE_AUTH}/auth/success`,
-    checkAuth: `${API_BASE_AUTH}/auth/check-auth`, // якщо бек підтримує
+    checkAuth: `${API_BASE_AUTH}/auth/check-auth`,
   },
   onboarding: {
     step: (step) => `${API_BASE}/onboarding/${step}`,
   },
+  healthHistory: {
+    getHealthHistorySummary: `${API_BASE}/health_history_summary`
+  }
 };
-

@@ -310,3 +310,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+.date-input-wrapper {
+  position: relative;
+}
+
+.date-format {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.age-display {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.input-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+input[type="date"].has-value {
+  border-color: #10b981;
+}
