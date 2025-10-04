@@ -39,6 +39,7 @@ export default function DashboardLayout() {
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/nutrition">Nutrition</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/profile">Profile</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/settings">Settings</NavLink>
+          <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/health-history">Health history</NavLink>
         </div>
         <div style={{ marginTop: 16 }}>
           <button className="btn outline" onClick={handleLogOut}>Log out</button>

@@ -13,17 +13,18 @@ import DashboardWorkouts from "./routes/pages/Workouts.jsx";
 import DashboardNutrition from "./routes/pages/Nutrition.jsx";
 import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
-import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import OnboardingPage from "./routes/OnboardingLayout.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
+import OnboardingPage from "./routes/OnboardingLayout-TEST.jsx";
 import "./index.css";
+import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
 
-// 🔐 Компонент для перевірки авторизації
+// 🔐 Component for authorization verification
 function PrivateRoute({ children }) {
   const { authToken, loading, user } = useAuth();
 
-  console.log('PrivateRoute - authToken:', authToken);
-  console.log('PrivateRoute - loading:', loading);
-  console.log('PrivateRoute - user:', user);
+  // console.log('PrivateRoute - authToken:', authToken);
+  // console.log('PrivateRoute - loading:', loading);
+  // console.log('PrivateRoute - user:', user);
 
   if (loading) return <p>Loading…</p>;
   if (!authToken) {
@@ -34,18 +35,18 @@ function PrivateRoute({ children }) {
   return children;
 }
 
-// 🔄 Компонент для автоматичного перенаправлення між onboarding та dashboard
+// 🔄 Component for automatic redirection between onboarding and dashboard
 function AutoRedirectRoute() {
   const { user, loading } = useAuth();
   
   if (loading) return <p>Loading…</p>;
   
-  // Якщо onboarding не завершено - перенаправляємо на onboarding
+ // If onboarding is not completed - redirect to onboarding
   if (!user?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
   
-  // Якщо onboarding завершено - перенаправляємо на dashboard
+ // If onboarding is complete - redirect to dashboard
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -62,7 +63,7 @@ function AppRouter() {
         <Route path="/auth/callback/google" element={<OAuthCallbackGoogle />} />
         <Route path="/auth/success" element={<OAuthCallbackGoogle />} />
 
-        {/* 🔐 Onboarding page - тільки для не завершених користувачів */}
+        {/* 🔐 Onboarding page - only for non-completed users */}
         <Route 
           path="/onboarding" 
           element={
@@ -74,10 +75,10 @@ function AppRouter() {
           } 
         />
 
-        {/* Автоматичне перенаправлення з кореня */}
+       {/* Automatic redirect from root */}
         <Route path="/" element={<PrivateRoute><AutoRedirectRoute /></PrivateRoute>} />
 
-        {/* 🔐 Protected Dashboard - тільки для завершених користувачів */}
+       {/* 🔐 Protected Dashboard - for advanced users only */}
         <Route
           path="/dashboard/*"
           element={
@@ -94,6 +95,7 @@ function AppRouter() {
           <Route path="nutrition" element={<DashboardNutrition />} />
           <Route path="profile" element={<DashboardProfile />} />
           <Route path="settings" element={<DashboardSettings />} />
+          <Route path="health-history" element={<HealthHistoryPage />} />
         </Route>
 
         {/* Catch-all redirect */}
@@ -123,9 +125,9 @@ function DashboardGuard({ children }) {
   if (loading) return <p>Loading…</p>;
   
   // Якщо onboarding не завершено - перенаправляємо на onboarding
-  if (!hasCompletedOnboarding()) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  // if (!hasCompletedOnboarding()) {
+  //   return <Navigate to="/onboarding" replace />;
+  // }
   
   return children;
 }

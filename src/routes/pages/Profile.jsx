@@ -10,6 +10,21 @@ export default function DashboardProfile() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
+const calculateAgeFromDOB = (dob) => {
+  if (!dob) return null;
+  
+  const today = new Date();
+  const birthDate = new Date(dob);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
   useEffect(() => {
     async function fetchProfile() {
       if (!user || !user.id) {
@@ -22,6 +37,7 @@ export default function DashboardProfile() {
         setLoading(true);
         const data = await authRequest(ENDPOINTS.profiles.getById(user.id));
         setProfile(data);
+        console.log('data', data)
         setError(null);
       } catch (err) {
         setError(err.message || "Failed to fetch profile");
@@ -47,10 +63,12 @@ export default function DashboardProfile() {
             <p style={{ color: "var(--error)" }}>{error}</p>
           ) : profile ? (
             <>
-              <h2>{profile.name || `${user.firstName} ${user.lastName}`}</h2>
+              <h2>{profile.name || (profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : 
+               profile.first_name || profile.last_name|| "No Name")}
+              </h2>
               <p><strong>Email:</strong> {profile.email || user.email}</p>
-              <p><strong>Phone:</strong> {profile.phone || "Not provided"}</p>
-              <p><strong>Age:</strong> {profile.age || "N/A"}</p>
+              <p><strong>Phone:</strong> {profile.phone_number || "Not provided"}</p>
+              <p><strong>Age:</strong> {calculateAgeFromDOB(profile.dob) || "N/A"}</p>
               <p><strong>Gender:</strong> {profile.gender || "N/A"}</p>
             </>
           ) : (

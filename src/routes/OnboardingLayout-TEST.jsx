@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../api/AuthContext.jsx';
-import { UserSettingsApi } from '../api/userSettingsApi.js'; 
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useAuth} from '../api/AuthContext.jsx';
+import {UserSettingsApi} from '../api/userSettingsApi.js';
 import './OnboardingPage.css';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
-  const { completeOnboarding, user } = useAuth();
-  
+  const {completeOnboarding, user} = useAuth();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,27 +16,27 @@ const OnboardingPage = () => {
     lastName: '',
     email: '',
     phone: '',
-    
+
     // Health Snapshot
     age: '',
     height: '',
     weight: '',
     gender: '',
-    
+
     // Lifestyle & Habits
     diet: '',
     sleepHours: '',
     activityLevel: '',
     smoking: '',
     alcohol: '',
-    
+
     // Health Goals
     goals: [],
     targetWeight: '',
     targetDate: '',
     focusAreas: [],
     goalNotes: '',
-    
+
     // Privacy Settings
     profileVisibility: 'private',
     dataSharing: false,
@@ -44,13 +44,13 @@ const OnboardingPage = () => {
   });
 
   const steps = [
-    { id: 'welcome', title: 'Welcome' },
-    { id: 'personal', title: 'Personal Info' },
-    { id: 'health_snapshot', title: 'Health Snapshot' },
-    { id: 'lifestyle', title: 'Lifestyle & Habits' },
-    { id: 'health_goals', title: 'Health Goals' },
-    { id: 'privacy', title: 'Privacy Settings' },
-    { id: 'review', title: 'Review & Finish' }
+    {id: 'welcome', title: 'Welcome'},
+    {id: 'personal', title: 'Personal Info'},
+    {id: 'health_snapshot', title: 'Health Snapshot'},
+    {id: 'lifestyle', title: 'Lifestyle & Habits'},
+    {id: 'health_goals', title: 'Health Goals'},
+    {id: 'privacy', title: 'Privacy Settings'},
+    {id: 'review', title: 'Review & Finish'}
   ];
 
   const handleInputChange = (field, value) => {
@@ -62,13 +62,13 @@ const OnboardingPage = () => {
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-     // ✅ Save the current step data before moving on
+      // ✅ Save the current step data before moving on
       if (currentStep > 0) { // Don't save the welcome step
         await saveCurrentStep();
       }
       setCurrentStep(prev => prev + 1);
     } else {
-        // ✅ If it's the last step, call complete
+      // ✅ If it's the last step, call complete
       await handleComplete();
     }
   };
@@ -83,39 +83,39 @@ const OnboardingPage = () => {
   const saveCurrentStep = async () => {
     try {
       const step = steps[currentStep].id;
-      
-     // ✅ We don't try to save welcome and review steps
+
+      // ✅ We don't try to save welcome and review steps
       if (step === 'welcome' || step === 'review') {
         console.log(`⏭️ Skipping save for step: ${step} (no data to save)`);
         return;
       }
-      
+
       const stepData = getStepData(step);
-      
+
       // ✅ Check if there is data to save
       if (Object.keys(stepData).length === 0) {
         console.log(`⏭️ No data to save for step: ${step}`);
         return;
       }
-      
+
       console.log('📤 Sending to API - step:', step, 'data:', stepData);
-      
+
       const requestData = {
         user_id: user?.id,
         step: step,
-        data_json: stepData  
+        data_json: stepData
       };
-      
+
       console.log('📦 Final request data:', requestData);
-      
+
       await UserSettingsApi.saveOnboardingStep(step, requestData);
-      
+
       console.log(`✅ Step ${step} saved successfully`);
-      
+
     } catch (error) {
       console.error(`❌ Error saving step ${steps[currentStep].id}:`, error);
-      
-     // ✅ Detailed information about the error type
+
+      // ✅ Detailed information about the error type
       if (error.status === 404) {
         console.warn(`🔧 Endpoint /onboarding/${steps[currentStep].id} not found in Xano`);
         console.log('💡 Create this endpoint in Xano or use a different approach');
@@ -134,7 +134,7 @@ const OnboardingPage = () => {
   const getStepData = (step) => {
     console.log('🔄 Getting data for step:', step);
     console.log('📊 Current formData:', formData);
-    
+
     switch (step) {
       case 'personal':
         const personalData = {
@@ -145,7 +145,7 @@ const OnboardingPage = () => {
         };
         console.log('👤 Personal data:', personalData);
         return personalData;
-        
+
       case 'health_snapshot':
         const healthData = {
           age: formData.age ? parseInt(formData.age) : 0,
@@ -155,7 +155,7 @@ const OnboardingPage = () => {
         };
         console.log('🏥 Health data:', healthData);
         return healthData;
-        
+
       case 'lifestyle':
         const lifestyleData = {
           diet: formData.diet || '',
@@ -166,18 +166,18 @@ const OnboardingPage = () => {
         };
         console.log('🥗 Lifestyle data:', lifestyleData);
         return lifestyleData;
-        
-        case 'health_goals':
-            const goalsData = {
-              title: "Health Goals",
-              description: formData.goalNotes || `Goals: ${formData.goals.join(', ') || 'No specific goals'}`,
-              status: "active",
-              target_date: formData.targetDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +90 днів за замовчуванням
-              visibility_scope: "private",
-            };
-            console.log('🎯 Goals data:', goalsData);
-            return goalsData;
-        
+
+      case 'health_goals':
+        const goalsData = {
+          title: "Health Goals",
+          description: formData.goalNotes || `Goals: ${formData.goals.join(', ') || 'No specific goals'}`,
+          status: "active",
+          target_date: formData.targetDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +90 днів за замовчуванням
+          visibility_scope: "private",
+        };
+        console.log('🎯 Goals data:', goalsData);
+        return goalsData;
+
       case 'privacy':
         const privacyData = {
           profileVisibility: formData.profileVisibility || 'private',
@@ -186,7 +186,7 @@ const OnboardingPage = () => {
         };
         console.log('🔒 Privacy data:', privacyData);
         return privacyData;
-        
+
       default:
         console.log('⚪ No data for step:', step);
         return {};
@@ -196,17 +196,17 @@ const OnboardingPage = () => {
   const handleComplete = async () => {
     try {
       setLoading(true);
-      
+
       // ✅ Зберігаємо останній крок
       await saveCurrentStep();
-      
+
       // ✅ Викликаємо completeOnboarding для оновлення статусу в AuthContext
       await completeOnboarding("completed"); // Змінено тут
-    
+
       console.log('')
       // ✅ Перенаправляємо на dashboard
-      navigate('/dashboard', { replace: true });
-      
+      navigate('/dashboard', {replace: true});
+
     } catch (error) {
       console.error('Error completing onboarding:', error);
       alert('There was an error completing your setup. Please try again.');
@@ -215,7 +215,7 @@ const OnboardingPage = () => {
     }
   };
 
- // Add this useEffect to debug formData changes
+  // Add this useEffect to debug formData changes
   React.useEffect(() => {
     console.log('🔄 formData updated:', formData);
   }, [formData]);
@@ -323,15 +323,15 @@ const OnboardingPage = () => {
             <p>Help us understand your current health status</p>
             <div className="form-grid">
               <div className="form-group">
-                <label>Age *</label>
+                <label>Date of Birth *</label>
                 <input
-                  type="number"
-                  value={formData.age}
+                  type="date"
+                  value={formData.dob}
                   onChange={(e) => {
-                    console.log('Age changed:', e.target.value);
-                    handleInputChange('age', e.target.value);
+                    console.log('Date of birth changed:', e.target.value);
+                    handleInputChange('dob', e.target.value);
                   }}
-                  placeholder="Years"
+                  max={new Date().toISOString().split('T')[0]} // Заборона вибору майбутніх дат
                 />
               </div>
               <div className="form-group">
@@ -431,7 +431,7 @@ const OnboardingPage = () => {
           <div className="step-content">
             <h2>Health Goals</h2>
             <p>What do you want to achieve?</p>
-            
+
             {/* Основні цілі */}
             <div className="goals-section">
               <h3>Primary Goals</h3>
@@ -633,7 +633,7 @@ const OnboardingPage = () => {
         {/* Form Section */}
         <div className="onboarding-form-container">
           {renderStepContent()}
-          
+
           {/* Navigation Buttons */}
           <div className="form-navigation">
             <button
@@ -650,8 +650,8 @@ const OnboardingPage = () => {
               onClick={handleNext}
               disabled={loading}
             >
-              {loading ? 'Saving...' : 
-               currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
+              {loading ? 'Saving...' :
+                currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
             </button>
           </div>
         </div>
