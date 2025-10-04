@@ -15,6 +15,8 @@ import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
 import OnboardingPage from "./routes/OnboardingLayout-TEST.jsx";
+import HealthDataPage from "./routes/pages/HealthDataPage-TEST.jsx";
+
 import "./index.css";
 import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
 
@@ -96,6 +98,7 @@ function AppRouter() {
           <Route path="profile" element={<DashboardProfile />} />
           <Route path="settings" element={<DashboardSettings />} />
           <Route path="health-history" element={<HealthHistoryPage />} />
+          <Route path="health-data" element={<HealthDataPage />} />
         </Route>
 
         {/* Catch-all redirect */}
