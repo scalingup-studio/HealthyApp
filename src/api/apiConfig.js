@@ -26,6 +26,7 @@ export const ENDPOINTS = {
   vaccinations: crud("vaccinations"),
   sensitivities: crud("sensitivities"),
   familyHistory: crud("family_history"),
+  healthData: crud("health_data"),
 };
 
 export const CUSTOM_ENDPOINTS = {
