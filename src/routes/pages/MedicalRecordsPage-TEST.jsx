@@ -35,11 +35,12 @@ const MedicalRecordsPage = () => {
       setUploadStatus('⏳ Завантаження...');
       setLoading(true);
       
+      // Правильний виклик API
       const response = await api.uploadFileApi(
         selectedFile,
         user.id,
         "Labs",
-        "pdf",
+        selectedFile.type || "application/octet-stream",
         selectedFile.name
       );
       
@@ -67,10 +68,12 @@ const MedicalRecordsPage = () => {
     if (!user?.id) return;
     
     try {
-      const files = await api.getUploadedFilesApi(user.id);
+      // Правильний виклик API
+      const files = await api.getUserFilesApi(user.id);
       setUploadedFiles(files || []);
     } catch (err) {
       console.error("❌ Failed to fetch files:", err);
+      setUploadStatus('❌ Помилка завантаження списку файлів');
     }
   };
 
@@ -78,8 +81,12 @@ const MedicalRecordsPage = () => {
   const handleDownloadFile = (file) => {
     if (file.file_url) {
       window.open(file.file_url, '_blank');
+    } else if (file.url) {
+      window.open(file.url, '_blank');
     } else {
-      alert('Посилання для завантаження недоступне');
+      // Якщо немає прямого посилання, використовуємо API endpoint
+      const downloadUrl = `${CUSTOM_ENDPOINTS.uploudFile.getUserUploudFile}?file_id=${file.id}`;
+      window.open(downloadUrl, '_blank');
     }
   };
 
@@ -135,13 +142,18 @@ const MedicalRecordsPage = () => {
         {uploadedFiles.length > 0 ? (
           <div className="uploaded-files-list">
             {uploadedFiles.map((file) => (
-              <div key={file.id} className="uploaded-file-item">
+              <div key={file.id || file.file_id} className="uploaded-file-item">
                 <div className="file-info">
-                  <span className="file-name">📄 {file.file_name}</span>
-                  <span className="file-category">{file.category}</span>
+                  <span className="file-name">📄 {file.file_name || file.name}</span>
+                  <span className="file-category">{file.category || 'Загальний'}</span>
                   {file.uploaded_at && (
                     <span className="file-date">
                       {new Date(file.uploaded_at).toLocaleDateString()}
+                    </span>
+                  )}
+                  {file.created_at && (
+                    <span className="file-date">
+                      {new Date(file.created_at).toLocaleDateString()}
                     </span>
                   )}
                 </div>
@@ -160,7 +172,7 @@ const MedicalRecordsPage = () => {
         )}
       </section>
 
-      <style jsx>{`
+      <style>{`
         .medical-records-page {
           max-width: 800px;
           margin: 0 auto;

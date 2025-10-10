@@ -49,7 +49,7 @@ export const CUSTOM_ENDPOINTS = {
     getHealthHistorySummary: `${API_BASE}/health_history_summary`
   }, 
   insights: {
-    getInsights: `${API_BASE}/generate-insight`
+    generateInsights: `${API_BASE}/generate-insight`
   },
   checkThreshold: {
     checkThreshold: `${API_BASE}/check-threshold`
@@ -59,6 +59,6 @@ export const CUSTOM_ENDPOINTS = {
   },
   uploudFile: {
     uploudFile: `${API_BASE}/upload/attachment_file`,
-    getUploudFile: `${API_BASE}/upload/get_file`
+    getUserUploudFile: `${API_BASE}/upload/get_file`
   },
 };

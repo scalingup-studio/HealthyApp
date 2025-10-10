@@ -1,103 +1,38 @@
-import { ENDPOINTS, CUSTOM_ENDPOINTS } from './api-endpoints';
+import apiClient from './apiClient';
 
-// Basic request
-async function apiRequest(url, options = {}) {
-  const token = localStorage.getItem('authToken');
-  
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-    },
-    ...options,
-  };
+const INSIGHTS_BASE = '/generate-insight';
 
-  try {
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
-  }
-}
-
-// Insight API
-export const insightApi = {
-  // Insight generation
+export const InsightApi = {
+  /**
+   * Generate a new insight based on health metrics
+   * @param {Object} data - Data for insight generation
+   * @param {string} data.user_id - User ID
+   * @param {Array} data.metrics - Array of health metrics
+   * @param {string} data.query - Question or query for the insight
+   * @param {Object} data.options - Additional options
+   * @returns {Promise<Object>} - Insight object
+   */
   generateInsight: async (data) => {
-    return await apiRequest(CUSTOM_ENDPOINTS.insights.getInsights, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
+    try {
+      const requestData = {
+        user_id: data.user_id,
+        metrics: data.metrics || [],
+        query: data.query || '',
+        ...data.options
+      };
 
-  // Get insights history
-  getInsightsHistory: async (userId) => {
-    return await apiRequest(`${ENDPOINTS.healthData.getAll}?user_id=${userId}`);
+      console.log('🔄 Generating insight with data:', requestData);
+      
+      const response = await apiClient.post(INSIGHTS_BASE, requestData);
+      console.log('✅ Insight generated successfully:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error generating insight:', error);
+      throw new Error(error.response?.data?.message || 'Failed to generate insight');
+    }
   },
-
- // Get specific insight by ID
-  getInsightById: async (id) => {
-    return await apiRequest(ENDPOINTS.healthData.getById(id));
-  },
-
-  // Створити но// Create a new insight recordвий запис інсайту
-  createInsight: async (insightData) => {
-    return await apiRequest(ENDPOINTS.healthData.create, {
-      method: 'POST',
-      body: JSON.stringify(insightData),
-    });
-  },
-
- // Update insight
-  updateInsight: async (id, insightData) => {
-    return await apiRequest(ENDPOINTS.healthData.update(id), {
-      method: 'PATCH',
-      body: JSON.stringify(insightData),
-    });
-  },
-
- // Delete insight
-  deleteInsight: async (id) => {
-    return await apiRequest(ENDPOINTS.healthData.remove(id), {
-      method: 'DELETE',
-    });
-  },
-
-// Get summary health information
-  getHealthSummary: async (userId) => {
-    return await apiRequest(`${CUSTOM_ENDPOINTS.healthHistory.getHealthHistorySummary}?user_id=${userId}`);
-  },
+  
 };
 
-// Usage examples:
-/*
-// Generate a new insight
-const insight = await insightApi.generateInsight({
-user_id: '123',
-metrics: [
-{ metric_type: 'blood_pressure_systolic', value: 145 },
-{ metric_type: 'blood_pressure_diastolic', value: 95 }
-],
-query: "What should I do about this?"
-});
-
-// Get insight history
-const history = await insightApi.getInsightsHistory('user-123');
-
-// Create an entry in health_data
-const newRecord = await insightApi.createInsight({
-  user_id: '123',
-  type: 'blood_pressure',
-  value: '145/95',
-  insight_text: 'Based on your recent data patterns...',
-  recorded_at: new Date().toISOString()
-});
-*/
-
-export default insightApi;
+export default InsightApi;
