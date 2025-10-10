@@ -26,6 +26,7 @@ export const ENDPOINTS = {
   vaccinations: crud("vaccinations"),
   sensitivities: crud("sensitivities"),
   familyHistory: crud("family_history"),
+  healthData: crud("health_data"),
 };
 
 export const CUSTOM_ENDPOINTS = {
@@ -46,5 +47,18 @@ export const CUSTOM_ENDPOINTS = {
   },
   healthHistory: {
     getHealthHistorySummary: `${API_BASE}/health_history_summary`
-  }
+  }, 
+  insights: {
+    getInsights: `${API_BASE}/generate-insight`
+  },
+  checkThreshold: {
+    checkThreshold: `${API_BASE}/check-threshold`
+  },
+  alertsInsight: {
+    getAlertsInsight: `${API_BASE}/alerts_ai/{user_id}`
+  },
+  uploudFile: {
+    uploudFile: `${API_BASE}/upload/attachment_file`,
+    getUploudFile: `${API_BASE}/upload/get_file`
+  },
 };
