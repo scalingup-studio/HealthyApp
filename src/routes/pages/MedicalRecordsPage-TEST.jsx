@@ -7,6 +7,8 @@ const MedicalRecordsPage = () => {
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState({});
+  const [deleteLoading, setDeleteLoading] = useState({});
 
   const { user } = useAuth();
 
@@ -35,13 +37,10 @@ const MedicalRecordsPage = () => {
       setUploadStatus('⏳ Завантаження...');
       setLoading(true);
       
-      // Правильний виклик API
       const response = await api.uploadFileApi(
         selectedFile,
         user.id,
-        "Labs",
-        selectedFile.type || "application/octet-stream",
-        selectedFile.name
+        "Labs"
       );
       
       console.log("✅ File uploaded successfully:", response);
@@ -68,7 +67,6 @@ const MedicalRecordsPage = () => {
     if (!user?.id) return;
     
     try {
-      // Правильний виклик API
       const files = await api.getUserFilesApi(user.id);
       setUploadedFiles(files || []);
     } catch (err) {
@@ -77,17 +75,70 @@ const MedicalRecordsPage = () => {
     }
   };
 
-  // Завантаження файлу
-  const handleDownloadFile = (file) => {
-    if (file.file_url) {
-      window.open(file.file_url, '_blank');
-    } else if (file.url) {
-      window.open(file.url, '_blank');
-    } else {
-      // Якщо немає прямого посилання, використовуємо API endpoint
-      const downloadUrl = `${CUSTOM_ENDPOINTS.uploudFile.getUserUploudFile}?file_id=${file.id}`;
-      window.open(downloadUrl, '_blank');
+  const handleDownloadFile = (file, action = 'view') => {
+    const fileUrl = file.signedUrl || file.file?.url; // бек вже дає правильний URL
+    const fileName = file.filename;
+  
+    if (!fileUrl) {
+      alert('URL файлу не знайдено');
+      return;
     }
+  
+    try {
+      if (action === 'download') {
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = fileName;
+        link.click();
+      } else {
+        // Перегляд у новій вкладці
+        window.open(fileUrl, '_blank');
+      }
+    } catch (err) {
+      console.error("❌ File action failed:", err);
+      alert('Помилка при роботі з файлом: ' + err.message);
+    }
+  };
+  
+  
+  // Функція видалення файлу
+  const handleDeleteFile = async (file) => {
+    const fileId = file.id || file.file_id;
+    const fileName = file.file_name || file.name;
+    
+    if (!fileId) {
+      alert('ID файлу не знайдено');
+      return;
+    }
+
+    // Підтвердження видалення
+    if (!window.confirm(`Ви впевнені, що хочете видалити файл "${fileName}"?`)) {
+      return;
+    }
+
+    setDeleteLoading(prev => ({ ...prev, [fileId]: true }));
+
+    try {
+      await api.deleteFileApi(fileId, user?.id);
+      
+      // Оновлюємо список файлів
+      setUploadedFiles(prev => prev.filter(f => (f.id || f.file_id) !== fileId));
+      setUploadStatus('✅ Файл успішно видалено!');
+      
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
+      setUploadStatus('❌ Помилка видалення файлу: ' + err.message);
+    } finally {
+      setDeleteLoading(prev => ({ ...prev, [fileId]: false }));
+    }
+  };
+
+  // Форматування розміру файлу
+  const formatFileSize = (bytes) => {
+    if (!bytes) return 'Невідомо';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
   // Завантаження даних при монтуванні
@@ -137,35 +188,55 @@ const MedicalRecordsPage = () => {
 
       {/* Блок завантажених файлів */}
       <section className="uploaded-files">
-        <h2>Завантажені файли</h2>
+        <h2>Завантажені файли ({uploadedFiles.length})</h2>
         
         {uploadedFiles.length > 0 ? (
           <div className="uploaded-files-list">
-            {uploadedFiles.map((file) => (
-              <div key={file.id || file.file_id} className="uploaded-file-item">
-                <div className="file-info">
-                  <span className="file-name">📄 {file.file_name || file.name}</span>
-                  <span className="file-category">{file.category || 'Загальний'}</span>
-                  {file.uploaded_at && (
-                    <span className="file-date">
-                      {new Date(file.uploaded_at).toLocaleDateString()}
-                    </span>
-                  )}
-                  {file.created_at && (
-                    <span className="file-date">
-                      {new Date(file.created_at).toLocaleDateString()}
-                    </span>
-                  )}
+            {uploadedFiles.map((file) => {
+              const fileId = file.id || file.file_id;
+              const isDownloading = downloadLoading[fileId];
+              const isDeleting = deleteLoading[fileId];
+              
+              return (
+                <div key={fileId} className="uploaded-file-item">
+                  <div className="file-info">
+                    <div className="file-header">
+                      <span className="file-icon">📄</span>
+                      <span className="file-name">{file.file_name || file.name}</span>
+                    </div>
+                    <div className="file-meta">
+                      <span className="file-category">{file.category || 'Загальний'}</span>
+                      {file.file_size && (
+                        <span className="file-size">{formatFileSize(file.file_size)}</span>
+                      )}
+                      {file.uploaded_at && (
+                        <span className="file-date">
+                          {new Date(file.uploaded_at).toLocaleDateString('uk-UA')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="file-actions">
+                    <button
+                      onClick={() => handleDownloadFile(file)}
+                      className="download-btn"
+                      title="Завантажити файл"
+                      disabled={isDownloading || isDeleting}
+                    >
+                      {isDownloading ? '⏳' : '📥'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFile(file)}
+                      className="delete-btn"
+                      title="Видалити файл"
+                      disabled={isDownloading || isDeleting}
+                    >
+                      {isDeleting ? '⏳' : '🗑️'}
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleDownloadFile(file)}
-                  className="download-link"
-                  title="Завантажити файл"
-                >
-                  📥 Завантажити
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="no-data">📁 Немає завантажених файлів</p>
@@ -233,6 +304,7 @@ const MedicalRecordsPage = () => {
           padding: 8px 12px;
           background: #e8f5e8;
           border-radius: 6px;
+          margin: 8px 0;
         }
 
         .warning {
@@ -240,6 +312,7 @@ const MedicalRecordsPage = () => {
           background: #fff3cd;
           padding: 12px;
           border-radius: 6px;
+          margin: 8px 0;
         }
 
         .upload-status {
@@ -275,10 +348,11 @@ const MedicalRecordsPage = () => {
           border: 1px solid #dee2e6;
         }
 
-        .file-info {
+        .file-header {
           display: flex;
-          flex-direction: column;
-          gap: 4px;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
         }
 
         .file-name {
@@ -286,28 +360,69 @@ const MedicalRecordsPage = () => {
           color: #2c3e50;
         }
 
-        .file-category {
-          color: #6c757d;
-          font-size: 0.9rem;
+        .file-meta {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
         }
 
+        .file-category,
+        .file-size,
         .file-date {
           color: #6c757d;
           font-size: 0.8rem;
+          background: white;
+          padding: 2px 8px;
+          border-radius: 10px;
+          border: 1px solid #dee2e6;
         }
 
-        .download-link {
-          background: #28a745;
-          color: white;
+        .file-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .download-btn,
+        .delete-btn {
+          background: none;
           border: none;
-          padding: 8px 16px;
+          padding: 8px 10px;
           border-radius: 6px;
           cursor: pointer;
-          text-decoration: none;
+          font-size: 1.1rem;
+          transition: all 0.2s ease;
         }
 
-        .download-link:hover {
-          background: #218838;
+        .download-btn {
+          color: #28a745;
+          border: 1px solid #28a745;
+        }
+
+        .download-btn:hover:not(:disabled) {
+          background: #28a745;
+          color: white;
+        }
+
+        .download-btn:disabled {
+          color: #6c757d;
+          border-color: #6c757d;
+          cursor: not-allowed;
+        }
+
+        .delete-btn {
+          color: #dc3545;
+          border: 1px solid #dc3545;
+        }
+
+        .delete-btn:hover:not(:disabled) {
+          background: #dc3545;
+          color: white;
+        }
+
+        .delete-btn:disabled {
+          color: #6c757d;
+          border-color: #6c757d;
+          cursor: not-allowed;
         }
 
         .no-data {
