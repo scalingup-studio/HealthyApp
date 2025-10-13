@@ -19,6 +19,7 @@ import HealthDataPage from "./routes/pages/HealthDataPage-TEST.jsx";
 
 import "./index.css";
 import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
+import MedicalRecordsPage from "./routes/pages/MedicalRecordsPage-TEST.jsx";
 
 // 🔐 Component for authorization verification
 function PrivateRoute({ children }) {
@@ -99,6 +100,7 @@ function AppRouter() {
           <Route path="settings" element={<DashboardSettings />} />
           <Route path="health-history" element={<HealthHistoryPage />} />
           <Route path="health-data" element={<HealthDataPage />} />
+          <Route path="medical_records" element={<MedicalRecordsPage />} />
         </Route>
 
         {/* Catch-all redirect */}

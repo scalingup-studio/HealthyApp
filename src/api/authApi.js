@@ -108,8 +108,8 @@ export const AuthApi = {
       const requestData = {
         email: userData.email,
         password: userData.password,
-        first_name: userData.firstName || '',
-        last_name: userData.lastName || '',
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
         user_agent: navigator.userAgent,
         ip_address: await getIPAddress()
       };
@@ -209,20 +209,20 @@ export const AuthApi = {
   },
 
   // New function to get the current session
-  async getCurrentSession() {
-    try {
-      console.log('👤 Getting current session...');
-      const response = await request('/auth/me', {
-        method: "GET",
-        credentials: "include"
-      });
-      console.log('✅ Session data received');
-      return response;
-    } catch (error) {
-      console.error('🔴 Session data error:', error);
-      throw error;
-    }
-  }
+  // async getCurrentSession() {
+  //   try {
+  //     console.log('👤 Getting current session...');
+  //     const response = await request('/auth/me', {
+  //       method: "GET",
+  //       credentials: "include"
+  //     });
+  //     console.log('✅ Session data received');
+  //     return response;
+  //   } catch (error) {
+  //     console.error('🔴 Session data error:', error);
+  //     throw error;
+  //   }
+  // }
 };
 
 // Add utilities for working with tokens

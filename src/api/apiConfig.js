@@ -1,5 +1,6 @@
 export const API_BASE = "https://xu6p-ejbd-2ew4.n7e.xano.io/api:5PA_dIPO";
 export const API_BASE_AUTH = "https://xu6p-ejbd-2ew4.n7e.xano.io/api:HBbbpjK5";
+export const API_DOMEN_DEV = "https://xu6p-ejbd-2ew4.n7e.xano.io";
 
 // CRUD helper
 function crud(table) {
@@ -47,5 +48,20 @@ export const CUSTOM_ENDPOINTS = {
   },
   healthHistory: {
     getHealthHistorySummary: `${API_BASE}/health_history_summary`
-  }
+  }, 
+  insights: {
+    generateInsights: `${API_BASE}/generate-insight`
+  },
+  checkThreshold: {
+    checkThreshold: `${API_BASE}/check-threshold`
+  },
+  alertsInsight: {
+    getAlertsInsight: `${API_BASE}/alerts_ai/{user_id}`
+  },
+  uploudFile: {
+    uploudFile: `${API_BASE}/upload/attachment_file`,
+    getUserUploudFiles: `${API_BASE}/upload/get_files`,
+    downloadFile: `${API_BASE}/upload/download_file`,
+    deleteFile: `${API_BASE}/upload/delete_file`
+  },
 };
