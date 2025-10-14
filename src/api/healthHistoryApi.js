@@ -1,104 +1,153 @@
-import { request } from "./apiClient";
+import { authRequest } from "./apiClient";
 import { ENDPOINTS, CUSTOM_ENDPOINTS } from "./apiConfig";
 
 export const HealthHistoryApi = {
- // === GETTING SUMMARY DATA ===
+  /**
+   * Get health history summary
+   */
   async getHealthHistorySummary(userId) {
     try {
-      const response = await request(CUSTOM_ENDPOINTS.healthHistory.getHealthHistorySummary, {
+      return await authRequest(CUSTOM_ENDPOINTS.healthHistory.getHealthHistorySummary, {
         method: 'POST',
         body: { user_id: userId }
       });
-      console.log('response', response)
-      return response;
     } catch (error) {
       console.error('Error fetching health history summary:', error);
       throw error;
     }
   },
 
- // === GETTING DATA ===
-  async getHealthHistory(userId) {
+  /**
+   * Add medical condition
+   */
+  async addMedicalCondition(data) {
     try {
-      const response = await request(CUSTOM_ENDPOINTS.health.getUserHealthData, {
+      return await authRequest(ENDPOINTS.medicalConditions.create, {
         method: 'POST',
-        body: { user_id: userId }
+        body: data
       });
-      return response;
     } catch (error) {
-      console.error('Error fetching health history:', error);
+      console.error('Error adding medical condition:', error);
       throw error;
     }
   },
-  // === ADDING DATA ===
-  async addMedicalCondition(data) {
-    console.log("API: Adding medical condition", data);
-    return await request(ENDPOINTS.medicalConditions.create, {
-      method: 'POST',
-      body: data
-    });
-  },
 
+  /**
+   * Add medication
+   */
   async addMedication(data) {
-    console.log("API: Adding medication", data);
-    return await request(ENDPOINTS.medications.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.medications.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding medication:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Add allergy
+   */
   async addAllergy(data) {
-    console.log("API: Adding allergy", data);
-    return await request(ENDPOINTS.allergies.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.allergies.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding allergy:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Add surgical history
+   */
   async addSurgicalHistory(data) {
-    console.log("API: Adding surgical history", data);
-    return await request(ENDPOINTS.surgicalHistory.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.surgicalHistory.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding surgical history:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Add vaccination
+   */
   async addVaccination(data) {
-    console.log("API: Adding vaccination", data);
-    return await request(ENDPOINTS.vaccinations.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.vaccinations.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding vaccination:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Add sensitivity
+   */
   async addSensitivity(data) {
-    console.log("API: Adding sensitivity", data);
-    return await request(ENDPOINTS.sensitivities.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.sensitivities.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding sensitivity:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Add family history
+   */
   async addFamilyHistory(data) {
-    console.log("API: Adding family history", data);
-    return await request(ENDPOINTS.familyHistory.create, {
-      method: 'POST',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.familyHistory.create, {
+        method: 'POST',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error adding family history:', error);
+      throw error;
+    }
   },
 
-  // === ОНОВЛЕННЯ ТА ВИДАЛЕННЯ ===
-  
+  /**
+   * Update medical condition
+   */
   async updateMedicalCondition(id, data) {
-    return await request(ENDPOINTS.medicalConditions.update(id), {
-      method: 'PUT',
-      body: data
-    });
+    try {
+      return await authRequest(ENDPOINTS.medicalConditions.update(id), {
+        method: 'PUT',
+        body: data
+      });
+    } catch (error) {
+      console.error('Error updating medical condition:', error);
+      throw error;
+    }
   },
 
+  /**
+   * Delete medical condition
+   */
   async deleteMedicalCondition(id) {
-    return await request(ENDPOINTS.medicalConditions.remove(id), {
-      method: 'DELETE'
-    });
+    try {
+      return await authRequest(ENDPOINTS.medicalConditions.remove(id), {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error deleting medical condition:', error);
+      throw error;
+    }
   }
 };
