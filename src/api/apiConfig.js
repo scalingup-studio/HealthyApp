@@ -55,8 +55,14 @@ export const CUSTOM_ENDPOINTS = {
   checkThreshold: {
     checkThreshold: `${API_BASE}/check-threshold`
   },
+  checkQuery: {
+    checkQuery: `${API_BASE}/check_query`
+  },
   alertsInsight: {
     getAlertsInsight: `${API_BASE}/alerts_ai/{user_id}`
+  },
+  comprehensiveAlerts: {
+    comprehensiveAlerts: `${API_BASE}/comprehensive-alerts`
   },
   uploudFile: {
     uploudFile: `${API_BASE}/upload/attachment_file`,

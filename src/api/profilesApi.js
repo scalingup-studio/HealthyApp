@@ -2,26 +2,71 @@ import { authRequest } from "./apiClient";
 import { ENDPOINTS } from "./apiConfig";
 
 export const ProfilesApi = {
-  // GET /profiles - Query all profiles records
-  getAll: () => authRequest(ENDPOINTS.profiles.getAll),
+  /**
+   * Get all profiles
+   */
+  async getAll() {
+    try {
+      return await authRequest(ENDPOINTS.profiles.getAll);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      throw error;
+    }
+  },
 
-  // GET /profiles/{user_id} - Get profiles record
-  getById: (user_id) => authRequest(ENDPOINTS.profiles.getById(user_id)),
+  /**
+   * Get profile by user ID
+   */
+  async getById(user_id) {
+    try {
+      return await authRequest(ENDPOINTS.profiles.getById(user_id));
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      throw error;
+    }
+  },
 
-  // POST /profiles - Add profiles record
-  create: (data) => authRequest(ENDPOINTS.profiles.create, {
-    method: "POST",
-    body: data,
-  }),
+  /**
+   * Create new profile
+   */
+  async create(data) {
+    try {
+      return await authRequest(ENDPOINTS.profiles.create, {
+        method: "POST",
+        body: data,
+      });
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      throw error;
+    }
+  },
 
-  // PATCH /profiles/{user_id} - Edit profiles record
-  update: (user_id, data) => authRequest(ENDPOINTS.profiles.update(user_id), {
-    method: "PATCH",
-    body: data,
-  }),
+  /**
+   * Update profile
+   */
+  async update(user_id, data) {
+    try {
+      return await authRequest(ENDPOINTS.profiles.update(user_id), {
+        method: "PATCH",
+        body: data,
+      });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
 
-  // DELETE /profiles/{user_id} - Delete profiles record
-  delete: (user_id) => authRequest(ENDPOINTS.profiles.remove(user_id), {
-    method: "DELETE",
-  }),
+  /**
+   * Delete profile
+   */
+  async delete(user_id) {
+    try {
+      return await authRequest(ENDPOINTS.profiles.remove(user_id), {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      throw error;
+    }
+  },
 };

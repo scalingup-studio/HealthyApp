@@ -2,26 +2,71 @@ import { authRequest } from "./apiClient";
 import { ENDPOINTS } from "./apiConfig";
 
 export const UsersApi = {
-  // GET /users - Query all users records
-  getAll: () => authRequest(ENDPOINTS.users.getAll),
+  /**
+   * Get all users
+   */
+  async getAll() {
+    try {
+      return await authRequest(ENDPOINTS.users.getAll);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
 
-  // POST /users - Add users record
-  create: (data) => authRequest(ENDPOINTS.users.create, {
-    method: "POST",
-    body: data,
-  }),
+  /**
+   * Get user by ID
+   */
+  async getById(user_id) {
+    try {
+      return await authRequest(ENDPOINTS.users.getById(user_id));
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      throw error;
+    }
+  },
 
-  // GET /users/{user_id} - Get users record
-  getById: (user_id) => authRequest(ENDPOINTS.users.getById(user_id)),
+  /**
+   * Create new user
+   */
+  async create(data) {
+    try {
+      return await authRequest(ENDPOINTS.users.create, {
+        method: "POST",
+        body: data,
+      });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  },
 
-  // PATCH /users/{user_id} - Edit users record
-  update: (user_id, data) => authRequest(ENDPOINTS.users.update(user_id), {
-    method: "PATCH",
-    body: data,
-  }),
+  /**
+   * Update user
+   */
+  async update(user_id, data) {
+    try {
+      return await authRequest(ENDPOINTS.users.update(user_id), {
+        method: "PATCH",
+        body: data,
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  },
 
-  // DELETE /users/{user_id} - Delete users record
-  delete: (user_id) => authRequest(ENDPOINTS.users.remove(user_id), {
-    method: "DELETE",
-  }),
+  /**
+   * Delete user
+   */
+  async delete(user_id) {
+    try {
+      return await authRequest(ENDPOINTS.users.remove(user_id), {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  },
 };
