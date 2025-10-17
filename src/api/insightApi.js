@@ -1,18 +1,11 @@
-import apiClient from './apiClient';
-
-const INSIGHTS_BASE = '/generate-insight';
+import { authRequest } from "./apiClient";
+import { CUSTOM_ENDPOINTS } from "./apiConfig";
 
 export const InsightApi = {
   /**
    * Generate a new insight based on health metrics
-   * @param {Object} data - Data for insight generation
-   * @param {string} data.user_id - User ID
-   * @param {Array} data.metrics - Array of health metrics
-   * @param {string} data.query - Question or query for the insight
-   * @param {Object} data.options - Additional options
-   * @returns {Promise<Object>} - Insight object
    */
-  generateInsight: async (data) => {
+  async generateInsight(data) {
     try {
       const requestData = {
         user_id: data.user_id,
@@ -21,18 +14,15 @@ export const InsightApi = {
         ...data.options
       };
 
-      console.log('🔄 Generating insight with data:', requestData);
+      const response = await authRequest(CUSTOM_ENDPOINTS.insights.generateInsights, {
+        method: "POST",
+        body: requestData,
+      });
       
-      const response = await apiClient.post(INSIGHTS_BASE, requestData);
-      console.log('✅ Insight generated successfully:', response.data);
-      
-      return response.data;
+      return response;
     } catch (error) {
-      console.error('❌ Error generating insight:', error);
-      throw new Error(error.response?.data?.message || 'Failed to generate insight');
+      console.error('Error generating insight:', error);
+      throw error;
     }
   },
-  
 };
-
-export default InsightApi;
