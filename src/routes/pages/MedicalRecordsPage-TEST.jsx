@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from "../../api/AuthContext";
-import api from "../../api/uploadFileApi";
+import { UploadFileApi } from "../../api/uploadFileApi";
 
 const MedicalRecordsPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -37,7 +37,7 @@ const MedicalRecordsPage = () => {
       setUploadStatus('⏳ Завантаження...');
       setLoading(true);
       
-      const response = await api.uploadFileApi(
+      const response = await UploadFileApi.uploadFile(
         selectedFile,
         user.id,
         "Labs"
@@ -67,7 +67,7 @@ const MedicalRecordsPage = () => {
     if (!user?.id) return;
     
     try {
-      const files = await api.getUserFilesApi(user.id);
+      const files = await UploadFileApi.getUserFiles(user.id);
       setUploadedFiles(files || []);
     } catch (err) {
       console.error("❌ Failed to fetch files:", err);
@@ -119,7 +119,7 @@ const MedicalRecordsPage = () => {
     setDeleteLoading(prev => ({ ...prev, [fileId]: true }));
 
     try {
-      await api.deleteFileApi(fileId, user?.id);
+      await UploadFileApi.deleteFile(fileId, user?.id);
       
       // Оновлюємо список файлів
       setUploadedFiles(prev => prev.filter(f => (f.id || f.file_id) !== fileId));
