@@ -32,7 +32,6 @@ export function SignupPage({ onClose }) {
       setError("Password must be at least 6 characters");
       return;
     }
-
     try {
       setLoading(true);
       const data = await AuthApi.signup({
@@ -45,7 +44,8 @@ export function SignupPage({ onClose }) {
       onClose?.();
       navigate("/login");
     } catch (err) {
-      setError(err.message || "Unexpected error during signup");
+      const apiMessage = err?.data?.message || err?.message;
+      setError(apiMessage || "Unexpected error during signup");
     } finally {
       setLoading(false);
     }
