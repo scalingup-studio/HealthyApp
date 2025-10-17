@@ -1,6 +1,8 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Modal } from "../components/Modal.jsx";
+import { Logo } from "../components/Logo.jsx";
+import { SignupPage } from "./Signup.jsx";
+import { ForgotPasswordModal } from "../components/ForgotPasswordModal.jsx";
 import { AuthApi } from "../api/authApi";
 import { useAuth } from "../api/AuthContext";
 
@@ -14,6 +16,7 @@ export function LoginPage({ onOpenSignup }) {
   const [emailHint, setEmailHint] = React.useState("");
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
+  const [signupOpen, setSignupOpen] = React.useState(false);
   
   const navigate = useNavigate();
   const { login, authToken, setAuthToken, setUser } = useAuth(); 
@@ -67,6 +70,9 @@ export function LoginPage({ onOpenSignup }) {
   return (
     <div className="auth-layout">
       <section className="auth-card">
+        <div style={{ marginBottom: 16 }}>
+          <Logo height={56} className="logo-anatomous" />
+        </div>
         <h1 className="auth-title">Log In</h1>
         <form className="form" onSubmit={onSubmit} noValidate>
           <div className="form-field">
@@ -165,84 +171,32 @@ export function LoginPage({ onOpenSignup }) {
           </div>
           
           <p className="alt-action">
-            No account yet? {onOpenSignup ? (
+            No account yet? {(
               <a 
                 className="link" 
                 href="#" 
                 onClick={(e) => { 
                   e.preventDefault(); 
-                  onOpenSignup?.(); 
+                  setSignupOpen(true);
                 }}
               >
                 Sign up
               </a>
-            ) : (
-              <Link className="link" to="/signup">Sign up</Link>
             )}
           </p>
           
           {error ? <div className="alert">{error}</div> : null}
         </form>
 
-        <Modal open={forgotOpen} title="Reset Password" onClose={() => setForgotOpen(false)}>
-          <ForgotForm onClose={() => setForgotOpen(false)} />
-        </Modal>
+        <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
+        {signupOpen && (
+          <SignupPage onClose={() => setSignupOpen(false)} />
+        )}
       </section>
       
       <aside className="artwork">
-        <div className="placeholder" aria-hidden="true">
-          <div className="x-line"></div>
-          <div className="x-line"></div>
-        </div>
+        <img src="/images/login_image.avif" alt="Artwork" />
       </aside>
     </div>
-  );
-}
-
-function ForgotForm({ onClose }) {
-  const [email, setEmail] = React.useState("");
-  const [sent, setSent] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-
-  async function submit(e) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await AuthApi.requestPasswordReset(email);
-      setSent(true);
-    } catch (err) {
-      setError(err.message || "Failed to send reset link");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (sent) return (
-    <div>
-      <p>We sent a reset link to <strong>{email}</strong> if it exists in our system.</p>
-      <button className="btn primary" onClick={onClose}>Close</button>
-    </div>
-  );
-
-  return (
-    <form onSubmit={submit} className="form" noValidate>
-      <div className="form-field">
-        <label htmlFor="forgotEmail">Email address</label>
-        <input 
-          id="forgotEmail" 
-          type="email" 
-          value={email} 
-          onChange={e => setEmail(e.target.value)} 
-          placeholder="you@example.com" 
-          required 
-        />
-      </div>
-      {error ? <div className="alert">{error}</div> : null}
-      <button className="btn primary" type="submit" disabled={loading}>
-        {loading ? "Sending…" : "Send reset link"}
-      </button>
-    </form>
   );
 }

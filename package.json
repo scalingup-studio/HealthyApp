@@ -1,9 +1,9 @@
 {
-  "name": "healthyapp",
+  "name": "Anatomous",
   "version": "1.0.0",
-  "description": "HealthyApp React + Vite",
+  "description": "Anatomous",
   "main": "index.js",
-  "homepage": "https://scalingup-studio.github.io/HealthyApp",
+  "homepage": "https://scalingup-studio.github.io/Anatomous",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

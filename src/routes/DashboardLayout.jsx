@@ -1,4 +1,5 @@
 import React from "react";
+import { Logo } from "../components/Logo.jsx";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../api/AuthContext";
 
@@ -23,7 +24,7 @@ export default function DashboardLayout() {
   return (
     <div className={`dash-layout ${menuOpen ? "menu-open" : ""}`}>
       <header className="dash-header">
-        <h1>HealthyApp</h1>
+        <Logo height={28} />
       </header>
       <button className="hamburger" aria-label="Open menu" aria-expanded={menuOpen} aria-controls="sidebar" onClick={() => setMenuOpen(v => !v)}>
         <span />
@@ -31,7 +32,9 @@ export default function DashboardLayout() {
         <span />
       </button>
       <aside id="sidebar" className="dash-sidebar" role="navigation">
-        <h2 className="dash-brand">HealthyApp</h2>
+        <div className="dash-brand" style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <Logo height={28} />
+        </div>
         <div className="dash-nav">
           <NavLink end className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard">Overview</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/analytics">Analytics</NavLink>

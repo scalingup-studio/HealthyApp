@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/HealthyApp/'  // <- імʼя репозиторію GitHub Pages
+  base: '/Anatomous/'  // <- імʼя репозиторію GitHub Pages
 });
 

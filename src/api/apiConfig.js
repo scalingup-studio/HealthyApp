@@ -40,7 +40,7 @@ export const CUSTOM_ENDPOINTS = {
     resetPassword: `${API_BASE_AUTH}/auth/reset-password`,
     google: `${API_BASE_AUTH}/auth/google`,
     googleCallback: `${API_BASE_AUTH}/auth/callback/google`,
-    googleCallback: `${API_BASE_AUTH}/auth/success`,
+    googleSuccess: `${API_BASE_AUTH}/auth/success`,
     checkAuth: `${API_BASE_AUTH}/auth/check-auth`,
   },
   onboarding: {
@@ -55,14 +55,8 @@ export const CUSTOM_ENDPOINTS = {
   checkThreshold: {
     checkThreshold: `${API_BASE}/check-threshold`
   },
-  checkQuery: {
-    checkQuery: `${API_BASE}/check_query`
-  },
   alertsInsight: {
     getAlertsInsight: `${API_BASE}/alerts_ai/{user_id}`
-  },
-  comprehensiveAlerts: {
-    comprehensiveAlerts: `${API_BASE}/comprehensive-alerts`
   },
   uploudFile: {
     uploudFile: `${API_BASE}/upload/attachment_file`,

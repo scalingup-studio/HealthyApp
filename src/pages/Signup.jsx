@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal.jsx";
+import { Logo } from "../components/Logo.jsx";
 import { AuthApi } from "../api/authApi";
 
 export function SignupPage({ onClose }) {
@@ -53,6 +54,7 @@ export function SignupPage({ onClose }) {
 
   return (
     <Modal open title="Sign Up" onClose={onClose}>
+
       <form className="form" onSubmit={onSubmit} noValidate>
         <div className="form-row" style={{ gap: 12 }}>
           <div className="form-field" style={{ flex: 1 }}>
