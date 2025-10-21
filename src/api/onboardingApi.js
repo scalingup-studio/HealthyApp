@@ -9,7 +9,7 @@ export const OnboardingApi = {
   async savePersonalInfo(data) {
     try {
       const payload = {
-        data: {
+        field_value: {
           first_name: data.firstName,
           last_name: data.lastName,
           phone: data.phoneNumber || '',
@@ -43,7 +43,7 @@ export const OnboardingApi = {
   async saveHealthSnapshot(data) {
     try {
       const payload = {
-        data: {
+        field_value: {
           health_snapshot: {
             health_conditions: data.healthConditions || '',
             medications: data.medications || '',
@@ -73,7 +73,7 @@ export const OnboardingApi = {
   async saveLifestyle(data) {
     try {
       const payload = {
-        data: {
+        field_value: {
           lifestyle: {
             habits: data.lifestyleHabits || [],
             preferences: {
@@ -128,7 +128,7 @@ export const OnboardingApi = {
       }
 
       const payload = {
-        data: {
+        field_value: {
           goals: goals
         }
       };
@@ -154,7 +154,7 @@ export const OnboardingApi = {
   async savePrivacySettings(data) {
     try {
       const payload = {
-        data: {
+        field_value: {
           privacy: {
             data_visibility: data.dataVisibility,
             email_nudges: data.emailNudges,
@@ -187,7 +187,7 @@ export const OnboardingApi = {
   async completeOnboarding(data) {
     try {
       const payload = {
-        data: {
+        field_value: {
           onboarding: {
             completed: true,
             completed_at: new Date().toISOString(),
