@@ -20,6 +20,37 @@ function clearAuthCookies() {
   }
 }
 
+// Function to get user ID from token
+function getUserIdFromToken() {
+  try {
+    // Try to get user ID from localStorage first
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user?.id) {
+        return user.id;
+      }
+    }
+    
+    // Try to get from auth_token cookie
+    const authToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('auth_token='))
+      ?.split('=')[1];
+    
+    if (authToken) {
+      // Decode JWT token to get user ID
+      const payload = JSON.parse(atob(authToken.split('.')[1]));
+      return payload.user_id || payload.sub || payload.id;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('Failed to get user ID from token:', error);
+    return null;
+  }
+}
+
 export const AuthApi = {
   async login(data) {
     try {
@@ -75,6 +106,7 @@ export const AuthApi = {
       console.log('🔄 Attempting token refresh...');
       
       const requestData = {
+        user_id: getUserIdFromToken(),
         user_agent: navigator.userAgent,
         ip_address: await getIPAddress()
       };
