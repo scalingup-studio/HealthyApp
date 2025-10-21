@@ -287,9 +287,21 @@ const calculateAgeFromDOB = (dob) => {
   return (
     <div className="dashboard-profile">
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 16, paddingBottom:8, borderBottom: "1px solid var(--border)" }}>
-        <button onClick={() => setActiveTab('personal')} className="btn" style={{ width:'auto', padding:'8px 14px', height:38, borderRadius:8, background: activeTab==='personal' ? 'linear-gradient(135deg, var(--primary), var(--primary-600))' : 'transparent', color: activeTab==='personal' ? '#fff' : 'var(--muted)', borderColor: activeTab==='personal' ? 'transparent' : 'var(--border)' }}>Personal Info</button>
-        <button onClick={() => setActiveTab('health')} className="btn" style={{ width:'auto', padding:'8px 14px', height:38, borderRadius:8, background: activeTab==='health' ? 'linear-gradient(135deg, var(--primary), var(--primary-600))' : 'transparent', color: activeTab==='health' ? '#fff' : 'var(--muted)', borderColor: activeTab==='health' ? 'transparent' : 'var(--border)' }}>Health History</button>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, paddingBottom:8, borderBottom: "1px solid var(--border)" }}>
+        <button 
+          onClick={() => setActiveTab('personal')} 
+          className={`btn ${activeTab === 'personal' ? 'primary' : 'outline'}`}
+          style={{ width:'auto', padding:'8px 16px', height:38 }}
+        >
+          Personal Info
+        </button>
+        <button 
+          onClick={() => setActiveTab('health')} 
+          className={`btn ${activeTab === 'health' ? 'primary' : 'outline'}`}
+          style={{ width:'auto', padding:'8px 16px', height:38 }}
+        >
+          Health History
+        </button>
       </div>
 
       {activeTab === 'personal' && (
@@ -400,7 +412,9 @@ const calculateAgeFromDOB = (dob) => {
                   <input name="zip_code" value={formValues.zip_code} onChange={handleChange} placeholder="e.g. 94105" />
                 </label>
                 <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, marginTop: 8 }}>
-                  <button type="submit" className="btn primary" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
+                  <button type="submit" className="btn primary full" disabled={saving}>
+                    {saving ? "Saving…" : "Save changes"}
+                  </button>
                 </div>
               </form>
             </>
@@ -478,7 +492,11 @@ function Accordion({ title, options, values, onToggle, onSave, saving }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ borderTop: '1px solid var(--border)' }}>
-      <button onClick={() => setOpen(v => !v)} style={{ width: '100%', textAlign: 'left', padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', color: 'var(--text)' }}>
+      <button 
+        onClick={() => setOpen(v => !v)} 
+        className="btn ghost"
+        style={{ width: '100%', textAlign: 'left', padding: '12px 0', justifyContent: 'space-between' }}
+      >
         <span style={{ fontWeight: 600 }}>{title}</span>
         <span style={{ color:'var(--muted)' }}>{open ? '▾' : '▸'}</span>
       </button>
@@ -493,7 +511,9 @@ function Accordion({ title, options, values, onToggle, onSave, saving }) {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+            <button className="btn primary" onClick={onSave} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
           </div>
         </div>
       )}

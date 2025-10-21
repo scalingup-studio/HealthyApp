@@ -386,17 +386,17 @@ const HealthHistoryCard = ({
               onChange={(e) => handleInputChange("notes", e.target.value)}
             />
 
-            <div className="flex justify-end space-x-2 pt-2">
+            <div className="btn-group" style={{ justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                className="btn outline"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!newItem[titleField]}
-                className="px-4 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="btn success"
               >
                 Save
               </button>
