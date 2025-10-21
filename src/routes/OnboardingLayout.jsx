@@ -131,6 +131,10 @@ const OnboardingLayout = () => {
       
       if (!profileData) {
         console.log('⚠️ No profile found for user_id:', user.id);
+      } else {
+        // Force update form data when profile is loaded
+        console.log('🔄 Profile loaded, updating form data...');
+        updateFormWithProfileData(profileData);
       }
       
     } catch (error) {
@@ -139,6 +143,36 @@ const OnboardingLayout = () => {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  // Update form data with profile data
+  const updateFormWithProfileData = (profileData) => {
+    console.log('🔄 Updating form with profile data:', profileData);
+    
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        firstName: profileData.first_name || prev.firstName,
+        lastName: profileData.last_name || prev.lastName,
+        dateOfBirth: profileData.dob || prev.dateOfBirth,
+        sexAtBirth: profileData.gender || prev.sexAtBirth,
+        height: profileData.height_cm ? profileData.height_cm.toString() : prev.height,
+        weight: profileData.weight_kg ? profileData.weight_kg.toString() : prev.weight,
+        zipCode: profileData.zip_code || prev.zipCode,
+      };
+      
+      console.log('📝 Updated form data:', {
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        dateOfBirth: updated.dateOfBirth,
+        sexAtBirth: updated.sexAtBirth,
+        height: updated.height,
+        weight: updated.weight,
+        zipCode: updated.zipCode
+      });
+      
+      return updated;
+    });
   };
 
   // Load user profile from database
@@ -408,6 +442,9 @@ const OnboardingLayout = () => {
                     ✅ Loaded from profile: {formData.firstName}
                   </div>
                 )}
+                <div style={{ fontSize: '10px', color: 'var(--hint)', marginTop: '2px' }}>
+                  Current value: "{formData.firstName || 'empty'}"
+                </div>
               </div>
               
               <div className="form-field">
@@ -424,6 +461,9 @@ const OnboardingLayout = () => {
                     ✅ Loaded from profile: {formData.lastName}
                   </div>
                 )}
+                <div style={{ fontSize: '10px', color: 'var(--hint)', marginTop: '2px' }}>
+                  Current value: "{formData.lastName || 'empty'}"
+                </div>
               </div>
               
               <div className="form-field">
