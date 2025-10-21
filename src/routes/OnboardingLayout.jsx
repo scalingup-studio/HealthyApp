@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../api/AuthContext.jsx';
 import { useNotifications } from '../api/NotificationContext.jsx';
 import { OnboardingApi } from '../api/onboardingApi.js';
+import { ProfilesApi } from '../api/profilesApi.js';
 import { Logo } from '../components/Logo.jsx';
 import './OnboardingLayout.css';
 
@@ -14,6 +15,8 @@ const OnboardingLayout = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     // Personal Info - will be populated from user profile
@@ -79,50 +82,97 @@ const OnboardingLayout = () => {
     'General wellness'
   ];
 
+  // Load user profile from database
+  const loadUserProfile = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setProfileLoading(true);
+      console.log('🔍 Loading user profile for onboarding, user ID:', user.id);
+      
+      // Try to get profile by user_id
+      let profileData = null;
+      try {
+        profileData = await ProfilesApi.getById(user.id);
+        console.log('✅ Profile found by ID:', profileData);
+      } catch (idError) {
+        console.log('⚠️ Profile not found by ID, trying to get all profiles:', idError.message);
+        // If not found by ID, try to get all profiles and filter by user_id
+        const allProfilesResponse = await ProfilesApi.getAll();
+        const allProfiles = allProfilesResponse?.result || allProfilesResponse;
+        
+        if (Array.isArray(allProfiles)) {
+          profileData = allProfiles.find(p => p.user_id === user.id || p.id === user.id);
+          console.log('🔍 Found profile in list:', profileData);
+        } else if (allProfiles && (allProfiles.user_id === user.id || allProfiles.id === user.id)) {
+          profileData = allProfiles;
+          console.log('🔍 Single profile found:', profileData);
+        }
+      }
+      
+      setProfile(profileData);
+      console.log('📊 Profile data loaded:', profileData);
+      
+    } catch (error) {
+      console.warn('❌ Failed to load profile:', error.message);
+      setProfile(null);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   // Load saved progress from localStorage and user profile
   useEffect(() => {
-    const savedData = localStorage.getItem('onboarding-progress');
-    const savedStep = localStorage.getItem('onboarding-step');
-    const savedCompleted = localStorage.getItem('onboarding-completed');
-    
-    console.log('👤 Loading user data for onboarding:', user);
-    
-    // Initialize form data with user profile data
-    const initialFormData = {
-      firstName: user?.first_name || user?.firstName || '',
-      lastName: user?.last_name || user?.lastName || '',
-      dateOfBirth: '',
-      sexAtBirth: '',
-      genderIdentity: '',
-      height: '',
-      weight: '',
-      zipCode: '',
-      healthConditions: '',
-      medications: '',
-      allergies: '',
-      lifestyleHabits: [],
-      healthGoals: [],
-      otherGoal: '',
-      dataVisibility: 'private',
-      emailNudges: true,
-      wearableSync: false
+    const loadData = async () => {
+      // First load user profile from database
+      await loadUserProfile();
+      
+      const savedData = localStorage.getItem('onboarding-progress');
+      const savedStep = localStorage.getItem('onboarding-step');
+      const savedCompleted = localStorage.getItem('onboarding-completed');
+      
+      console.log('👤 Loading user data for onboarding:', user);
+      console.log('📊 Profile data from database:', profile);
+      
+      // Initialize form data with user profile data from database
+      const initialFormData = {
+        firstName: profile?.first_name || user?.first_name || user?.firstName || '',
+        lastName: profile?.last_name || user?.last_name || user?.lastName || '',
+        dateOfBirth: profile?.dob || '',
+        sexAtBirth: profile?.gender || '',
+        genderIdentity: '',
+        height: profile?.height_cm ? profile.height_cm.toString() : '',
+        weight: profile?.weight_kg ? profile.weight_kg.toString() : '',
+        zipCode: profile?.zip_code || '',
+        healthConditions: '',
+        medications: '',
+        allergies: '',
+        lifestyleHabits: [],
+        healthGoals: [],
+        otherGoal: '',
+        dataVisibility: 'private',
+        emailNudges: true,
+        wearableSync: false
+      };
+
+      console.log('📝 Initial form data with profile info:', initialFormData);
+
+      // Merge with saved data if available
+      const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
+      
+      console.log('🔄 Merged form data:', mergedData);
+      setFormData(mergedData);
+      
+      if (savedStep) {
+        setCurrentStep(parseInt(savedStep));
+      }
+      if (savedCompleted) {
+        setCompletedSteps(new Set(JSON.parse(savedCompleted)));
+      }
     };
-
-    console.log('📝 Initial form data with user info:', initialFormData);
-
-    // Merge with saved data if available
-    const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
     
-    console.log('🔄 Merged form data:', mergedData);
-    setFormData(mergedData);
-    
-    if (savedStep) {
-      setCurrentStep(parseInt(savedStep));
-    }
-    if (savedCompleted) {
-      setCompletedSteps(new Set(JSON.parse(savedCompleted)));
-    }
-  }, [user]);
+    loadData();
+  }, [user, profile]);
 
   // Save progress to localStorage
   const saveProgress = () => {
@@ -269,6 +319,34 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Personal Information</h2>
             <p className="step-description">Tell us about yourself to personalize your experience.</p>
+            
+            {profileLoading && (
+              <div style={{ 
+                padding: '16px', 
+                backgroundColor: 'var(--background)', 
+                border: '1px solid var(--border)', 
+                borderRadius: '8px', 
+                marginBottom: '16px',
+                textAlign: 'center',
+                color: 'var(--muted)'
+              }}>
+                <span>Loading your profile data...</span>
+              </div>
+            )}
+            
+            {!profileLoading && profile && (
+              <div style={{ 
+                padding: '12px', 
+                backgroundColor: 'rgba(0,186,206,0.1)', 
+                border: '1px solid rgba(0,186,206,0.3)', 
+                borderRadius: '8px', 
+                marginBottom: '16px',
+                fontSize: '14px',
+                color: 'var(--text)'
+              }}>
+                <span>✅ Profile data loaded from your account</span>
+              </div>
+            )}
             
             <div className="form-grid">
               <div className="form-field">
