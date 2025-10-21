@@ -44,6 +44,7 @@ export const OnboardingApi = {
   async saveHealthSnapshot(data) {
     try {
       const payload = {
+        user_id: data.userId || data.user_id,
         data_json: {
           health_snapshot: {
             health_conditions: data.healthConditions || '',
@@ -74,6 +75,7 @@ export const OnboardingApi = {
   async saveLifestyle(data) {
     try {
       const payload = {
+        user_id: data.userId || data.user_id,
         data_json: {
           lifestyle: {
             habits: data.lifestyleHabits || [],
@@ -129,6 +131,7 @@ export const OnboardingApi = {
       }
 
       const payload = {
+        user_id: data.userId || data.user_id,
         data_json: {
           goals: goals
         }
@@ -155,6 +158,7 @@ export const OnboardingApi = {
   async savePrivacySettings(data) {
     try {
       const payload = {
+        user_id: data.userId || data.user_id,
         data_json: {
           privacy: {
             data_visibility: data.dataVisibility,
@@ -188,6 +192,7 @@ export const OnboardingApi = {
   async completeOnboarding(data) {
     try {
       const payload = {
+        user_id: data.userId || data.user_id,
         data_json: {
           onboarding: {
             completed: true,
