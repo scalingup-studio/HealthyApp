@@ -22,6 +22,7 @@ const OnboardingLayout = () => {
     // Personal Info - will be populated from user profile
     firstName: user?.first_name || user?.firstName || '',
     lastName: user?.last_name || user?.lastName || '',
+    email: user?.email || '',
     phoneNumber: '',
     dateOfBirth: '',
     sexAtBirth: '',
@@ -169,6 +170,7 @@ const OnboardingLayout = () => {
         ...prev,
         firstName: profileData.first_name || prev.firstName,
         lastName: profileData.last_name || prev.lastName,
+        email: profileData.email || prev.email,
         phoneNumber: profileData.phone_number || prev.phoneNumber,
         dateOfBirth: profileData.dob || prev.dateOfBirth,
         sexAtBirth: profileData.gender || prev.sexAtBirth,
@@ -180,6 +182,7 @@ const OnboardingLayout = () => {
       console.log('📝 Updated form data:', {
         firstName: updated.firstName,
         lastName: updated.lastName,
+        email: updated.email,
         phoneNumber: updated.phoneNumber,
         dateOfBirth: updated.dateOfBirth,
         sexAtBirth: updated.sexAtBirth,
@@ -220,6 +223,7 @@ const OnboardingLayout = () => {
     const initialFormData = {
       firstName: profile?.first_name || user?.first_name || user?.firstName || '',
       lastName: profile?.last_name || user?.last_name || user?.lastName || '',
+      email: profile?.email || user?.email || '',
       phoneNumber: profile?.phone_number || user?.phone_number || user?.phone || '',
       dateOfBirth: profile?.dob || '',
       sexAtBirth: profile?.gender || '',
@@ -487,6 +491,17 @@ const OnboardingLayout = () => {
                   value={formData.lastName}
                   onChange={(e) => updateFormData('lastName', e.target.value)}
                   placeholder="Enter your last name"
+                  required
+                />
+              </div>
+              
+              <div className="form-field">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => updateFormData('email', e.target.value)}
+                  placeholder="Enter your email address"
                   required
                 />
               </div>
