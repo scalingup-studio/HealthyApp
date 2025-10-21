@@ -16,9 +16,9 @@ const OnboardingLayout = () => {
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
   const [formData, setFormData] = useState({
-    // Personal Info
-    firstName: '',
-    lastName: '',
+    // Personal Info - will be populated from user profile
+    firstName: user?.first_name || user?.firstName || '',
+    lastName: user?.last_name || user?.lastName || '',
     dateOfBirth: '',
     sexAtBirth: '',
     genderIdentity: '',
@@ -79,22 +79,50 @@ const OnboardingLayout = () => {
     'General wellness'
   ];
 
-  // Load saved progress from localStorage
+  // Load saved progress from localStorage and user profile
   useEffect(() => {
     const savedData = localStorage.getItem('onboarding-progress');
     const savedStep = localStorage.getItem('onboarding-step');
     const savedCompleted = localStorage.getItem('onboarding-completed');
     
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
+    console.log('👤 Loading user data for onboarding:', user);
+    
+    // Initialize form data with user profile data
+    const initialFormData = {
+      firstName: user?.first_name || user?.firstName || '',
+      lastName: user?.last_name || user?.lastName || '',
+      dateOfBirth: '',
+      sexAtBirth: '',
+      genderIdentity: '',
+      height: '',
+      weight: '',
+      zipCode: '',
+      healthConditions: '',
+      medications: '',
+      allergies: '',
+      lifestyleHabits: [],
+      healthGoals: [],
+      otherGoal: '',
+      dataVisibility: 'private',
+      emailNudges: true,
+      wearableSync: false
+    };
+
+    console.log('📝 Initial form data with user info:', initialFormData);
+
+    // Merge with saved data if available
+    const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
+    
+    console.log('🔄 Merged form data:', mergedData);
+    setFormData(mergedData);
+    
     if (savedStep) {
       setCurrentStep(parseInt(savedStep));
     }
     if (savedCompleted) {
       setCompletedSteps(new Set(JSON.parse(savedCompleted)));
     }
-  }, []);
+  }, [user]);
 
   // Save progress to localStorage
   const saveProgress = () => {
