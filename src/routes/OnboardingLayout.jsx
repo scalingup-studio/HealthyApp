@@ -198,6 +198,7 @@ const OnboardingLayout = () => {
     const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
     
     console.log('🔄 Merged form data:', mergedData);
+    console.log('📝 Setting form data with firstName:', mergedData.firstName, 'lastName:', mergedData.lastName);
     setFormData(mergedData);
     
     // Only load saved step if we don't have a current step set
@@ -218,6 +219,7 @@ const OnboardingLayout = () => {
   };
 
   const updateFormData = (field, value) => {
+    console.log(`🔄 Updating form field ${field} to:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -401,6 +403,11 @@ const OnboardingLayout = () => {
                   placeholder="Enter your first name"
                   required
                 />
+                {formData.firstName && (
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                    ✅ Loaded from profile: {formData.firstName}
+                  </div>
+                )}
               </div>
               
               <div className="form-field">
@@ -412,6 +419,11 @@ const OnboardingLayout = () => {
                   placeholder="Enter your last name"
                   required
                 />
+                {formData.lastName && (
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                    ✅ Loaded from profile: {formData.lastName}
+                  </div>
+                )}
               </div>
               
               <div className="form-field">
