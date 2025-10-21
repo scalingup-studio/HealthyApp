@@ -12,6 +12,7 @@ export const OnboardingApi = {
         data_json: {
           first_name: data.firstName,
           last_name: data.lastName,
+          phone: data.phoneNumber || '',
           dob: data.dateOfBirth,
           sex_at_birth: data.sexAtBirth,
           gender: data.genderIdentity,

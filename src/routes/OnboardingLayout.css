@@ -101,6 +101,7 @@
   transition: all 0.2s ease;
   text-align: left;
   width: 100%;
+  height: 100px;
 }
 
 .step-item:hover:not(:disabled) {
@@ -188,7 +189,6 @@
 .step-description {
   font-size: 16px;
   color: var(--muted);
-  margin-bottom: 32px;
   line-height: 1.5;
 }
 

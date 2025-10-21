@@ -22,6 +22,7 @@ const OnboardingLayout = () => {
     // Personal Info - will be populated from user profile
     firstName: user?.first_name || user?.firstName || '',
     lastName: user?.last_name || user?.lastName || '',
+    phoneNumber: '',
     dateOfBirth: '',
     sexAtBirth: '',
     genderIdentity: '',
@@ -168,6 +169,7 @@ const OnboardingLayout = () => {
         ...prev,
         firstName: profileData.first_name || prev.firstName,
         lastName: profileData.last_name || prev.lastName,
+        phoneNumber: profileData.phone_number || prev.phoneNumber,
         dateOfBirth: profileData.dob || prev.dateOfBirth,
         sexAtBirth: profileData.gender || prev.sexAtBirth,
         height: profileData.height_cm ? profileData.height_cm.toString() : prev.height,
@@ -178,6 +180,7 @@ const OnboardingLayout = () => {
       console.log('📝 Updated form data:', {
         firstName: updated.firstName,
         lastName: updated.lastName,
+        phoneNumber: updated.phoneNumber,
         dateOfBirth: updated.dateOfBirth,
         sexAtBirth: updated.sexAtBirth,
         height: updated.height,
@@ -217,6 +220,7 @@ const OnboardingLayout = () => {
     const initialFormData = {
       firstName: profile?.first_name || user?.first_name || user?.firstName || '',
       lastName: profile?.last_name || user?.last_name || user?.lastName || '',
+      phoneNumber: profile?.phone_number || user?.phone_number || user?.phone || '',
       dateOfBirth: profile?.dob || '',
       sexAtBirth: profile?.gender || '',
       genderIdentity: '',
@@ -461,19 +465,6 @@ const OnboardingLayout = () => {
               </div>
             )}
             
-            {!profileLoading && profile && (
-              <div style={{ 
-                padding: '12px', 
-                backgroundColor: 'rgba(0,186,206,0.1)', 
-                border: '1px solid rgba(0,186,206,0.3)', 
-                borderRadius: '8px', 
-                marginBottom: '16px',
-                fontSize: '14px',
-                color: 'var(--text)'
-              }}>
-                <span>✅ Profile data loaded from your account</span>
-              </div>
-            )}
             
             <div className="form-grid">
               <div className="form-field">
@@ -486,14 +477,6 @@ const OnboardingLayout = () => {
                   placeholder="Enter your first name"
                   required
                 />
-                {formData.firstName && (
-                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-                    ✅ Loaded from profile: {formData.firstName}
-                  </div>
-                )}
-                <div style={{ fontSize: '10px', color: 'var(--hint)', marginTop: '2px' }}>
-                  Current value: "{formData.firstName || 'empty'}"
-                </div>
               </div>
               
               <div className="form-field">
@@ -506,14 +489,16 @@ const OnboardingLayout = () => {
                   placeholder="Enter your last name"
                   required
                 />
-                {formData.lastName && (
-                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-                    ✅ Loaded from profile: {formData.lastName}
-                  </div>
-                )}
-                <div style={{ fontSize: '10px', color: 'var(--hint)', marginTop: '2px' }}>
-                  Current value: "{formData.lastName || 'empty'}"
-                </div>
+              </div>
+              
+              <div className="form-field">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) => updateFormData('phoneNumber', e.target.value)}
+                  placeholder="Enter your phone number"
+                />
               </div>
               
               <div className="form-field">
