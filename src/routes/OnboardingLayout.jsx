@@ -496,17 +496,6 @@ const OnboardingLayout = () => {
               </div>
               
               <div className="form-field">
-                <label>Email Address *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => updateFormData('email', e.target.value)}
-                  placeholder="Enter your email address"
-                  required
-                />
-              </div>
-              
-              <div className="form-field">
                 <label>Phone Number</label>
                 <input
                   type="tel"
