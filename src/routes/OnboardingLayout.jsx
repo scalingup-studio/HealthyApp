@@ -19,6 +19,9 @@ const OnboardingLayout = () => {
   const [profileLoading, setProfileLoading] = useState(true);
 
   const [formData, setFormData] = useState({
+    // User ID for API calls
+    user_id: user?.id || '',
+    
     // Personal Info - will be populated from user profile
     firstName: user?.first_name || user?.firstName || '',
     lastName: user?.last_name || user?.lastName || '',
@@ -168,6 +171,7 @@ const OnboardingLayout = () => {
       
       const updated = {
         ...prev,
+        user_id: user?.id || prev.user_id,
         firstName: profileData.first_name || prev.firstName,
         lastName: profileData.last_name || prev.lastName,
         email: profileData.email || prev.email,
@@ -180,6 +184,7 @@ const OnboardingLayout = () => {
       };
       
       console.log('📝 Updated form data:', {
+        user_id: updated.user_id,
         firstName: updated.firstName,
         lastName: updated.lastName,
         email: updated.email,
@@ -221,6 +226,7 @@ const OnboardingLayout = () => {
     
     // Initialize form data with user profile data from database
     const initialFormData = {
+      user_id: user?.id || '',
       firstName: profile?.first_name || user?.first_name || user?.firstName || '',
       lastName: profile?.last_name || user?.last_name || user?.lastName || '',
       email: profile?.email || user?.email || '',
