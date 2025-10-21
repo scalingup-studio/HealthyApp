@@ -9,14 +9,16 @@ export const OnboardingApi = {
   async savePersonalInfo(data) {
     try {
       const payload = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        date_of_birth: data.dateOfBirth,
-        sex_at_birth: data.sexAtBirth,
-        gender_identity: data.genderIdentity,
-        height_cm: data.height ? parseInt(data.height) : null,
-        weight_kg: data.weight ? parseInt(data.weight) : null,
-        zip_code: data.zipCode || null,
+        data_json: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          dob: data.dateOfBirth,
+          sex_at_birth: data.sexAtBirth,
+          gender: data.genderIdentity,
+          height: data.height ? parseInt(data.height) : null,
+          weight: data.weight ? parseInt(data.weight) : null,
+          zip_code: data.zipCode || null,
+        }
       };
 
       console.log('💾 Saving personal info:', payload);
@@ -40,10 +42,12 @@ export const OnboardingApi = {
   async saveHealthSnapshot(data) {
     try {
       const payload = {
-        health_snapshot: {
-          health_conditions: data.healthConditions || '',
-          medications: data.medications || '',
-          allergies: data.allergies || '',
+        data_json: {
+          health_snapshot: {
+            health_conditions: data.healthConditions || '',
+            medications: data.medications || '',
+            allergies: data.allergies || '',
+          }
         }
       };
 
@@ -68,10 +72,12 @@ export const OnboardingApi = {
   async saveLifestyle(data) {
     try {
       const payload = {
-        lifestyle: {
-          habits: data.lifestyleHabits || [],
-          preferences: {
-            // Additional lifestyle preferences can be added here
+        data_json: {
+          lifestyle: {
+            habits: data.lifestyleHabits || [],
+            preferences: {
+              // Additional lifestyle preferences can be added here
+            }
           }
         }
       };
@@ -121,7 +127,9 @@ export const OnboardingApi = {
       }
 
       const payload = {
-        goals: goals
+        data_json: {
+          goals: goals
+        }
       };
 
       console.log('💾 Saving health goals:', payload);
@@ -145,12 +153,14 @@ export const OnboardingApi = {
   async savePrivacySettings(data) {
     try {
       const payload = {
-        privacy: {
-          data_visibility: data.dataVisibility,
-          email_nudges: data.emailNudges,
-          wearable_sync: data.wearableSync,
-          preferences: {
-            // Additional privacy preferences can be added here
+        data_json: {
+          privacy: {
+            data_visibility: data.dataVisibility,
+            email_nudges: data.emailNudges,
+            wearable_sync: data.wearableSync,
+            preferences: {
+              // Additional privacy preferences can be added here
+            }
           }
         }
       };
@@ -176,12 +186,14 @@ export const OnboardingApi = {
   async completeOnboarding(data) {
     try {
       const payload = {
-        onboarding: {
-          completed: true,
-          completed_at: new Date().toISOString(),
-          steps_completed: data.stepsCompleted || [],
-          preferences: {
-            // Additional onboarding preferences
+        data_json: {
+          onboarding: {
+            completed: true,
+            completed_at: new Date().toISOString(),
+            steps_completed: data.stepsCompleted || [],
+            preferences: {
+              // Additional onboarding preferences
+            }
           }
         }
       };
