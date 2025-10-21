@@ -15,7 +15,7 @@ import DashboardNutrition from "./routes/pages/Nutrition.jsx";
 import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
-import OnboardingPage from "./routes/OnboardingLayout-TEST.jsx";
+import OnboardingPage from "./routes/OnboardingLayout.jsx";
 import HealthDataPage from "./routes/pages/HealthDataPage-TEST.jsx";
 
 import "./index.css";
