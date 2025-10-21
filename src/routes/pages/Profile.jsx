@@ -240,8 +240,14 @@ const calculateAgeFromDOB = (dob) => {
         zip_code: formValues.zip_code?.trim() || "",
       };
 
-      // Always use user_id in the payload (not profiles_id)
-      let payload = { user_id: formValues.user_id || user.id, ...basePayload };
+      // For UPDATE the API expects profiles_id in the body
+      let payload = basePayload;
+      if (profile && profile.id) {
+        payload = { profiles_id: profile.id, ...basePayload };
+      } else {
+        // For CREATE we keep user_id
+        payload = { user_id: formValues.user_id || user.id, ...basePayload };
+      }
       
       console.log('💾 Saving profile with payload (no photo):', payload);
       
