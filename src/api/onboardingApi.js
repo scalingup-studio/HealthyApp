@@ -10,11 +10,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
-        field_value: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email || '',
-          phone: data.phoneNumber || '',
+        data_json: {
           dob: data.dateOfBirth,
           gender: data.genderIdentity,
           height: data.height ? parseInt(data.height) : null,
@@ -175,7 +171,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
-        field_value: {
+        data_json: {
           privacy: {
             data_visibility: data.dataVisibility,
             email_nudges: data.emailNudges,
@@ -213,7 +209,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
-        field_value: {
+        data_json: {
           onboarding: {
             completed: true,
             completed_at: new Date().toISOString(),
