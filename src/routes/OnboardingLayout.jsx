@@ -200,6 +200,12 @@ const OnboardingLayout = () => {
 
   // Initialize form data and load saved progress
   useEffect(() => {
+    // Clear localStorage for testing to ensure profile data is used
+    console.log('🧹 Clearing localStorage for testing...');
+    localStorage.removeItem('onboarding-progress');
+    localStorage.removeItem('onboarding-step');
+    localStorage.removeItem('onboarding-completed');
+    
     const savedData = localStorage.getItem('onboarding-progress');
     const savedStep = localStorage.getItem('onboarding-step');
     const savedCompleted = localStorage.getItem('onboarding-completed');
@@ -244,11 +250,37 @@ const OnboardingLayout = () => {
       }
     });
 
-    // Merge with saved data if available
-    const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
+    // Merge with saved data if available, but prioritize profile data
+    let mergedData = initialFormData;
+    if (savedData) {
+      const savedFormData = JSON.parse(savedData);
+      console.log('💾 Saved data from localStorage:', savedFormData);
+      
+      // Merge saved data with profile data, but profile data takes priority for key fields
+      mergedData = {
+        ...savedFormData,
+        ...initialFormData, // Profile data overwrites saved data
+        // Keep saved data for fields that profile doesn't have
+        healthConditions: savedFormData.healthConditions || initialFormData.healthConditions,
+        medications: savedFormData.medications || initialFormData.medications,
+        allergies: savedFormData.allergies || initialFormData.allergies,
+        lifestyleHabits: savedFormData.lifestyleHabits || initialFormData.lifestyleHabits,
+        healthGoals: savedFormData.healthGoals || initialFormData.healthGoals,
+        otherGoal: savedFormData.otherGoal || initialFormData.otherGoal,
+        dataVisibility: savedFormData.dataVisibility || initialFormData.dataVisibility,
+        emailNudges: savedFormData.emailNudges !== undefined ? savedFormData.emailNudges : initialFormData.emailNudges,
+        wearableSync: savedFormData.wearableSync !== undefined ? savedFormData.wearableSync : initialFormData.wearableSync,
+      };
+    }
     
     console.log('🔄 Merged form data:', mergedData);
     console.log('📝 Setting form data with firstName:', mergedData.firstName, 'lastName:', mergedData.lastName);
+    console.log('🔍 Data comparison:', {
+      'initialFormData.firstName': initialFormData.firstName,
+      'mergedData.firstName': mergedData.firstName,
+      'initialFormData.lastName': initialFormData.lastName,
+      'mergedData.lastName': mergedData.lastName
+    });
     setFormData(mergedData);
     
     // Only load saved step if we don't have a current step set
