@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../api/AuthContext.jsx';
 import { useNotifications } from '../api/NotificationContext.jsx';
 import { ProfilesApi } from '../api/profilesApi.js';
-import Logo from '../components/Logo.jsx';
+import { Logo } from '../components/Logo.jsx';
 import './OnboardingLayout.css';
 
 const OnboardingLayout = () => {
