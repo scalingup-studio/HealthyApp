@@ -1,8 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../api/AuthContext.jsx";
+import { useNotifications } from "../api/NotificationContext.jsx";
 import { Modal } from "../components/Modal.jsx";
 import { Logo } from "../components/Logo.jsx";
 import { AuthApi } from "../api/authApi";
+import { ProfilesApi } from "../api/profilesApi.js";
 
 export function SignupPage({ onClose }) {
   const [firstName, setFirstName] = React.useState("");
@@ -14,6 +17,8 @@ export function SignupPage({ onClose }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const navigate = useNavigate?.() || (()=>{});
+  const { login } = useAuth?.() || {};
+  const { showSuccess, showError } = useNotifications();
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -41,9 +46,47 @@ export function SignupPage({ onClose }) {
         email,
         password,
       });
-      alert("Account created successfully!");
+      console.log('📝 Signup response data:', data);
+      // Auto-login and redirect straight to profile for onboarding
+      try {
+        if (login) {
+          const res = await login(email, password);
+          if (!res?.success) throw new Error(res?.error || "Auto login failed");
+          console.log('🔐 Login after signup successful');
+        }
+      } catch (autoLoginErr) {
+        // Fallback: if auto-login fails, send to login
+        console.warn("Auto-login after signup failed:", autoLoginErr);
+        showSuccess("Account created. Please log in to continue.");
+        onClose?.();
+        navigate("/login");
+        return;
+      }
+
+      showSuccess("Account created successfully!");
+      
+      // Try to create profile with the provided data
+      try {
+        console.log('👤 Creating profile for new user...');
+        const profileData = {
+          user_id: data.user?.id || data.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: email
+        };
+        console.log('📝 Profile data to create:', profileData);
+        
+        const profile = await ProfilesApi.create(profileData);
+        console.log('✅ Profile created successfully:', profile);
+        showSuccess("Profile created with your information!");
+      } catch (profileError) {
+        console.warn('⚠️ Could not create profile automatically:', profileError.message);
+        // Don't show error to user, they can create it manually later
+      }
+      
       onClose?.();
-      navigate("/login");
+      // Redirect new users to Profile tab to complete their data
+      navigate("/dashboard/profile", { replace: true });
     } catch (err) {
       const apiMessage = err?.data?.message || err?.message;
       setError(apiMessage || "Unexpected error during signup");
