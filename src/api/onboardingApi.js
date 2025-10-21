@@ -9,17 +9,17 @@ export const OnboardingApi = {
   async savePersonalInfo(data) {
     try {
       const payload = {
-        data_json: {
+        user_id: data.userId || data.user_id,
+        field_value: {
           first_name: data.firstName,
           last_name: data.lastName,
           email: data.email || '',
           phone: data.phoneNumber || '',
           dob: data.dateOfBirth,
-          sex_at_birth: data.sexAtBirth,
           gender: data.genderIdentity,
           height: data.height ? parseInt(data.height) : null,
           weight: data.weight ? parseInt(data.weight) : null,
-          zip_code: data.zipCode || null,
+          zip_code: data.zipCode || null
         }
       };
 
@@ -175,7 +175,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
-        data_json: {
+        field_value: {
           privacy: {
             data_visibility: data.dataVisibility,
             email_nudges: data.emailNudges,
@@ -213,7 +213,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
-        data_json: {
+        field_value: {
           onboarding: {
             completed: true,
             completed_at: new Date().toISOString(),
