@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../api/AuthContext.jsx';
 import { useNotifications } from '../api/NotificationContext.jsx';
-import { ProfilesApi } from '../api/profilesApi.js';
+import { OnboardingApi } from '../api/onboardingApi.js';
 import { Logo } from '../components/Logo.jsx';
 import './OnboardingLayout.css';
 
@@ -116,11 +116,44 @@ const OnboardingLayout = () => {
     }));
   };
 
-  const nextStep = () => {
+  const saveStepData = async (stepIndex) => {
+    const stepId = steps[stepIndex].id;
+    
+    switch (stepId) {
+      case 'personal':
+        await OnboardingApi.savePersonalInfo(formData);
+        break;
+      case 'health_snapshot':
+        await OnboardingApi.saveHealthSnapshot(formData);
+        break;
+      case 'lifestyle':
+        await OnboardingApi.saveLifestyle(formData);
+        break;
+      case 'health_goals':
+        await OnboardingApi.saveHealthGoals(formData);
+        break;
+      case 'privacy':
+        await OnboardingApi.savePrivacySettings(formData);
+        break;
+      default:
+        // For welcome and review steps, no data to save
+        break;
+    }
+  };
+
+  const nextStep = async () => {
     if (currentStep < steps.length - 1) {
-      setCompletedSteps(prev => new Set([...prev, currentStep]));
-      setCurrentStep(prev => prev + 1);
-      saveProgress();
+      try {
+        // Save current step data to server
+        await saveStepData(currentStep);
+        
+        setCompletedSteps(prev => new Set([...prev, currentStep]));
+        setCurrentStep(prev => prev + 1);
+        saveProgress();
+      } catch (error) {
+        console.error('Error saving step data:', error);
+        showError('Failed to save step. Please try again.');
+      }
     }
   };
 
@@ -145,31 +178,17 @@ const OnboardingLayout = () => {
     try {
       setLoading(true);
       
-      // Create or update profile
-      const profileData = {
-        user_id: user.id,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        dob: formData.dateOfBirth,
-        gender: formData.sexAtBirth,
-        height_cm: formData.height ? parseInt(formData.height) : 0,
-        weight_kg: formData.weight ? parseInt(formData.weight) : 0,
-        zip_code: formData.zipCode,
-        // Additional fields can be stored in a separate table or JSON field
-        onboarding_completed: true,
-        health_conditions: formData.healthConditions,
-        medications: formData.medications,
-        allergies: formData.allergies,
-        lifestyle_habits: formData.lifestyleHabits,
-        health_goals: formData.healthGoals,
-        data_visibility: formData.dataVisibility,
-        email_nudges: formData.emailNudges,
-        wearable_sync: formData.wearableSync
-      };
-
-      await ProfilesApi.create(profileData);
+      // Save the last step (privacy) if not already saved
+      if (currentStep === 6) {
+        await OnboardingApi.savePrivacySettings(formData);
+      }
       
-      // Mark onboarding as completed
+      // Complete onboarding
+      await OnboardingApi.completeOnboarding({
+        stepsCompleted: [...completedSteps, currentStep]
+      });
+      
+      // Mark onboarding as completed in AuthContext
       await completeOnboarding();
       
       // Clear saved progress
@@ -322,9 +341,9 @@ const OnboardingLayout = () => {
               <button 
                 className="btn primary" 
                 onClick={nextStep}
-                disabled={!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.sexAtBirth}
+                disabled={loading || !formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.sexAtBirth}
               >
-                Continue
+                {loading ? 'Saving...' : 'Continue'}
               </button>
             </div>
           </div>
@@ -370,7 +389,13 @@ const OnboardingLayout = () => {
             
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button className="btn primary" onClick={nextStep}>Continue</button>
+              <button 
+                className="btn primary" 
+                onClick={nextStep}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Continue'}
+              </button>
             </div>
           </div>
         );
@@ -396,7 +421,13 @@ const OnboardingLayout = () => {
             
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button className="btn primary" onClick={nextStep}>Continue</button>
+              <button 
+                className="btn primary" 
+                onClick={nextStep}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Continue'}
+              </button>
             </div>
           </div>
         );
@@ -432,7 +463,13 @@ const OnboardingLayout = () => {
             
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button className="btn primary" onClick={nextStep}>Continue</button>
+              <button 
+                className="btn primary" 
+                onClick={nextStep}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Continue'}
+              </button>
             </div>
           </div>
         );
@@ -477,7 +514,13 @@ const OnboardingLayout = () => {
             
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button className="btn primary" onClick={nextStep}>Continue</button>
+              <button 
+                className="btn primary" 
+                onClick={nextStep}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Continue'}
+              </button>
             </div>
           </div>
         );
