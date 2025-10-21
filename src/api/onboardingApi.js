@@ -27,6 +27,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.personal, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
@@ -58,6 +62,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.healthSnapshot, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
@@ -90,6 +98,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.lifestyle, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
@@ -141,6 +153,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.healthGoals, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
@@ -175,6 +191,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.privacy, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
@@ -209,6 +229,10 @@ export const OnboardingApi = {
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.complete, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: payload,
       });
       
