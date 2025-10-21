@@ -182,9 +182,22 @@ const calculateAgeFromDOB = (dob) => {
       if (pendingPhotoFile) {
         try {
           setUploadingPhoto(true);
+          console.log('📸 UPLOADING photo:');
+          console.log('📍 Endpoint:', `${ENDPOINTS.uploudFile.uploudFile}`);
+          console.log('📦 File:', {
+            name: pendingPhotoFile.name,
+            size: pendingPhotoFile.size,
+            type: pendingPhotoFile.type
+          });
+          console.log('📦 User ID:', user.id);
+          console.log('📦 Category:', 'profile');
+          
           const res = await UploadFileApi.uploadFile(pendingPhotoFile, user.id, 'profile');
           const uploaded = res?.result || res;
           const url = uploaded?.url || uploaded?.path || '';
+          
+          console.log('✅ Photo upload response:', uploaded);
+          console.log('🔗 Photo URL:', url);
           
           // Update local profile state with photo info
           setProfile(prev => ({
@@ -241,12 +254,22 @@ const calculateAgeFromDOB = (dob) => {
       let updated;
       if (profile && profile.id) {
         // Update existing profile
+        console.log('🔄 UPDATING existing profile:');
+        console.log('📍 Endpoint:', `PATCH ${ENDPOINTS.profiles.update(profile.id)}`);
+        console.log('📦 Request Body:', JSON.stringify(payload, null, 2));
+        console.log('📦 Request Body (formatted):', payload);
+        
         updated = await ProfilesApi.update(profile.id, payload);
-        console.log('✅ Profile updated:', updated);
+        console.log('✅ Profile updated successfully:', updated);
       } else {
         // Create new profile
+        console.log('🆕 CREATING new profile:');
+        console.log('📍 Endpoint:', `POST ${ENDPOINTS.profiles.create}`);
+        console.log('📦 Request Body:', JSON.stringify(payload, null, 2));
+        console.log('📦 Request Body (formatted):', payload);
+        
         updated = await ProfilesApi.create(payload);
-        console.log('✅ Profile created:', updated);
+        console.log('✅ Profile created successfully:', updated);
       }
       
       setProfile(updated);
