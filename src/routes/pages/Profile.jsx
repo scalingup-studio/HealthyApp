@@ -353,35 +353,7 @@ const calculateAgeFromDOB = (dob) => {
                 <strong style={{ color:'var(--text)' }}>Email:</strong> {profile?.email || user?.email || "No email"}
               </p>
               
-              {/* Additional profile information */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "12px", fontSize: "14px" }}>
-                {profile?.dob && (
-                  <p style={{ color:'var(--muted)', margin: 0 }}>
-                    <strong style={{ color:'var(--text)' }}>Age:</strong> {calculateAgeFromDOB(profile.dob)} years
-                  </p>
-                )}
-                {profile?.phone_number && (
-                  <p style={{ color:'var(--muted)', margin: 0 }}>
-                    <strong style={{ color:'var(--text)' }}>Phone:</strong> {profile.phone_number}
-                  </p>
-                )}
-                {profile?.gender && (
-                  <p style={{ color:'var(--muted)', margin: 0 }}>
-                    <strong style={{ color:'var(--text)' }}>Gender:</strong> {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
-                  </p>
-                )}
-                {profile?.created_at && (
-                  <p style={{ color:'var(--muted)', margin: 0 }}>
-                    <strong style={{ color:'var(--text)' }}>Member since:</strong> {new Date(profile.created_at).toLocaleDateString()}
-                  </p>
-                )}
-                {profile?.updated_at && (
-                  <p style={{ color:'var(--muted)', margin: 0 }}>
-                    <strong style={{ color:'var(--text)' }}>Last updated:</strong> {new Date(profile.updated_at).toLocaleDateString()}
-                  </p>
-                )}
-                {/* Profile ID hidden from UI by request */}
-              </div>
+        
               
               {error && (
                 <p style={{ color: "var(--error)", fontSize: "14px", marginTop: "8px" }}>
@@ -514,7 +486,7 @@ function Accordion({ title, options, values, onToggle, onSave, saving }) {
         <div style={{ paddingBottom: 12 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
             {options.map(opt => (
-              <label key={opt} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 999, background:'#0b0b0b', color:'var(--muted)' }}>
+              <label key={opt} className="inline-checkbox">
                 <input type="checkbox" checked={values.includes(opt)} onChange={() => onToggle(opt)} />
                 <span>{opt}</span>
               </label>

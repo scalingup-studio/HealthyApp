@@ -35,26 +35,246 @@ body {
 .auth-title { margin:0 0; font-size:24px; font-weight:500; letter-spacing:.2px; }
 
 
+/* ===== FORM STYLES ===== */
 .form { width:100%; max-width:480px; display: flex; align-items: stretch; flex-direction: column; }
 .form-field { margin-bottom:16px; }
-.form-field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
-.form-field input { width:100%; height:44px; border:1px solid var(--border); border-radius:10px; padding:0 12px; outline:none; background:#0b0b0b; color:var(--text); transition:border-color .2s, box-shadow .2s, background .2s; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0); }
-/* Styled dropdowns to match inputs */
-.form-field select { width:100%; height:44px; border:1px solid var(--border); border-radius:10px; padding:0 36px 0 12px; outline:none; background:#0b0b0b; color:var(--text); appearance:none; -webkit-appearance:none; -moz-appearance:none; position:relative; transition:border-color .2s, box-shadow .2s, background .2s; }
-.form-field select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,186,206,.25); }
-.form-field select option { background:#0b0b0b; color:var(--text); }
-/* Caret indicator for select (using background svg) */
-.form-field select { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23cccccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'); background-repeat:no-repeat; background-position: right 10px center; background-size:16px; }
+.form-field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+
+/* Input fields */
+.form-field input, 
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+input[type="number"], 
+input[type="date"], 
+input[type="tel"], 
+input[type="url"],
+textarea { 
+  width:100%; 
+  height:44px; 
+  border:1px solid var(--border); 
+  border-radius:10px; 
+  padding:0 12px; 
+  outline:none; 
+  background:#0b0b0b; 
+  color:var(--text); 
+  transition:border-color .2s, box-shadow .2s, background .2s; 
+  box-shadow: inset 0 0 0 9999px rgba(255,255,255,0); 
+  font-family:inherit;
+  font-size:14px;
+}
+
+/* Textarea specific */
+textarea { 
+  height:auto; 
+  min-height:80px; 
+  padding:12px; 
+  resize:vertical; 
+}
+
+/* Select dropdowns */
+.form-field select, 
+select { 
+  width:100%; 
+  height:44px; 
+  border:1px solid var(--border); 
+  border-radius:10px; 
+  padding:0 36px 0 12px; 
+  outline:none; 
+  background:#0b0b0b; 
+  color:var(--text); 
+  appearance:none; 
+  -webkit-appearance:none; 
+  -moz-appearance:none; 
+  position:relative; 
+  transition:border-color .2s, box-shadow .2s, background .2s; 
+  font-family:inherit;
+  font-size:14px;
+  cursor:pointer;
+}
+
+/* Caret indicator for select */
+.form-field select, 
+select { 
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23cccccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'); 
+  background-repeat:no-repeat; 
+  background-position: right 10px center; 
+  background-size:16px; 
+}
+
+.form-field select option, 
+select option { 
+  background:#0b0b0b; 
+  color:var(--text); 
+}
+
+/* Checkbox styles */
+.form-field input[type="checkbox"], 
+input[type="checkbox"] { 
+  width:18px; 
+  height:18px; 
+  margin:0; 
+  padding:0; 
+  border:2px solid var(--border); 
+  border-radius:4px; 
+  background:#0b0b0b; 
+  appearance:none; 
+  -webkit-appearance:none; 
+  -moz-appearance:none; 
+  cursor:pointer; 
+  position:relative; 
+  transition:all .2s;
+  flex-shrink:0;
+}
+
+.form-field input[type="checkbox"]:checked, 
+input[type="checkbox"]:checked { 
+  background:var(--primary); 
+  border-color:var(--primary); 
+}
+
+.form-field input[type="checkbox"]:checked::after, 
+input[type="checkbox"]:checked::after { 
+  content:''; 
+  position:absolute; 
+  left:4px; 
+  top:1px; 
+  width:6px; 
+  height:10px; 
+  border:solid #fff; 
+  border-width:0 2px 2px 0; 
+  transform:rotate(45deg); 
+}
+
+/* Radio button styles */
+.form-field input[type="radio"], 
+input[type="radio"] { 
+  width:18px; 
+  height:18px; 
+  margin:0; 
+  padding:0; 
+  border:2px solid var(--border); 
+  border-radius:50%; 
+  background:#0b0b0b; 
+  appearance:none; 
+  -webkit-appearance:none; 
+  -moz-appearance:none; 
+  cursor:pointer; 
+  position:relative; 
+  transition:all .2s;
+  flex-shrink:0;
+}
+
+.form-field input[type="radio"]:checked, 
+input[type="radio"]:checked { 
+  background:var(--primary); 
+  border-color:var(--primary); 
+}
+
+.form-field input[type="radio"]:checked::after, 
+input[type="radio"]:checked::after { 
+  content:''; 
+  position:absolute; 
+  left:50%; 
+  top:50%; 
+  width:8px; 
+  height:8px; 
+  background:#fff; 
+  border-radius:50%; 
+  transform:translate(-50%, -50%); 
+}
+
+/* Focus states */
+.form-field input:focus, 
+input:focus, 
+.form-field select:focus, 
+select:focus, 
+.form-field textarea:focus, 
+textarea:focus { 
+  border-color:var(--primary); 
+  box-shadow:0 0 0 3px rgba(0,186,206,.25); 
+}
+
+.form-field input[type="checkbox"]:focus, 
+input[type="checkbox"]:focus, 
+.form-field input[type="radio"]:focus, 
+input[type="radio"]:focus { 
+  box-shadow:0 0 0 3px rgba(0,186,206,.25); 
+}
+
+/* Placeholder */
+.form-field input::placeholder, 
+input::placeholder, 
+.form-field textarea::placeholder, 
+textarea::placeholder { 
+  color:var(--hint); 
+}
+
+/* Password field */
 .form-field.password { position:relative; }
-.toggle-visibility { position:absolute; right:10px; top:42px; transform:translateY(-50%); background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px 6px; border-radius:6px; }
+.toggle-visibility { 
+  position:absolute; 
+  right:10px; 
+  top:42px; 
+  transform:translateY(-50%); 
+  background:transparent; 
+  border:0; 
+  color:var(--muted); 
+  cursor:pointer; 
+  padding:4px 6px; 
+  border-radius:6px; 
+}
 .toggle-visibility:hover { color:#ffffff; }
-.form-field input::placeholder { color:var(--hint); }
-.form-field input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,186,206,.25); }
+
+/* Field hints and errors */
 .field-hint { margin:6px 0 0; font-size:12px; color:var(--error); min-height:16px; }
 
+/* Form layout */
 .form-row { display:flex; align-items:center; gap:12px; }
 .between { justify-content:space-between; margin-top: 16px; }
-.checkbox { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+
+/* Checkbox and radio labels */
+.checkbox, 
+.radio { 
+  display:flex; 
+  align-items:center; 
+  gap:8px; 
+  font-size:13px; 
+  color:var(--muted); 
+  cursor:pointer;
+}
+
+.checkbox:hover, 
+.radio:hover { 
+  color:var(--text); 
+}
+
+/* Inline form elements */
+.inline-checkbox, 
+.inline-radio { 
+  display:inline-flex; 
+  align-items:center; 
+  gap:6px; 
+  padding:6px 10px; 
+  border:1px solid var(--border); 
+  border-radius:999px; 
+  background:#0b0b0b; 
+  color:var(--muted); 
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.inline-checkbox:hover, 
+.inline-radio:hover { 
+  background:#111111; 
+  color:var(--text); 
+  border-color:var(--primary); 
+}
+
+.inline-checkbox input[type="checkbox"], 
+.inline-radio input[type="radio"] { 
+  margin:0; 
+}
 
 .btn { width:100%; height:46px; border-radius:999px; border:1px solid var(--border); background:#0b0b0b; color:var(--text); font-weight:700; cursor:pointer; transition:transform .12s ease, background .2s, color .2s, border-color .2s, opacity .2s, box-shadow .2s; display:inline-flex; align-items:center; justify-content:center; gap:10px; }
 .btn.primary { border:0; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%); color:#ffffff; box-shadow:0 8px 20px rgba(0,76,215,.35), 0 2px 6px rgba(0,186,206,.25); }

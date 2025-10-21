@@ -348,7 +348,6 @@ const HealthHistoryCard = ({
             {title.includes("Family") && (
               <>
                 <select
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newItem.family_member || ""}
                   onChange={(e) => handleInputChange("family_member", e.target.value)}
                 >
@@ -364,19 +363,17 @@ const HealthHistoryCard = ({
                 <input
                   type="number"
                   placeholder="Age at diagnosis"
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newItem.age_at_diagnosis || ""}
                   onChange={(e) => handleInputChange("age_at_diagnosis", e.target.value)}
                 />
-                <div className="flex items-center">
+                <div className="checkbox">
                   <input
                     type="checkbox"
                     id="is_genetic"
-                    className="mr-2"
                     checked={newItem.is_genetic || false}
                     onChange={(e) => handleInputChange("is_genetic", e.target.checked)}
                   />
-                  <label htmlFor="is_genetic" className="text-sm">Genetic condition</label>
+                  <label htmlFor="is_genetic">Genetic condition</label>
                 </div>
               </>
             )}
@@ -384,7 +381,6 @@ const HealthHistoryCard = ({
             {/* Загальні нотатки для всіх типів */}
             <textarea
               placeholder="Additional notes (optional)"
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows="2"
               value={newItem.notes || ""}
               onChange={(e) => handleInputChange("notes", e.target.value)}
