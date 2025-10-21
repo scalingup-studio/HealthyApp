@@ -121,61 +121,63 @@ const OnboardingLayout = () => {
     }
   };
 
-  // Load saved progress from localStorage and user profile
+  // Load user profile from database
   useEffect(() => {
-    const loadData = async () => {
-      // First load user profile from database
-      await loadUserProfile();
-      
-      const savedData = localStorage.getItem('onboarding-progress');
-      const savedStep = localStorage.getItem('onboarding-step');
-      const savedCompleted = localStorage.getItem('onboarding-completed');
-      
-      console.log('👤 Loading user data for onboarding:', user);
-      console.log('📊 Profile data from database:', profile);
-      
-      // Initialize form data with user profile data from database
-      const initialFormData = {
-        firstName: profile?.first_name || user?.first_name || user?.firstName || '',
-        lastName: profile?.last_name || user?.last_name || user?.lastName || '',
-        dateOfBirth: profile?.dob || '',
-        sexAtBirth: profile?.gender || '',
-        genderIdentity: '',
-        height: profile?.height_cm ? profile.height_cm.toString() : '',
-        weight: profile?.weight_kg ? profile.weight_kg.toString() : '',
-        zipCode: profile?.zip_code || '',
-        healthConditions: '',
-        medications: '',
-        allergies: '',
-        lifestyleHabits: [],
-        healthGoals: [],
-        otherGoal: '',
-        dataVisibility: 'private',
-        emailNudges: true,
-        wearableSync: false
-      };
+    if (user?.id) {
+      loadUserProfile();
+    }
+  }, [user?.id]);
 
-      console.log('📝 Initial form data with profile info:', initialFormData);
-
-      // Merge with saved data if available
-      const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
-      
-      console.log('🔄 Merged form data:', mergedData);
-      setFormData(mergedData);
-      
-      if (savedStep) {
-        setCurrentStep(parseInt(savedStep));
-      }
-      if (savedCompleted) {
-        setCompletedSteps(new Set(JSON.parse(savedCompleted)));
-      }
-    };
+  // Initialize form data and load saved progress
+  useEffect(() => {
+    const savedData = localStorage.getItem('onboarding-progress');
+    const savedStep = localStorage.getItem('onboarding-step');
+    const savedCompleted = localStorage.getItem('onboarding-completed');
     
-    loadData();
+    console.log('👤 Loading user data for onboarding:', user);
+    console.log('📊 Profile data from database:', profile);
+    
+    // Initialize form data with user profile data from database
+    const initialFormData = {
+      firstName: profile?.first_name || user?.first_name || user?.firstName || '',
+      lastName: profile?.last_name || user?.last_name || user?.lastName || '',
+      dateOfBirth: profile?.dob || '',
+      sexAtBirth: profile?.gender || '',
+      genderIdentity: '',
+      height: profile?.height_cm ? profile.height_cm.toString() : '',
+      weight: profile?.weight_kg ? profile.weight_kg.toString() : '',
+      zipCode: profile?.zip_code || '',
+      healthConditions: '',
+      medications: '',
+      allergies: '',
+      lifestyleHabits: [],
+      healthGoals: [],
+      otherGoal: '',
+      dataVisibility: 'private',
+      emailNudges: true,
+      wearableSync: false
+    };
+
+    console.log('📝 Initial form data with profile info:', initialFormData);
+
+    // Merge with saved data if available
+    const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
+    
+    console.log('🔄 Merged form data:', mergedData);
+    setFormData(mergedData);
+    
+    // Only load saved step if we don't have a current step set
+    if (savedStep && currentStep === 0) {
+      setCurrentStep(parseInt(savedStep));
+    }
+    if (savedCompleted) {
+      setCompletedSteps(new Set(JSON.parse(savedCompleted)));
+    }
   }, [user, profile]);
 
   // Save progress to localStorage
   const saveProgress = () => {
+    console.log('💾 Saving progress to localStorage, currentStep:', currentStep);
     localStorage.setItem('onboarding-progress', JSON.stringify(formData));
     localStorage.setItem('onboarding-step', currentStep.toString());
     localStorage.setItem('onboarding-completed', JSON.stringify([...completedSteps]));
@@ -220,13 +222,20 @@ const OnboardingLayout = () => {
   };
 
   const nextStep = async () => {
+    console.log('🔄 nextStep called, currentStep:', currentStep);
     if (currentStep < steps.length - 1) {
       try {
+        console.log('💾 Saving step data for step:', currentStep);
         // Save current step data to server
         await saveStepData(currentStep);
         
+        console.log('✅ Step data saved, moving to next step');
         setCompletedSteps(prev => new Set([...prev, currentStep]));
-        setCurrentStep(prev => prev + 1);
+        setCurrentStep(prev => {
+          const next = prev + 1;
+          console.log('📈 Moving from step', prev, 'to step', next);
+          return next;
+        });
         saveProgress();
       } catch (error) {
         console.error('Error saving step data:', error);
