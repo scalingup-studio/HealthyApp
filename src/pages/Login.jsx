@@ -5,6 +5,8 @@ import { SignupPage } from "./Signup.jsx";
 import { ForgotPasswordModal } from "../components/ForgotPasswordModal.jsx";
 import { AuthApi } from "../api/authApi";
 import { useAuth } from "../api/AuthContext";
+import { useNotifications } from "../api/NotificationContext.jsx";
+import NotificationSystem from "../components/NotificationSystem.jsx";
 
 export function LoginPage({ onOpenSignup }) {
   const [email, setEmail] = React.useState("");
@@ -19,7 +21,8 @@ export function LoginPage({ onOpenSignup }) {
   const [signupOpen, setSignupOpen] = React.useState(false);
   
   const navigate = useNavigate();
-  const { login, authToken, setAuthToken, setUser } = useAuth(); 
+  const { login, authToken, setAuthToken, setUser } = useAuth();
+  const { notifications, removeNotification, showSuccess, showError } = useNotifications(); 
 
   function validate() {
     let ok = true;
@@ -197,6 +200,11 @@ export function LoginPage({ onOpenSignup }) {
       <aside className="artwork">
         <img src="/images/login_image.avif" alt="Artwork" />
       </aside>
+      
+      <NotificationSystem 
+        notifications={notifications} 
+        onRemove={removeNotification} 
+      />
     </div>
   );
 }

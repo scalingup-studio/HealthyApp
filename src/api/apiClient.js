@@ -25,9 +25,10 @@ function onRefreshed(authToken) {
 
 // ✅ Експортована функція authRequest
 export const authRequest = async (url, options = {}, retry = true) => {
+  const isFormData = options?.body instanceof FormData;
   const config = {
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...options.headers,
     },
     credentials: "include",
@@ -40,7 +41,7 @@ export const authRequest = async (url, options = {}, retry = true) => {
     config.headers["Authorization"] = `Bearer ${authToken}`;
   }
 
-  if (config.body && typeof config.body === "object") {
+  if (config.body && typeof config.body === "object" && !isFormData) {
     config.body = JSON.stringify(config.body);
   }
 

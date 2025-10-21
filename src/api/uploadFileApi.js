@@ -22,12 +22,14 @@ export const UploadFileApi = {
   /**
    * Upload file to server
    */
-  async uploadFile(file, userId, category, fileName = null) {
+  async uploadFile(file, userId, category = 'other', fileName = null) {
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("user_id", userId);
-      formData.append("category", category);
+      const allowedCategories = new Set(['medical','insurance','lab','other']);
+      const safeCategory = allowedCategories.has(category) ? category : 'other';
+      formData.append("category", safeCategory);
       
       const allowedFileType = getFileType(file.type);
       formData.append("file_type", allowedFileType);

@@ -1,14 +1,53 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuthRequest } from "../../api/authRequest.js";
 import { useAuth } from "../../api/AuthContext.jsx";
+import { useNotifications } from "../../api/NotificationContext.jsx";
+import { ProfilesApi } from "../../api/profilesApi.js";
+import { UploadFileApi } from "../../api/uploadFileApi.js";
 import { ENDPOINTS } from "../../api/apiConfig.js";
 
 export default function DashboardProfile() {
   const authRequest = useAuthRequest();
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotifications();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [pendingPhotoFile, setPendingPhotoFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [formValues, setFormValues] = useState({
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    dob: "",
+    gender: "",
+    height_cm: "",
+    weight_kg: "",
+    zip_code: "",
+    user_id: "",
+  });
+  const [activeTab, setActiveTab] = useState('personal');
+  const [healthHistory, setHealthHistory] = useState({
+    medical_conditions: [],
+    medications: [],
+    allergies: [],
+    surgical_history: [],
+    vaccinations: [],
+    sensitivities: [],
+    family_history: [],
+  });
+  const healthOptions = {
+    medical_conditions: ["Hypertension", "Diabetes", "Asthma", "Cardiovascular"],
+    medications: ["Metformin", "Lisinopril", "Atorvastatin", "Ibuprofen"],
+    allergies: ["Penicillin", "Peanuts", "Dust", "Pollen"],
+    surgical_history: ["Appendectomy", "C-section", "Knee surgery"],
+    vaccinations: ["COVID-19", "Influenza", "Tetanus"],
+    sensitivities: ["Gluten", "Lactose", "Latex", "Fragrances"],
+    family_history: ["Diabetes", "Heart disease", "Cancer"],
+  };
 
 
 const calculateAgeFromDOB = (dob) => {
@@ -28,19 +67,97 @@ const calculateAgeFromDOB = (dob) => {
   useEffect(() => {
     async function fetchProfile() {
       if (!user || !user.id) {
-        setError("User not authenticated");
+        const msg = "User not authenticated";
+        setError(msg);
+        showError(msg);
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const data = await authRequest(ENDPOINTS.profiles.getById(user.id));
-        setProfile(data);
-        console.log('data', data)
+        console.log('🔍 Fetching profile for user ID:', user.id);
+        
+        // Try to get profile by user_id using ProfilesApi
+        let profileData = null;
+        try {
+          // First try to get profile by user_id
+          profileData = await ProfilesApi.getById(user.id);
+          console.log('✅ Profile found by ID:', profileData);
+        } catch (idError) {
+          console.log('⚠️ Profile not found by ID, trying to get all profiles:', idError.message);
+          // If not found by ID, try to get all profiles and filter by user_id
+          const allProfilesResponse = await ProfilesApi.getAll();
+          console.log('📋 All profiles response:', allProfilesResponse);
+          
+          // Handle API response format: { result: [...], success: true }
+          const allProfiles = allProfilesResponse?.result || allProfilesResponse;
+          console.log('📋 All profiles array:', allProfiles);
+          
+          if (Array.isArray(allProfiles)) {
+            profileData = allProfiles.find(p => p.user_id === user.id || p.id === user.id);
+            console.log('🔍 Found profile in list:', profileData);
+          } else if (allProfiles && (allProfiles.user_id === user.id || allProfiles.id === user.id)) {
+            profileData = allProfiles;
+            console.log('🔍 Single profile found:', profileData);
+          }
+        }
+        
+        setProfile(profileData);
+        const preview = profileData?.profile_photo?.url || profileData?.profile_photo?.path || "";
+        if (preview) setPhotoPreview(preview);
+        
+        // Use profile data if available, otherwise fallback to user data
+        const dataToUse = profileData || user;
+        console.log('📊 Data to use for form:', dataToUse);
+        console.log('📊 Profile data:', profileData);
+        console.log('📊 User data:', user);
+        
+        const formData = {
+          first_name: dataToUse?.first_name || dataToUse?.firstName || "",
+          last_name: dataToUse?.last_name || dataToUse?.lastName || "",
+          phone_number: dataToUse?.phone_number || dataToUse?.phone || "",
+          dob: dataToUse?.dob || dataToUse?.date_of_birth || "",
+          gender: dataToUse?.gender || "",
+          height_cm: (dataToUse?.height_cm ?? "") === 0 ? "" : (dataToUse?.height_cm ?? ""),
+          weight_kg: (dataToUse?.weight_kg ?? "") === 0 ? "" : (dataToUse?.weight_kg ?? ""),
+          zip_code: dataToUse?.zip_code ?? "",
+          user_id: dataToUse?.user_id || user?.id || "",
+        };
+        
+        console.log('📊 Form data to set:', formData);
+        setFormValues(formData);
         setError(null);
+        
+        if (!profileData) {
+          console.log('ℹ️ No profile found, using user data as fallback');
+        }
       } catch (err) {
-        setError(err.message || "Failed to fetch profile");
+        console.warn('❌ Failed to fetch profile from API, using user data:', err.message);
+        // Fallback to user data if API fails
+        const profileData = user;
+        setProfile(profileData);
+        setFormValues({
+          first_name: profileData?.first_name || profileData?.firstName || "",
+          last_name: profileData?.last_name || profileData?.lastName || "",
+          phone_number: profileData?.phone_number || profileData?.phone || "",
+          dob: profileData?.dob || profileData?.date_of_birth || "",
+          gender: profileData?.gender || "",
+          height_cm: (profileData?.height_cm ?? "") === 0 ? "" : (profileData?.height_cm ?? ""),
+          weight_kg: (profileData?.weight_kg ?? "") === 0 ? "" : (profileData?.weight_kg ?? ""),
+          zip_code: profileData?.zip_code ?? "",
+          user_id: profileData?.user_id || user?.id || "",
+        });
+        console.log('📊 Fallback form data set:', {
+          first_name: profileData?.first_name || profileData?.firstName || "",
+          last_name: profileData?.last_name || profileData?.lastName || "",
+          phone_number: profileData?.phone_number || profileData?.phone || "",
+          dob: profileData?.dob || profileData?.date_of_birth || "",
+          gender: profileData?.gender || "",
+        });
+        const msg = `Profile API unavailable: ${err.message}`;
+        setError(msg);
+        showError(msg);
       } finally {
         setLoading(false);
       }
@@ -49,60 +166,335 @@ const calculateAgeFromDOB = (dob) => {
     fetchProfile();
   }, [user?.id]);
 
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setFormValues(prev => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSave(e) {
+    e?.preventDefault?.();
+    if (!user?.id) return;
+    try {
+      setSaving(true);
+      setError(null);
+      // If user picked a new photo, upload it first and merge metadata
+      if (pendingPhotoFile) {
+        try {
+          setUploadingPhoto(true);
+          const res = await UploadFileApi.uploadFile(pendingPhotoFile, user.id, 'profile');
+          const uploaded = res?.result || res;
+          const url = uploaded?.url || uploaded?.path || '';
+          setProfile(prev => ({
+            ...(prev || {}),
+            profile_photo: {
+              access: uploaded?.access || 'public',
+              path: uploaded?.path || url,
+              name: uploaded?.name || pendingPhotoFile.name,
+              type: uploaded?.type || pendingPhotoFile.type,
+              size: uploaded?.size || pendingPhotoFile.size,
+              mime: uploaded?.mime || pendingPhotoFile.type,
+              meta: uploaded?.meta || {},
+              url,
+            }
+          }));
+        } catch (uploadErr) {
+          const msg = uploadErr?.message || 'Failed to upload photo';
+          setError(msg);
+          showError(msg);
+          return;
+        } finally {
+          setUploadingPhoto(false);
+          setPendingPhotoFile(null);
+        }
+      }
+      const basePayload = {
+        first_name: formValues.first_name?.trim(),
+        last_name: formValues.last_name?.trim(),
+        phone_number: formValues.phone_number?.trim(),
+        dob: formValues.dob || null,
+        gender: formValues.gender || "",
+        height_cm: formValues.height_cm === "" ? 0 : Number(formValues.height_cm),
+        weight_kg: formValues.weight_kg === "" ? 0 : Number(formValues.weight_kg),
+        zip_code: formValues.zip_code?.trim() || "",
+      };
+
+      // Note: profile_photo is managed via upload endpoint and not sent in profiles update payload
+
+      // For UPDATE the API expects profiles_id in the body
+      let payload = basePayload;
+      if (profile && profile.id) {
+        payload = { profiles_id: profile.id, ...basePayload };
+      } else {
+        // For CREATE we keep user_id
+        payload = { user_id: formValues.user_id || user.id, ...basePayload };
+      }
+      
+      console.log('💾 Saving profile with payload:', payload);
+      
+      let updated;
+      if (profile && profile.id) {
+        // Update existing profile
+        updated = await ProfilesApi.update(profile.id, payload);
+        console.log('✅ Profile updated:', updated);
+      } else {
+        // Create new profile
+        updated = await ProfilesApi.create(payload);
+        console.log('✅ Profile created:', updated);
+      }
+      
+      setProfile(updated);
+      showSuccess("Profile updated successfully!");
+    } catch (err) {
+      const errorMessage = err.message || "Failed to save profile";
+      console.error('❌ Profile save error:', err);
+      setError(errorMessage);
+      showError(errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="dashboard-profile">
-      {/* Верхній блок: Аватар + Основна інформація */}
-      <div className="profile-header" style={{ display: "flex", gap: 16, marginBottom: 24 }}>
-        <div className="avatar" style={{ width: 120, height: 120, backgroundColor: "#ddd", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8 }}>
-          <span style={{ fontSize: 48 }}>👤</span>
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 16, paddingBottom:8, borderBottom: "1px solid var(--border)" }}>
+        <button onClick={() => setActiveTab('personal')} className="btn" style={{ width:'auto', padding:'8px 14px', height:38, borderRadius:8, background: activeTab==='personal' ? 'linear-gradient(135deg, var(--primary), var(--primary-600))' : 'transparent', color: activeTab==='personal' ? '#fff' : 'var(--muted)', borderColor: activeTab==='personal' ? 'transparent' : 'var(--border)' }}>Personal Info</button>
+        <button onClick={() => setActiveTab('health')} className="btn" style={{ width:'auto', padding:'8px 14px', height:38, borderRadius:8, background: activeTab==='health' ? 'linear-gradient(135deg, var(--primary), var(--primary-600))' : 'transparent', color: activeTab==='health' ? '#fff' : 'var(--muted)', borderColor: activeTab==='health' ? 'transparent' : 'var(--border)' }}>Health History</button>
+      </div>
+
+      {activeTab === 'personal' && (
+      <div className="card" style={{ display: "flex", gap: 16, marginBottom: 24,  alignItems:'flex-start' }}>
+        <div 
+          style={{ width: 120, height: 120, backgroundColor: "#0b0b0b", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, border:'1px solid var(--border)', overflow:'hidden', cursor:'pointer', position:'relative' }}
+          onClick={() => fileInputRef.current?.click()}
+          role="button"
+          title="Change photo"
+          aria-label="Change profile photo"
+        >
+          {photoPreview ? (
+            <img src={photoPreview} alt="Profile" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          ) : (
+            <span style={{ fontSize: 48 }}>👤</span>
+          )}
+          {uploadingPhoto && (
+            <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.45)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12 }}>Uploading…</div>
+          )}
+          <input 
+            ref={fileInputRef}
+            type="file" 
+            accept="image/*"
+            style={{ display:'none' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              // Create a local preview and defer actual upload until Save
+              try {
+                if (photoPreview?.startsWith('blob:')) {
+                  URL.revokeObjectURL(photoPreview);
+                }
+                const localUrl = URL.createObjectURL(file);
+                setPhotoPreview(localUrl);
+                setPendingPhotoFile(file);
+                showInfo('Photo selected. Click "Save changes" to upload.');
+              } finally {
+                e.target.value = '';
+              }
+            }}
+          />
         </div>
-        <div className="profile-info">
+        <div style={{ flex:1 }}>
           {loading ? (
             <p>Loading profile...</p>
-          ) : error ? (
-            <p style={{ color: "var(--error)" }}>{error}</p>
-          ) : profile ? (
-            <>
-              <h2>{profile.name || (profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : 
-               profile.first_name || profile.last_name|| "No Name")}
-              </h2>
-              <p><strong>Email:</strong> {profile.email || user.email}</p>
-              <p><strong>Phone:</strong> {profile.phone_number || "Not provided"}</p>
-              <p><strong>Age:</strong> {calculateAgeFromDOB(profile.dob) || "N/A"}</p>
-              <p><strong>Gender:</strong> {profile.gender || "N/A"}</p>
-            </>
           ) : (
-            <p>No profile data available</p>
+            <>
+              <h2 style={{ marginTop:0 }}>
+                {profile?.name || 
+                 (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : 
+                  profile?.first_name || profile?.last_name || 
+                  user?.name || 
+                  (user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 
+                   user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` :
+                   user?.first_name || user?.last_name || user?.firstName || user?.lastName || 
+                   (formValues.first_name || formValues.last_name ? 
+                    `${formValues.first_name || ''} ${formValues.last_name || ''}`.trim() : 
+                    "Loading...")))}
+              </h2>
+              <p style={{ color:'var(--muted)' }}>
+                <strong style={{ color:'var(--text)' }}>Email:</strong> {profile?.email || user?.email || "No email"}
+              </p>
+              
+              {/* Additional profile information */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "12px", fontSize: "14px" }}>
+                {profile?.dob && (
+                  <p style={{ color:'var(--muted)', margin: 0 }}>
+                    <strong style={{ color:'var(--text)' }}>Age:</strong> {calculateAgeFromDOB(profile.dob)} years
+                  </p>
+                )}
+                {profile?.phone_number && (
+                  <p style={{ color:'var(--muted)', margin: 0 }}>
+                    <strong style={{ color:'var(--text)' }}>Phone:</strong> {profile.phone_number}
+                  </p>
+                )}
+                {profile?.gender && (
+                  <p style={{ color:'var(--muted)', margin: 0 }}>
+                    <strong style={{ color:'var(--text)' }}>Gender:</strong> {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
+                  </p>
+                )}
+                {profile?.created_at && (
+                  <p style={{ color:'var(--muted)', margin: 0 }}>
+                    <strong style={{ color:'var(--text)' }}>Member since:</strong> {new Date(profile.created_at).toLocaleDateString()}
+                  </p>
+                )}
+                {profile?.updated_at && (
+                  <p style={{ color:'var(--muted)', margin: 0 }}>
+                    <strong style={{ color:'var(--text)' }}>Last updated:</strong> {new Date(profile.updated_at).toLocaleDateString()}
+                  </p>
+                )}
+                {/* Profile ID hidden from UI by request */}
+              </div>
+              
+              {error && (
+                <p style={{ color: "var(--error)", fontSize: "14px", marginTop: "8px" }}>
+                  ⚠️ {error}
+                </p>
+              )}
+              <form onSubmit={handleSave} className="form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12, maxWidth: 720 }}>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>First name</span>
+                  <input name="first_name" value={formValues.first_name} onChange={handleChange} placeholder="John" />
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Last name</span>
+                  <input name="last_name" value={formValues.last_name} onChange={handleChange} placeholder="Doe" />
+                </label>
+                {/* User ID hidden from UI by request */}
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Phone</span>
+                  <input name="phone_number" value={formValues.phone_number} onChange={handleChange} placeholder="+1 555-1234" />
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Date of birth</span>
+                  <input type="date" name="dob" value={formValues.dob || ""} onChange={handleChange} />
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Gender</span>
+                  <select name="gender" value={formValues.gender || ""} onChange={handleChange}>
+                    <option value="">Not specified</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Height (cm)</span>
+                  <input type="number" inputMode="numeric" name="height_cm" value={formValues.height_cm} onChange={handleChange} placeholder="e.g. 175" />
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Weight (kg)</span>
+                  <input type="number" inputMode="numeric" name="weight_kg" value={formValues.weight_kg} onChange={handleChange} placeholder="e.g. 70" />
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>ZIP Code</span>
+                  <input name="zip_code" value={formValues.zip_code} onChange={handleChange} placeholder="e.g. 94105" />
+                </label>
+                <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, marginTop: 8 }}>
+                  <button type="submit" className="btn primary" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button>
+                </div>
+              </form>
+            </>
           )}
         </div>
       </div>
+      )}
 
-      {/* Великий блок статистики */}
-      <div className="profile-main" style={{ backgroundColor: "#eee", height: 200, borderRadius: 8, marginBottom: 24, padding: 16 }}>
-        <h3>Main Data / Stats</h3>
-        <p>Тут можна відобразити графіки або детальні дані користувача</p>
-      </div>
+      {activeTab === 'personal' && (
+        <div className="card" style={{ height: 200, marginBottom: 24 }}>
+          <h3 style={{ marginTop:0 }}>Main Data / Stats</h3>
+          <p style={{ color:'var(--muted)' }}></p>
+        </div>
+      )}
 
-      {/* Нижні картки / показники */}
-      <div className="profile-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-        <div className="card" style={{ padding: 16, borderRadius: 8, backgroundColor: "#fff" }}>
-          <h4>Today</h4>
-          <p>Steps: 8,214</p>
-          <p>Calories: 1,920 kcal</p>
+      {activeTab === 'health' && (
+        <div style={{ maxWidth: 920 }}>
+          <div className="card" style={{ padding: 0 }}>
+            <div style={{ padding:16, borderBottom:'1px solid var(--border)' }}>
+              <h2 style={{ margin: 0 }}>Health History</h2>
+            </div>
+            <div style={{ padding:16 }}>
+              {([
+                ['medical_conditions','Medical Conditions'],
+                ['medications','Current Medications'],
+                ['allergies','Known Allergies'],
+                ['surgical_history','Surgical History'],
+                ['vaccinations','Vaccination History'],
+                ['sensitivities','Environmental & Chemical Sensitivities'],
+                ['family_history','Family Health History'],
+              ]).map(([key,label]) => (
+                <Accordion
+                  key={key}
+                  title={label}
+                  options={healthOptions[key]}
+                  values={healthHistory[key]}
+                  onToggle={(item) => setHealthHistory(prev => {
+                    const set = new Set(prev[key]);
+                    if (set.has(item)) set.delete(item); else set.add(item);
+                    return { ...prev, [key]: Array.from(set) };
+                  })}
+                  onSave={async () => {
+                    try {
+                      setSaving(true);
+                      const map = {
+                        medical_conditions: ENDPOINTS.medicalConditions.create,
+                        medications: ENDPOINTS.medications.create,
+                        allergies: ENDPOINTS.allergies.create,
+                        surgical_history: ENDPOINTS.surgicalHistory.create,
+                        vaccinations: ENDPOINTS.vaccinations.create,
+                        sensitivities: ENDPOINTS.sensitivities.create,
+                        family_history: ENDPOINTS.familyHistory.create,
+                      };
+                      await authRequest(map[key], { method: 'POST', body: { user_id: user.id, items: healthHistory[key] } });
+                      showSuccess('Health data saved successfully!');
+                    } catch (e) {
+                      showError(e.message || 'Failed to save health data');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  saving={saving}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="card" style={{ padding: 16, borderRadius: 8, backgroundColor: "#fff" }}>
-          <h4>Sleep</h4>
-          <p>7h 45m last night</p>
+      )}
+
+    </div>
+  );
+}
+
+function Accordion({ title, options, values, onToggle, onSave, saving }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderTop: '1px solid var(--border)' }}>
+      <button onClick={() => setOpen(v => !v)} style={{ width: '100%', textAlign: 'left', padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', color: 'var(--text)' }}>
+        <span style={{ fontWeight: 600 }}>{title}</span>
+        <span style={{ color:'var(--muted)' }}>{open ? '▾' : '▸'}</span>
+      </button>
+      {open && (
+        <div style={{ paddingBottom: 12 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+            {options.map(opt => (
+              <label key={opt} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 999, background:'#0b0b0b', color:'var(--muted)' }}>
+                <input type="checkbox" checked={values.includes(opt)} onChange={() => onToggle(opt)} />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+          </div>
         </div>
-        <div className="card" style={{ padding: 16, borderRadius: 8, backgroundColor: "#fff" }}>
-          <h4>Water</h4>
-          <p>1.7 L of 2.0 L goal</p>
-        </div>
-        <div className="card" style={{ padding: 16, borderRadius: 8, backgroundColor: "#fff" }}>
-          <h4>Goal</h4>
-          <p>Workout 4x/week</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/AuthContext.jsx";
+import { NotificationProvider } from "./api/NotificationContext.jsx";
 import { LoginPage } from "./pages/Login.jsx";
 import { SignupPage } from "./pages/Signup.jsx";
 import OAuthCallbackGoogle from "./pages/OAuthCallbackGoogle.jsx";
@@ -40,16 +41,16 @@ function PrivateRoute({ children }) {
 
 // 🔄 Component for automatic redirection between onboarding and dashboard
 function AutoRedirectRoute() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasCompletedOnboarding } = useAuth();
   
   if (loading) return <p>Loading…</p>;
   
- // If onboarding is not completed - redirect to onboarding
-  if (!user?.onboarding_completed) {
+  // If onboarding is not completed - redirect to onboarding
+  if (!hasCompletedOnboarding?.() && !user?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
   
- // If onboarding is complete - redirect to dashboard
+  // If onboarding is complete - redirect to dashboard
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -136,9 +137,11 @@ function DashboardGuard({ children }) {
   
   return children;
 }
-// 🔒 Wrap entire app in AuthProvider
+// 🔒 Wrap entire app in AuthProvider and NotificationProvider
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>
-    <AppRouter />
+    <NotificationProvider>
+      <AppRouter />
+    </NotificationProvider>
   </AuthProvider>
 );

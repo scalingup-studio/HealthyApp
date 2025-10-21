@@ -39,6 +39,12 @@ body {
 .form-field { margin-bottom:16px; }
 .form-field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
 .form-field input { width:100%; height:44px; border:1px solid var(--border); border-radius:10px; padding:0 12px; outline:none; background:#0b0b0b; color:var(--text); transition:border-color .2s, box-shadow .2s, background .2s; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0); }
+/* Styled dropdowns to match inputs */
+.form-field select { width:100%; height:44px; border:1px solid var(--border); border-radius:10px; padding:0 36px 0 12px; outline:none; background:#0b0b0b; color:var(--text); appearance:none; -webkit-appearance:none; -moz-appearance:none; position:relative; transition:border-color .2s, box-shadow .2s, background .2s; }
+.form-field select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,186,206,.25); }
+.form-field select option { background:#0b0b0b; color:var(--text); }
+/* Caret indicator for select (using background svg) */
+.form-field select { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23cccccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'); background-repeat:no-repeat; background-position: right 10px center; background-size:16px; }
 .form-field.password { position:relative; }
 .toggle-visibility { position:absolute; right:10px; top:42px; transform:translateY(-50%); background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px 6px; border-radius:6px; }
 .toggle-visibility:hover { color:#ffffff; }
@@ -87,10 +93,119 @@ body {
 .icon-btn:hover { color:var(--text); }
 .modal-body { padding:18px; display:flex; align-items:center; justify-content:center; flex-direction: column; gap:16px; }
 
+/* Notification System */
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.notification {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transform: translateX(100%);
+  animation: slideIn 0.3s ease-out forwards;
+  transition: all 0.3s ease;
+}
+
+.notification:hover {
+  transform: translateX(0) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.notification-success .notification-icon {
+  background: rgba(0, 195, 122, 0.2);
+  color: var(--success);
+}
+
+.notification-error .notification-icon {
+  background: rgba(255, 76, 76, 0.2);
+  color: var(--error);
+}
+
+.notification-warning .notification-icon {
+  background: rgba(245, 166, 35, 0.2);
+  color: var(--warning);
+}
+
+.notification-info .notification-icon {
+  background: rgba(91, 192, 222, 0.2);
+  color: var(--info);
+}
+
+.notification-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  color: var(--text);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 900px) {
   .auth-layout { grid-template-columns:1fr; }
   .artwork { display:none; }
   .auth-card { border-right:none; padding:32px 20px; }
+  
+  .notification-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
 }
 
 /* Dashboard */

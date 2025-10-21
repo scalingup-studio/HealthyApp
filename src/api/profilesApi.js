@@ -7,7 +7,8 @@ export const ProfilesApi = {
    */
   async getAll() {
     try {
-      return await authRequest(ENDPOINTS.profiles.getAll);
+      const res = await authRequest(ENDPOINTS.profiles.getAll);
+      return res?.result ?? res; // Xano may wrap payload in { result, success }
     } catch (error) {
       console.error('Error fetching profiles:', error);
       throw error;
@@ -19,7 +20,8 @@ export const ProfilesApi = {
    */
   async getById(user_id) {
     try {
-      return await authRequest(ENDPOINTS.profiles.getById(user_id));
+      const res = await authRequest(ENDPOINTS.profiles.getById(user_id));
+      return res?.result ?? res; // unwrap { result }
     } catch (error) {
       console.error('Error fetching profile:', error);
       throw error;
@@ -31,10 +33,11 @@ export const ProfilesApi = {
    */
   async create(data) {
     try {
-      return await authRequest(ENDPOINTS.profiles.create, {
+      const res = await authRequest(ENDPOINTS.profiles.create, {
         method: "POST",
         body: data,
       });
+      return res?.result ?? res;
     } catch (error) {
       console.error('Error creating profile:', error);
       throw error;
@@ -46,10 +49,11 @@ export const ProfilesApi = {
    */
   async update(user_id, data) {
     try {
-      return await authRequest(ENDPOINTS.profiles.update(user_id), {
+      const res = await authRequest(ENDPOINTS.profiles.update(user_id), {
         method: "PATCH",
         body: data,
       });
+      return res?.result ?? res;
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -61,9 +65,10 @@ export const ProfilesApi = {
    */
   async delete(user_id) {
     try {
-      return await authRequest(ENDPOINTS.profiles.remove(user_id), {
+      const res = await authRequest(ENDPOINTS.profiles.remove(user_id), {
         method: "DELETE",
       });
+      return res?.result ?? res;
     } catch (error) {
       console.error('Error deleting profile:', error);
       throw error;
