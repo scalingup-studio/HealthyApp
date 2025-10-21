@@ -85,8 +85,8 @@ export function SignupPage({ onClose }) {
       }
       
       onClose?.();
-      // Redirect new users to Profile tab to complete their data
-      navigate("/dashboard/profile", { replace: true });
+      // Redirect new users to onboarding to complete their profile setup
+      navigate("/onboarding", { replace: true });
     } catch (err) {
       const apiMessage = err?.data?.message || err?.message;
       setError(apiMessage || "Unexpected error during signup");

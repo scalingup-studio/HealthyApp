@@ -131,9 +131,9 @@ function DashboardGuard({ children }) {
   if (loading) return <p>Loading…</p>;
   
   // Якщо onboarding не завершено - перенаправляємо на onboarding
-  // if (!hasCompletedOnboarding()) {
-  //   return <Navigate to="/onboarding" replace />;
-  // }
+  if (!hasCompletedOnboarding()) {
+    return <Navigate to="/onboarding" replace />;
+  }
   
   return children;
 }
