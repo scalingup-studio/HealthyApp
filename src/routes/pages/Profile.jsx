@@ -240,26 +240,20 @@ const calculateAgeFromDOB = (dob) => {
         zip_code: formValues.zip_code?.trim() || "",
       };
 
-      // For UPDATE the API expects profiles_id in the body
-      let payload = basePayload;
-      if (profile && profile.id) {
-        payload = { profiles_id: profile.id, ...basePayload };
-      } else {
-        // For CREATE we keep user_id
-        payload = { user_id: formValues.user_id || user.id, ...basePayload };
-      }
+      // Always use user_id in the payload (not profiles_id)
+      let payload = { user_id: formValues.user_id || user.id, ...basePayload };
       
       console.log('💾 Saving profile with payload (no photo):', payload);
       
       let updated;
       if (profile && profile.id) {
-        // Update existing profile
+        // Update existing profile using user_id
         console.log('🔄 UPDATING existing profile:');
-        console.log('📍 Endpoint:', `PATCH ${ENDPOINTS.profiles.update(profile.id)}`);
+        console.log('📍 Endpoint:', `PATCH ${ENDPOINTS.profiles.update(user.id)}`);
         console.log('📦 Request Body:', JSON.stringify(payload, null, 2));
         console.log('📦 Request Body (formatted):', payload);
         
-        updated = await ProfilesApi.update(profile.id, payload);
+        updated = await ProfilesApi.update(user.id, payload);
         console.log('✅ Profile updated successfully:', updated);
       } else {
         // Create new profile
