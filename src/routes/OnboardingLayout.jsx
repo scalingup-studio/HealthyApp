@@ -148,8 +148,22 @@ const OnboardingLayout = () => {
   // Update form data with profile data
   const updateFormWithProfileData = (profileData) => {
     console.log('🔄 Updating form with profile data:', profileData);
+    console.log('🔍 Profile data fields:', {
+      first_name: profileData.first_name,
+      last_name: profileData.last_name,
+      dob: profileData.dob,
+      gender: profileData.gender,
+      height_cm: profileData.height_cm,
+      weight_kg: profileData.weight_kg,
+      zip_code: profileData.zip_code
+    });
     
     setFormData(prev => {
+      console.log('📋 Previous form data:', {
+        firstName: prev.firstName,
+        lastName: prev.lastName
+      });
+      
       const updated = {
         ...prev,
         firstName: profileData.first_name || prev.firstName,
@@ -170,6 +184,8 @@ const OnboardingLayout = () => {
         weight: updated.weight,
         zipCode: updated.zipCode
       });
+      
+      console.log('✅ Form update complete! firstName:', updated.firstName, 'lastName:', updated.lastName);
       
       return updated;
     });
@@ -430,6 +446,7 @@ const OnboardingLayout = () => {
             <div className="form-grid">
               <div className="form-field">
                 <label>First Name *</label>
+                {console.log('🎯 Rendering First Name field with value:', formData.firstName)}
                 <input
                   type="text"
                   value={formData.firstName}
@@ -449,6 +466,7 @@ const OnboardingLayout = () => {
               
               <div className="form-field">
                 <label>Last Name *</label>
+                {console.log('🎯 Rendering Last Name field with value:', formData.lastName)}
                 <input
                   type="text"
                   value={formData.lastName}
