@@ -9,7 +9,7 @@ import { ENDPOINTS } from "../../api/apiConfig.js";
 export default function DashboardProfile() {
   const authRequest = useAuthRequest();
   const { user } = useAuth();
-  const { showSuccess, showError } = useNotifications();
+  const { showSuccess, showError, showInfo } = useNotifications();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -177,13 +177,16 @@ const calculateAgeFromDOB = (dob) => {
     try {
       setSaving(true);
       setError(null);
-      // If user picked a new photo, upload it first and merge metadata
+      
+      // Handle photo upload separately if user selected a new photo
       if (pendingPhotoFile) {
         try {
           setUploadingPhoto(true);
           const res = await UploadFileApi.uploadFile(pendingPhotoFile, user.id, 'profile');
           const uploaded = res?.result || res;
           const url = uploaded?.url || uploaded?.path || '';
+          
+          // Update local profile state with photo info
           setProfile(prev => ({
             ...(prev || {}),
             profile_photo: {
@@ -197,6 +200,10 @@ const calculateAgeFromDOB = (dob) => {
               url,
             }
           }));
+          
+          // Update photo preview
+          setPhotoPreview(url);
+          showSuccess("Photo uploaded successfully!");
         } catch (uploadErr) {
           const msg = uploadErr?.message || 'Failed to upload photo';
           setError(msg);
@@ -207,6 +214,8 @@ const calculateAgeFromDOB = (dob) => {
           setPendingPhotoFile(null);
         }
       }
+
+      // Prepare profile data payload (without photo - photo is handled separately)
       const basePayload = {
         first_name: formValues.first_name?.trim(),
         last_name: formValues.last_name?.trim(),
@@ -218,8 +227,6 @@ const calculateAgeFromDOB = (dob) => {
         zip_code: formValues.zip_code?.trim() || "",
       };
 
-      // Note: profile_photo is managed via upload endpoint and not sent in profiles update payload
-
       // For UPDATE the API expects profiles_id in the body
       let payload = basePayload;
       if (profile && profile.id) {
@@ -229,7 +236,7 @@ const calculateAgeFromDOB = (dob) => {
         payload = { user_id: formValues.user_id || user.id, ...basePayload };
       }
       
-      console.log('💾 Saving profile with payload:', payload);
+      console.log('💾 Saving profile with payload (no photo):', payload);
       
       let updated;
       if (profile && profile.id) {
