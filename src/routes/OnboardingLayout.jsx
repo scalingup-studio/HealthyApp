@@ -84,22 +84,38 @@ const OnboardingLayout = () => {
 
   // Load user profile from database
   const loadUserProfile = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('❌ No user ID available for profile loading');
+      return;
+    }
     
     try {
       setProfileLoading(true);
       console.log('🔍 Loading user profile for onboarding, user ID:', user.id);
+      console.log('👤 User object:', user);
       
       // Try to get profile by user_id
       let profileData = null;
       try {
+        console.log('📡 Calling ProfilesApi.getById with user_id:', user.id);
         profileData = await ProfilesApi.getById(user.id);
         console.log('✅ Profile found by ID:', profileData);
+        
+        if (profileData) {
+          console.log('📝 Profile contains:', {
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+            user_id: profileData.user_id,
+            id: profileData.id
+          });
+        }
       } catch (idError) {
         console.log('⚠️ Profile not found by ID, trying to get all profiles:', idError.message);
         // If not found by ID, try to get all profiles and filter by user_id
         const allProfilesResponse = await ProfilesApi.getAll();
         const allProfiles = allProfilesResponse?.result || allProfilesResponse;
+        
+        console.log('📋 All profiles response:', allProfiles);
         
         if (Array.isArray(allProfiles)) {
           profileData = allProfiles.find(p => p.user_id === user.id || p.id === user.id);
@@ -111,7 +127,11 @@ const OnboardingLayout = () => {
       }
       
       setProfile(profileData);
-      console.log('📊 Profile data loaded:', profileData);
+      console.log('📊 Final profile data loaded:', profileData);
+      
+      if (!profileData) {
+        console.log('⚠️ No profile found for user_id:', user.id);
+      }
       
     } catch (error) {
       console.warn('❌ Failed to load profile:', error.message);
@@ -159,6 +179,20 @@ const OnboardingLayout = () => {
     };
 
     console.log('📝 Initial form data with profile info:', initialFormData);
+    console.log('🔍 Data sources used:', {
+      firstName: {
+        profile: profile?.first_name,
+        user_first_name: user?.first_name,
+        user_firstName: user?.firstName,
+        final: initialFormData.firstName
+      },
+      lastName: {
+        profile: profile?.last_name,
+        user_last_name: user?.last_name,
+        user_lastName: user?.lastName,
+        final: initialFormData.lastName
+      }
+    });
 
     // Merge with saved data if available
     const mergedData = savedData ? { ...initialFormData, ...JSON.parse(savedData) } : initialFormData;
