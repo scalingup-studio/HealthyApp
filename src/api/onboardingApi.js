@@ -11,6 +11,10 @@ export const OnboardingApi = {
       const payload = {
         user_id: data.userId || data.user_id,
         data_json: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email || '',
+          phone: data.phoneNumber || '',
           dob: data.dateOfBirth,
           gender: data.genderIdentity,
           height: data.height ? parseInt(data.height) : null,

@@ -501,7 +501,7 @@ const OnboardingLayout = () => {
                 />
               </div>
               
-              <div className="form-field">
+              <div className="form-field" hidden={true}>
                 <label>Email Address *</label>
                 <input
                   type="email"
