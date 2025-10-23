@@ -211,8 +211,12 @@ const OnboardingLayout = () => {
       console.log('📊 Loading onboarding progress from welcome API...');
       
       // Call welcome API to get onboarding progress
-      const progress = await OnboardingApi.getProgress(currentFormData.user_id);
-      console.log('📊 Onboarding progress:', progress);
+      const response = await OnboardingApi.getProgress(currentFormData.user_id);
+      console.log('📊 Onboarding API response:', response);
+      
+      // Extract progress data from the response structure
+      const progress = response?.save_onboarding;
+      console.log('📊 Extracted progress data:', progress);
       
       // Check if progress has the expected structure
       if (!progress || !progress.progress || !progress.progress.completed_steps) {
@@ -255,19 +259,33 @@ const OnboardingLayout = () => {
       
       setCompletedSteps(completedStepsSet);
       
-      // Set current step to the next uncompleted step
+      // Set current step based on API response
       let nextUncompletedStepIndex = -1;
       
-      // Find the first uncompleted step (skip welcome step)
-      for (let i = 1; i < steps.length; i++) {
-        const stepId = steps[i].id;
-        if (!progress.progress.completed_steps.includes(stepId)) {
-          nextUncompletedStepIndex = i;
-          break;
+      // Use current_step from API response to determine next step
+      if (progress.current_step) {
+        const currentStepIndex = steps.findIndex(step => step.id === progress.current_step);
+        if (currentStepIndex !== -1) {
+          nextUncompletedStepIndex = currentStepIndex;
+          console.log(`📍 API indicates next step: ${progress.current_step} (index: ${currentStepIndex})`);
+        } else {
+          console.warn(`⚠️ Unknown step ID from API: ${progress.current_step}`);
+        }
+      }
+      
+      // Fallback: Find the first uncompleted step if API step not found
+      if (nextUncompletedStepIndex === -1) {
+        for (let i = 1; i < steps.length; i++) {
+          const stepId = steps[i].id;
+          if (!progress.progress.completed_steps.includes(stepId)) {
+            nextUncompletedStepIndex = i;
+            break;
+          }
         }
       }
       
       console.log(`🔍 Debug step logic:`, {
+        apiCurrentStep: progress.current_step,
         completedSteps: progress.progress.completed_steps,
         completedStepsSet: [...completedStepsSet],
         nextUncompletedStepIndex,
