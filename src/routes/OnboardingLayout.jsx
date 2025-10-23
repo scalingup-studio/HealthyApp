@@ -208,21 +208,9 @@ const OnboardingLayout = () => {
   // Load onboarding progress from API
   const loadOnboardingProgress = async (currentFormData) => {
     try {
-      console.log('📊 Loading onboarding progress from API...');
+      console.log('📊 Loading onboarding progress from welcome API...');
       
-      // First, call welcome step API to initialize onboarding
-      console.log('👋 Calling welcome step API...');
-      try {
-        await OnboardingApi.saveStep('welcome', {
-          user_id: currentFormData.user_id,
-          data_json: {}
-        });
-        console.log('✅ Welcome step API called successfully');
-      } catch (welcomeError) {
-        console.warn('⚠️ Welcome step API failed, continuing:', welcomeError);
-        // Continue even if welcome step fails
-      }
-      
+      // Call welcome API to get onboarding progress
       const progress = await OnboardingApi.getProgress(currentFormData.user_id);
       console.log('📊 Onboarding progress:', progress);
       

@@ -15,7 +15,7 @@ export const OnboardingApi = {
           first_name: data.firstName,
           last_name: data.lastName,
           email: data.email || '',
-          phoneNumber: data.phoneNumber || '',
+          phone_number: data.phoneNumber || '',
           dob: data.dateOfBirth,
           gender: data.genderIdentity,
           sex_of_birth: data.sexAtBirth || '',
@@ -261,7 +261,7 @@ export const OnboardingApi = {
   },
 
   /**
-   * Get current onboarding progress
+   * Get current onboarding progress by calling welcome API
    */
   async getProgress(userId) {
     try {
@@ -270,9 +270,9 @@ export const OnboardingApi = {
         data_json: {}
       };
 
-      console.log('📊 Getting onboarding progress with payload:', payload);
+      console.log('📊 Getting onboarding progress via welcome API with payload:', payload);
 
-      const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.progress, {
+      const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.step('welcome'), {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -283,7 +283,7 @@ export const OnboardingApi = {
       
       return res?.result ?? res;
     } catch (error) {
-      console.error('Error getting onboarding progress:', error);
+      console.error('Error getting onboarding progress via welcome API:', error);
       throw error;
     }
   }
