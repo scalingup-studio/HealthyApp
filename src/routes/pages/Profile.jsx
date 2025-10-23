@@ -340,11 +340,25 @@ const calculateAgeFromDOB = (dob) => {
           Personal Info
         </button>
         <button 
-          onClick={() => setActiveTab('health')} 
-          className={`btn ${activeTab === 'health' ? 'primary' : 'outline'}`}
+          onClick={() => setActiveTab('health_history')} 
+          className={`btn ${activeTab === 'health_history' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
           Health History
+        </button>
+        <button 
+          onClick={() => setActiveTab('health_data')} 
+          className={`btn ${activeTab === 'health_data' ? 'primary' : 'outline'}`}
+          style={{ width:'auto', padding:'8px 16px', height:38 }}
+        >
+          Health Data
+        </button>
+        <button 
+          onClick={() => setActiveTab('medical_records')} 
+          className={`btn ${activeTab === 'medical_records' ? 'primary' : 'outline'}`}
+          style={{ width:'auto', padding:'8px 16px', height:38 }}
+        >
+          Medical Records
         </button>
       </div>
 
@@ -486,7 +500,7 @@ const calculateAgeFromDOB = (dob) => {
         </div>
       )}
 
-      {activeTab === 'health' && (
+      {activeTab === 'health_history' && (
         <div style={{ maxWidth: 920 }}>
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding:16, borderBottom:'1px solid var(--border)' }}>
@@ -555,6 +569,108 @@ const calculateAgeFromDOB = (dob) => {
         </div>
       )}
 
+      {activeTab === 'health_data' && (
+        <div style={{ maxWidth: 920 }}>
+          <div className="card" style={{ padding: 0 }}>
+            <div style={{ padding:16, borderBottom:'1px solid var(--border)' }}>
+              <h2 style={{ margin: 0 }}>Health Data</h2>
+              <p style={{ color:'var(--muted)', margin: '8px 0 0 0', fontSize: '14px' }}>
+                Track your health metrics, vitals, and wellness data over time.
+              </p>
+            </div>
+            <div style={{ padding:16 }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                gap: 16,
+                marginBottom: 24 
+              }}>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Vitals</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Blood pressure, heart rate, temperature, and other vital signs.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Weight & BMI</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Track your weight changes and body mass index over time.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Activity</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Steps, exercise, sleep patterns, and daily activity levels.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Lab Results</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Blood tests, cholesterol, glucose, and other lab values.
+                  </p>
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>
+                  Health data tracking features coming soon...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'medical_records' && (
+        <div style={{ maxWidth: 920 }}>
+          <div className="card" style={{ padding: 0 }}>
+            <div style={{ padding:16, borderBottom:'1px solid var(--border)' }}>
+              <h2 style={{ margin: 0 }}>Medical Records</h2>
+              <p style={{ color:'var(--muted)', margin: '8px 0 0 0', fontSize: '14px' }}>
+                Upload, view, and manage your medical documents and test results.
+              </p>
+            </div>
+            <div style={{ padding:16 }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                gap: 16,
+                marginBottom: 24 
+              }}>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Lab Reports</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Blood tests, urine tests, and other laboratory results.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Imaging</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    X-rays, MRIs, CT scans, ultrasounds, and other imaging studies.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Prescriptions</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Current and past medication prescriptions and refills.
+                  </p>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, marginBottom: 12 }}>Visit Notes</h3>
+                  <p style={{ color: 'var(--muted)', margin: 0 }}>
+                    Doctor visit summaries, treatment plans, and progress notes.
+                  </p>
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>
+                  Medical records management features coming soon...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -588,24 +704,9 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{ fontWeight: 600, fontSize: '16px' }}>{title}</span>
-            <span style={{ 
-              color: 'var(--muted)', 
-              fontSize: '12px',
-              backgroundColor: 'var(--bg-subtle)',
-              padding: '2px 6px',
-              borderRadius: '4px'
-            }}>
-              {values.length} item{values.length !== 1 ? 's' : ''}
-            </span>
+            
           </div>
-          <p style={{ 
-            color: 'var(--muted)', 
-            fontSize: '14px', 
-            margin: 0,
-            textAlign: 'left'
-          }}>
-            {description}
-          </p>
+      
           {lastUpdated && (
             <p style={{ 
               color: 'var(--muted)', 
