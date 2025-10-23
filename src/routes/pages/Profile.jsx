@@ -21,7 +21,6 @@ export default function DashboardProfile() {
   const [formValues, setFormValues] = useState({
     first_name: "",
     last_name: "",
-    email: "",
     phone_number: "",
     dob: "",
     gender: "",
@@ -118,7 +117,6 @@ const calculateAgeFromDOB = (dob) => {
         const formData = {
           first_name: dataToUse?.first_name || dataToUse?.firstName || "",
           last_name: dataToUse?.last_name || dataToUse?.lastName || "",
-          email: dataToUse?.email || user?.email || "",
           phone_number: dataToUse?.phone_number || dataToUse?.phone || "",
           dob: dataToUse?.dob || dataToUse?.date_of_birth || "",
           gender: dataToUse?.gender || "",
@@ -236,7 +234,6 @@ const calculateAgeFromDOB = (dob) => {
       const basePayload = {
         first_name: formValues.first_name?.trim(),
         last_name: formValues.last_name?.trim(),
-        email: formValues.email?.trim(),
         phone_number: formValues.phone_number?.trim(),
         dob: formValues.dob || null,
         gender: formValues.gender || "",
@@ -386,10 +383,6 @@ const calculateAgeFromDOB = (dob) => {
                 <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
                   <span>Last name</span>
                   <input name="last_name" value={formValues.last_name} onChange={handleChange} placeholder="Doe" />
-                </label>
-                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
-                  <span>Email</span>
-                  <input type="email" name="email" value={formValues.email} onChange={handleChange} placeholder="john@example.com" />
                 </label>
                 {/* User ID hidden from UI by request */}
                 <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
