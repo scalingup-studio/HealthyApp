@@ -10,13 +10,15 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
+        step: "personal",
         data_json: {
           first_name: data.firstName,
           last_name: data.lastName,
           email: data.email || '',
-          phone: data.phoneNumber || '',
+          phoneNumber: data.phoneNumber || '',
           dob: data.dateOfBirth,
           gender: data.genderIdentity,
+          sex_of_birth: data.sexAtBirth || '',
           height: data.height ? parseInt(data.height) : null,
           weight: data.weight ? parseInt(data.weight) : null,
           zip_code: data.zipCode || null
@@ -49,6 +51,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
+        step: "health_snapshot",
         data_json: {
           health_snapshot: {
             health_conditions: data.healthConditions || '',
@@ -84,6 +87,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
+        step: "lifestyle",
         data_json: {
           lifestyle: {
             habits: data.lifestyleHabits || [],
@@ -118,38 +122,29 @@ export const OnboardingApi = {
    */
   async saveHealthGoals(data) {
     try {
-      const goals = [];
-      
-      // Create goal entries for each selected goal
-      data.healthGoals.forEach(goalTitle => {
-        goals.push({
-          title: goalTitle,
-          description: `Goal: ${goalTitle}`,
-          status: 'active',
-          visibility_scope: 'private',
-          target_date: null, // Can be set later
-        });
-      });
-
-      // Add other goal if provided
-      if (data.otherGoal) {
-        goals.push({
-          title: 'Other Goal',
-          description: data.otherGoal,
-          status: 'active',
-          visibility_scope: 'private',
-          target_date: null,
-        });
-      }
+      // Create the main goal data structure
+      const goalsData = {
+        title: "Health Goals",
+        description: data.goalNotes || `Goals: ${data.healthGoals.join(', ') || 'No specific goals'}`,
+        status: "on track",
+        target_date: data.targetDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +90 days default
+        visibility_scope: data.goalVisibility || "private",
+      };
 
       const payload = {
         user_id: data.userId || data.user_id,
-        data_json: {
-          goals: goals
-        }
+        step: "health_goals",
+        data_json: goalsData
       };
 
       console.log('💾 Saving health goals:', payload);
+      console.log('📋 Goals structure:', {
+        title: goalsData.title,
+        description: goalsData.description,
+        status: goalsData.status,
+        target_date: goalsData.target_date,
+        visibility_scope: goalsData.visibility_scope
+      });
       
       const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.healthGoals, {
         method: "POST",
@@ -175,6 +170,7 @@ export const OnboardingApi = {
     try {
       const payload = {
         user_id: data.userId || data.user_id,
+        step: "privacy",
         data_json: {
           privacy: {
             data_visibility: data.dataVisibility,
@@ -267,10 +263,22 @@ export const OnboardingApi = {
   /**
    * Get current onboarding progress
    */
-  async getProgress() {
+  async getProgress(userId) {
     try {
-      const res = await authRequest(`${CUSTOM_ENDPOINTS.onboarding.step('progress')}`, {
-        method: "GET",
+      const payload = {
+        user_id: userId,
+        data_json: {}
+      };
+
+      console.log('📊 Getting onboarding progress with payload:', payload);
+
+      const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.progress, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: payload,
       });
       
       return res?.result ?? res;

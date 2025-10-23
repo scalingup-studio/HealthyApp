@@ -45,6 +45,9 @@ const OnboardingLayout = () => {
     // Health Goals
     healthGoals: [],
     otherGoal: '',
+    targetDate: '',
+    goalNotes: '',
+    goalVisibility: 'private',
 
     // Privacy Settings
     dataVisibility: 'private',
@@ -55,9 +58,9 @@ const OnboardingLayout = () => {
   const steps = [
     { id: 'welcome', title: 'Welcome', description: 'Get started with Anatomous' },
     { id: 'personal', title: 'Personal Info', description: 'Basic information' },
-    { id: 'health', title: 'Health Snapshot', description: 'Current health status' },
+    { id: 'health_snapshot', title: 'Health Snapshot', description: 'Current health status' },
     { id: 'lifestyle', title: 'Lifestyle & Habits', description: 'Daily habits' },
-    { id: 'goals', title: 'Health Goals', description: 'What you want to achieve' },
+    { id: 'health_goals', title: 'Health Goals', description: 'What you want to achieve' },
     { id: 'privacy', title: 'Privacy Settings', description: 'Data preferences' },
     { id: 'review', title: 'Review & Finish', description: 'Complete setup' }
   ];
@@ -202,6 +205,195 @@ const OnboardingLayout = () => {
     });
   };
 
+  // Load onboarding progress from API
+  const loadOnboardingProgress = async (currentFormData) => {
+    try {
+      console.log('📊 Loading onboarding progress from API...');
+      
+      // First, call welcome step API to initialize onboarding
+      console.log('👋 Calling welcome step API...');
+      try {
+        await OnboardingApi.saveStep('welcome', {
+          user_id: currentFormData.user_id,
+          data_json: {}
+        });
+        console.log('✅ Welcome step API called successfully');
+      } catch (welcomeError) {
+        console.warn('⚠️ Welcome step API failed, continuing:', welcomeError);
+        // Continue even if welcome step fails
+      }
+      
+      const progress = await OnboardingApi.getProgress(currentFormData.user_id);
+      console.log('📊 Onboarding progress:', progress);
+      
+      // Mark completed steps and find the last completed step by order
+      const completedStepsSet = new Set();
+      let lastCompletedStepIndex = -1;
+      
+      // Find the last completed step by checking the order in completed_steps array
+      for (let i = progress.progress.completed_steps.length - 1; i >= 0; i--) {
+        const stepId = progress.progress.completed_steps[i];
+        const stepIndex = steps.findIndex(step => step.id === stepId);
+        if (stepIndex !== -1) {
+          completedStepsSet.add(stepIndex);
+          // Use the last step in the completed_steps array as the reference
+          if (lastCompletedStepIndex === -1) {
+            lastCompletedStepIndex = stepIndex;
+          }
+        }
+      }
+      
+      // Also mark all completed steps
+      progress.progress.completed_steps.forEach(stepId => {
+        const stepIndex = steps.findIndex(step => step.id === stepId);
+        if (stepIndex !== -1) {
+          completedStepsSet.add(stepIndex);
+        }
+      });
+      
+      // Automatically mark welcome step as completed (index 0)
+      completedStepsSet.add(0);
+      console.log('✅ Automatically marking welcome step as completed');
+      
+      setCompletedSteps(completedStepsSet);
+      
+      // Set current step to the next uncompleted step
+      let nextUncompletedStepIndex = -1;
+      
+      // Find the first uncompleted step (skip welcome step)
+      for (let i = 1; i < steps.length; i++) {
+        const stepId = steps[i].id;
+        if (!progress.progress.completed_steps.includes(stepId)) {
+          nextUncompletedStepIndex = i;
+          break;
+        }
+      }
+      
+      console.log(`🔍 Debug step logic:`, {
+        completedSteps: progress.progress.completed_steps,
+        completedStepsSet: [...completedStepsSet],
+        nextUncompletedStepIndex,
+        stepsLength: steps.length
+      });
+      
+      if (nextUncompletedStepIndex === -1) {
+        // All steps completed, check if onboarding is fully completed
+        if (progress.completed) {
+          console.log('✅ Onboarding completed, redirecting to profile...');
+          navigate('/profile');
+          return;
+        } else {
+          // All steps completed but onboarding not marked as completed, stay on last step
+          console.log(`📍 All steps completed but onboarding not finished, staying on last step: ${steps[steps.length - 1].id} (index: ${steps.length - 1})`);
+          setCurrentStep(steps.length - 1);
+        }
+      } else {
+        console.log(`📍 Setting current step to next uncompleted step: ${steps[nextUncompletedStepIndex].id} (index: ${nextUncompletedStepIndex})`);
+        setCurrentStep(nextUncompletedStepIndex);
+      }
+      
+      // Populate form data with completed step data
+      const populatedFormData = { ...currentFormData };
+      console.log('📝 Starting to populate form data from API response...');
+      
+      // Personal step data
+      if (progress.steps.personal?.completed && progress.steps.personal.data) {
+        console.log('👤 Populating personal step data:', progress.steps.personal.data);
+        const personalData = progress.steps.personal.data;
+        
+        console.log('🔍 Personal data mapping:', {
+          'first_name': personalData.first_name,
+          'last_name': personalData.last_name,
+          'email': personalData.email,
+          'phone': personalData.phone,
+          'dob': personalData.dob,
+          'gender': personalData.gender,
+          'sex_of_birth': personalData.sex_of_birth,
+          'height': personalData.height,
+          'weight': personalData.weight,
+          'zip_code': personalData.zip_code
+        });
+        
+        populatedFormData.firstName = personalData.first_name || populatedFormData.firstName;
+        populatedFormData.lastName = personalData.last_name || populatedFormData.lastName;
+        populatedFormData.email = personalData.email || populatedFormData.email;
+        populatedFormData.phoneNumber = personalData.phone || populatedFormData.phoneNumber;
+        populatedFormData.dateOfBirth = personalData.dob || populatedFormData.dateOfBirth;
+        populatedFormData.genderIdentity = personalData.gender || populatedFormData.genderIdentity;
+        populatedFormData.sexAtBirth = personalData.sex_of_birth || populatedFormData.sexAtBirth;
+        populatedFormData.height = personalData.height ? personalData.height.toString() : populatedFormData.height;
+        populatedFormData.weight = personalData.weight ? personalData.weight.toString() : populatedFormData.weight;
+        populatedFormData.zipCode = personalData.zip_code || populatedFormData.zipCode;
+        
+        console.log('✅ Personal data populated:', {
+          firstName: populatedFormData.firstName,
+          lastName: populatedFormData.lastName,
+          email: populatedFormData.email,
+          phoneNumber: populatedFormData.phoneNumber,
+          dateOfBirth: populatedFormData.dateOfBirth,
+          genderIdentity: populatedFormData.genderIdentity,
+          sexAtBirth: populatedFormData.sexAtBirth,
+          height: populatedFormData.height,
+          weight: populatedFormData.weight,
+          zipCode: populatedFormData.zipCode
+        });
+      } else {
+        console.log('⚠️ Personal step not completed or no data available');
+      }
+      
+      // Health snapshot data
+      if (progress.steps.health_snapshot?.completed && progress.steps.health_snapshot.data) {
+        const healthData = progress.steps.health_snapshot.data;
+        if (healthData.health_snapshot) {
+          populatedFormData.healthConditions = healthData.health_snapshot.health_conditions || populatedFormData.healthConditions;
+          populatedFormData.medications = healthData.health_snapshot.medications || populatedFormData.medications;
+          populatedFormData.allergies = healthData.health_snapshot.allergies || populatedFormData.allergies;
+        }
+      }
+      
+      // Lifestyle data
+      if (progress.steps.lifestyle?.completed && progress.steps.lifestyle.data) {
+        const lifestyleData = progress.steps.lifestyle.data;
+        if (lifestyleData.lifestyle?.habits) {
+          populatedFormData.lifestyleHabits = lifestyleData.lifestyle.habits || populatedFormData.lifestyleHabits;
+        }
+      }
+      
+      // Health goals data
+      if (progress.steps.health_goals?.completed && progress.steps.health_goals.data) {
+        const goalsData = progress.steps.health_goals.data;
+        if (goalsData.goals) {
+          populatedFormData.healthGoals = goalsData.goals.map(goal => goal.title) || populatedFormData.healthGoals;
+        }
+      }
+      
+      // Privacy settings data
+      if (progress.steps.privacy?.completed && progress.steps.privacy.data) {
+        console.log('🔒 Populating privacy step data:', progress.steps.privacy.data);
+        const privacyData = progress.steps.privacy.data;
+        if (privacyData.privacy) {
+          populatedFormData.dataVisibility = privacyData.privacy.data_visibility || populatedFormData.dataVisibility;
+          populatedFormData.emailNudges = privacyData.privacy.email_nudges !== undefined ? privacyData.privacy.email_nudges : populatedFormData.emailNudges;
+          populatedFormData.wearableSync = privacyData.privacy.wearable_sync !== undefined ? privacyData.privacy.wearable_sync : populatedFormData.wearableSync;
+          console.log('✅ Privacy data populated:', {
+            dataVisibility: populatedFormData.dataVisibility,
+            emailNudges: populatedFormData.emailNudges,
+            wearableSync: populatedFormData.wearableSync
+          });
+        }
+      } else {
+        console.log('⚠️ Privacy step not completed or no data available');
+      }
+      
+      console.log('📝 Populated form data from API:', populatedFormData);
+      setFormData(populatedFormData);
+      
+    } catch (error) {
+      console.error('❌ Error loading onboarding progress:', error);
+      // Continue with default initialization if API fails
+    }
+  };
+
   // Load user profile from database
   useEffect(() => {
     if (user?.id) {
@@ -209,102 +401,64 @@ const OnboardingLayout = () => {
     }
   }, [user?.id]);
 
-  // Initialize form data and load saved progress
+  // Initialize form data and load onboarding progress
   useEffect(() => {
-    // Clear localStorage for testing to ensure profile data is used
-    console.log('🧹 Clearing localStorage for testing...');
-    localStorage.removeItem('onboarding-progress');
-    localStorage.removeItem('onboarding-step');
-    localStorage.removeItem('onboarding-completed');
-    
-    const savedData = localStorage.getItem('onboarding-progress');
-    const savedStep = localStorage.getItem('onboarding-step');
-    const savedCompleted = localStorage.getItem('onboarding-completed');
-    
-    console.log('👤 Loading user data for onboarding:', user);
-    console.log('📊 Profile data from database:', profile);
-    
-    // Initialize form data with user profile data from database
-    const initialFormData = {
-      user_id: user?.id || '',
-      firstName: profile?.first_name || user?.first_name || user?.firstName || '',
-      lastName: profile?.last_name || user?.last_name || user?.lastName || '',
-      email: profile?.email || user?.email || '',
-      phoneNumber: profile?.phone_number || user?.phone_number || user?.phone || '',
-      dateOfBirth: profile?.dob || '',
-      sexAtBirth: profile?.gender || '',
-      genderIdentity: '',
-      height: profile?.height_cm ? profile.height_cm.toString() : '',
-      weight: profile?.weight_kg ? profile.weight_kg.toString() : '',
-      zipCode: profile?.zip_code || '',
-      healthConditions: '',
-      medications: '',
-      allergies: '',
-      lifestyleHabits: [],
-      healthGoals: [],
-      otherGoal: '',
-      dataVisibility: 'private',
-      emailNudges: true,
-      wearableSync: false
-    };
-
-    console.log('📝 Initial form data with profile info:', initialFormData);
-    console.log('🔍 Data sources used:', {
-      firstName: {
-        profile: profile?.first_name,
-        user_first_name: user?.first_name,
-        user_firstName: user?.firstName,
-        final: initialFormData.firstName
-      },
-      lastName: {
-        profile: profile?.last_name,
-        user_last_name: user?.last_name,
-        user_lastName: user?.lastName,
-        final: initialFormData.lastName
-      }
-    });
-
-    // Merge with saved data if available, but prioritize profile data
-    let mergedData = initialFormData;
-    if (savedData) {
-      const savedFormData = JSON.parse(savedData);
-      console.log('💾 Saved data from localStorage:', savedFormData);
+    if (user?.id && !profileLoading) {
+      console.log('👤 Loading user data for onboarding:', user);
+      console.log('📊 Profile data from database:', profile);
       
-      // Merge saved data with profile data, but profile data takes priority for key fields
-      mergedData = {
-        ...savedFormData,
-        ...initialFormData, // Profile data overwrites saved data
-        // Keep saved data for fields that profile doesn't have
-        healthConditions: savedFormData.healthConditions || initialFormData.healthConditions,
-        medications: savedFormData.medications || initialFormData.medications,
-        allergies: savedFormData.allergies || initialFormData.allergies,
-        lifestyleHabits: savedFormData.lifestyleHabits || initialFormData.lifestyleHabits,
-        healthGoals: savedFormData.healthGoals || initialFormData.healthGoals,
-        otherGoal: savedFormData.otherGoal || initialFormData.otherGoal,
-        dataVisibility: savedFormData.dataVisibility || initialFormData.dataVisibility,
-        emailNudges: savedFormData.emailNudges !== undefined ? savedFormData.emailNudges : initialFormData.emailNudges,
-        wearableSync: savedFormData.wearableSync !== undefined ? savedFormData.wearableSync : initialFormData.wearableSync,
+      // Initialize form data with user profile data from database
+      const initialFormData = {
+        user_id: user?.id || '',
+        firstName: profile?.first_name || user?.first_name || user?.firstName || '',
+        lastName: profile?.last_name || user?.last_name || user?.lastName || '',
+        email: profile?.email || user?.email || '',
+        phoneNumber: profile?.phone_number || user?.phone_number || user?.phone || '',
+        dateOfBirth: profile?.dob || '',
+        sexAtBirth: profile?.gender || '',
+        genderIdentity: '',
+        height: profile?.height_cm ? profile.height_cm.toString() : '',
+        weight: profile?.weight_kg ? profile.weight_kg.toString() : '',
+        zipCode: profile?.zip_code || '',
+        healthConditions: '',
+        medications: '',
+        allergies: '',
+        lifestyleHabits: [],
+        healthGoals: [],
+        otherGoal: '',
+        dataVisibility: 'private',
+        emailNudges: true,
+        wearableSync: false
       };
+
+      console.log('📝 Initial form data with profile info:', initialFormData);
+      setFormData(initialFormData);
+      
+      // Load onboarding progress from API
+      loadOnboardingProgress(initialFormData);
     }
-    
-    console.log('🔄 Merged form data:', mergedData);
-    console.log('📝 Setting form data with firstName:', mergedData.firstName, 'lastName:', mergedData.lastName);
-    console.log('🔍 Data comparison:', {
-      'initialFormData.firstName': initialFormData.firstName,
-      'mergedData.firstName': mergedData.firstName,
-      'initialFormData.lastName': initialFormData.lastName,
-      'mergedData.lastName': mergedData.lastName
+  }, [user, profile, profileLoading]);
+
+  // Track current step changes
+  useEffect(() => {
+    console.log(`🔄 Current step changed to: ${currentStep} (${steps[currentStep]?.id})`);
+  }, [currentStep]);
+
+  // Track form data changes
+  useEffect(() => {
+    console.log(`📝 Form data updated:`, {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber,
+      dateOfBirth: formData.dateOfBirth,
+      genderIdentity: formData.genderIdentity,
+      sexAtBirth: formData.sexAtBirth,
+      height: formData.height,
+      weight: formData.weight,
+      zipCode: formData.zipCode
     });
-    setFormData(mergedData);
-    
-    // Only load saved step if we don't have a current step set
-    if (savedStep && currentStep === 0) {
-      setCurrentStep(parseInt(savedStep));
-    }
-    if (savedCompleted) {
-      setCompletedSteps(new Set(JSON.parse(savedCompleted)));
-    }
-  }, [user, profile]);
+  }, [formData]);
 
   // Save progress to localStorage
   const saveProgress = () => {
@@ -389,36 +543,49 @@ const OnboardingLayout = () => {
   };
 
   const finishLater = () => {
+    console.log('⏸️ Finishing onboarding later...');
+    console.log('💾 Saving current progress...');
     saveProgress();
+    
+    showSuccess('Your progress has been saved. You can continue onboarding anytime from your dashboard.');
+    console.log('🚀 Navigating to dashboard...');
     navigate('/dashboard');
   };
 
   const completeOnboardingProcess = async () => {
     try {
       setLoading(true);
+      console.log('🎯 Starting onboarding completion process...');
       
       // Save the last step (privacy) if not already saved
       if (currentStep === 6) {
+        console.log('💾 Saving privacy settings...');
         await OnboardingApi.savePrivacySettings(formData);
       }
       
       // Complete onboarding
-      await OnboardingApi.completeOnboarding({
+      console.log('✅ Completing onboarding...');
+      const result = await OnboardingApi.completeOnboarding({
         stepsCompleted: [...completedSteps, currentStep]
       });
       
+      console.log('📊 Onboarding completion result:', result);
+      
       // Mark onboarding as completed in AuthContext
+      console.log('🔐 Updating auth context...');
       await completeOnboarding();
       
       // Clear saved progress
+      console.log('🧹 Clearing localStorage...');
       localStorage.removeItem('onboarding-progress');
       localStorage.removeItem('onboarding-step');
       localStorage.removeItem('onboarding-completed');
       
       showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+      console.log('🚀 Navigating to dashboard...');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      console.error('❌ Error completing onboarding:', error);
       showError('Failed to complete setup. Please try again.');
     } finally {
       setLoading(false);
@@ -426,6 +593,8 @@ const OnboardingLayout = () => {
   };
 
   const renderStepContent = () => {
+    console.log(`🎭 Rendering step content for currentStep: ${currentStep} (${steps[currentStep]?.id})`);
+    
     switch (currentStep) {
       case 0: // Welcome
         return (
@@ -718,6 +887,52 @@ const OnboardingLayout = () => {
               />
             </div>
             
+            <div className="form-field">
+              <label>Target Date (Optional)</label>
+              <input
+                type="date"
+                value={formData.targetDate}
+                onChange={(e) => updateFormData('targetDate', e.target.value)}
+                placeholder="When would you like to achieve these goals?"
+              />
+            </div>
+            
+            <div className="form-field">
+              <label>Goal Notes (Optional)</label>
+              <textarea
+                value={formData.goalNotes}
+                onChange={(e) => updateFormData('goalNotes', e.target.value)}
+                placeholder="Add any additional notes about your goals"
+                rows={3}
+              />
+            </div>
+            
+            <div className="form-field">
+              <label>Goal Visibility</label>
+              <div className="radio-group">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="goalVisibility"
+                    value="private"
+                    checked={formData.goalVisibility === 'private'}
+                    onChange={(e) => updateFormData('goalVisibility', e.target.value)}
+                  />
+                  <span>Private - Only I can see my goals</span>
+                </label>
+                <label className="radio">
+                  <input
+                    type="radio"
+                    name="goalVisibility"
+                    value="public"
+                    checked={formData.goalVisibility === 'public'}
+                    onChange={(e) => updateFormData('goalVisibility', e.target.value)}
+                  />
+                  <span>Public - Others can see my goals</span>
+                </label>
+              </div>
+            </div>
+            
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
               <button 
@@ -793,6 +1008,8 @@ const OnboardingLayout = () => {
                 <h3>Personal Information</h3>
                 <div className="review-content">
                   <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
+                  <p><strong>Email:</strong> {formData.email}</p>
+                  <p><strong>Phone:</strong> {formData.phoneNumber}</p>
                   <p><strong>Date of Birth:</strong> {formData.dateOfBirth}</p>
                   <p><strong>Sex at Birth:</strong> {formData.sexAtBirth}</p>
                   {formData.genderIdentity && <p><strong>Gender Identity:</strong> {formData.genderIdentity}</p>}
@@ -814,15 +1031,25 @@ const OnboardingLayout = () => {
               </div>
               
               <div className="review-section">
-                <h3>Lifestyle & Goals</h3>
+                <h3>Health Goals</h3>
+                <div className="review-content">
+                  {formData.healthGoals.length > 0 && (
+                    <p><strong>Selected Goals:</strong> {formData.healthGoals.join(', ')}</p>
+                  )}
+                  {formData.otherGoal && <p><strong>Other Goals:</strong> {formData.otherGoal}</p>}
+                  {formData.targetDate && <p><strong>Target Date:</strong> {formData.targetDate}</p>}
+                  {formData.goalNotes && <p><strong>Goal Notes:</strong> {formData.goalNotes}</p>}
+                  <p><strong>Goal Visibility:</strong> {formData.goalVisibility === 'private' ? 'Private' : 'Public'}</p>
+                </div>
+                <button className="btn ghost small" onClick={() => goToStep(4)}>Edit</button>
+              </div>
+              
+              <div className="review-section">
+                <h3>Lifestyle & Habits</h3>
                 <div className="review-content">
                   {formData.lifestyleHabits.length > 0 && (
                     <p><strong>Lifestyle Habits:</strong> {formData.lifestyleHabits.join(', ')}</p>
                   )}
-                  {formData.healthGoals.length > 0 && (
-                    <p><strong>Health Goals:</strong> {formData.healthGoals.join(', ')}</p>
-                  )}
-                  {formData.otherGoal && <p><strong>Other Goals:</strong> {formData.otherGoal}</p>}
                 </div>
                 <button className="btn ghost small" onClick={() => goToStep(3)}>Edit</button>
               </div>

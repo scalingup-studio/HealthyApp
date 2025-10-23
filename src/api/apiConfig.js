@@ -45,6 +45,7 @@ export const CUSTOM_ENDPOINTS = {
   },
   onboarding: {
     step: (step) => `${API_BASE}/onboarding/${step}`,
+    progress: `${API_BASE}/onboarding/progress`,
     personal: `${API_BASE}/onboarding/personal`,
     healthSnapshot: `${API_BASE}/onboarding/health_snapshot`,
     lifestyle: `${API_BASE}/onboarding/lifestyle`,
