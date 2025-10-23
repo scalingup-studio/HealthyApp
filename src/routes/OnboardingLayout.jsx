@@ -234,7 +234,11 @@ const OnboardingLayout = () => {
         localStorage.removeItem('onboarding-completed');
         
         showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
-        navigate('/dashboard');
+        
+        // Add small delay to ensure notification is shown before navigation
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
         return;
       }
       
@@ -312,7 +316,11 @@ const OnboardingLayout = () => {
           localStorage.removeItem('onboarding-completed');
           
           showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
-          navigate('/dashboard');
+          
+          // Add small delay to ensure notification is shown before navigation
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1000);
           return;
         } else {
           // All steps completed but onboarding not marked as completed, stay on last step
@@ -616,7 +624,11 @@ const OnboardingLayout = () => {
       
       showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
       console.log('🚀 Navigating to dashboard...');
-      navigate('/dashboard');
+      
+      // Add small delay to ensure notification is shown before navigation
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     } catch (error) {
       console.error('❌ Error completing onboarding:', error);
       showError('Failed to complete setup. Please try again.');
