@@ -218,7 +218,25 @@ const OnboardingLayout = () => {
       const progress = response?.save_onboarding;
       console.log('📊 Extracted progress data:', progress);
       console.log('📊 Progress completed status:', progress?.completed);
+      console.log('📊 Progress percentage:', progress?.progress?.percentage);
       console.log('📊 Current user onboarding_completed:', user?.onboarding_completed);
+      
+      // Check if onboarding is 100% complete - redirect to dashboard
+      if (progress?.progress?.percentage === 100) {
+        console.log('🎯 Onboarding is 100% complete, redirecting to dashboard...');
+        
+        // Mark onboarding as completed in AuthContext
+        await completeOnboarding();
+        
+        // Clear saved progress
+        localStorage.removeItem('onboarding-progress');
+        localStorage.removeItem('onboarding-step');
+        localStorage.removeItem('onboarding-completed');
+        
+        showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+        navigate('/dashboard');
+        return;
+      }
       
       // Check if progress has the expected structure
       if (!progress || !progress.progress || !progress.progress.completed_steps) {
