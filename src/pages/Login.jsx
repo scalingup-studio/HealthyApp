@@ -21,7 +21,7 @@ export function LoginPage({ onOpenSignup }) {
   const [signupOpen, setSignupOpen] = React.useState(false);
   
   const navigate = useNavigate();
-  const { login, authToken, setAuthToken, setUser } = useAuth();
+  const { login, authToken, setAuthToken, setUser, hasCompletedOnboarding } = useAuth();
   const { notifications, removeNotification, showSuccess, showError } = useNotifications(); 
 
   function validate() {
@@ -56,8 +56,18 @@ export function LoginPage({ onOpenSignup }) {
         setAuthToken(response.authToken);
         setUser(response.user ?? null);
         
-        console.log('✅ Auth context updated, navigating to dashboard...');
-        navigate("/dashboard");
+        console.log('✅ Auth context updated, checking onboarding status...');
+        console.log('👤 User data:', response.user);
+        console.log('📊 Onboarding completed:', response.user?.onboarding_completed);
+        
+        // Перевіряємо статус онбордингу і перенаправляємо відповідно
+        if (response.user?.onboarding_completed === true) {
+          console.log('🎯 Onboarding completed, navigating to dashboard...');
+          navigate("/dashboard");
+        } else {
+          console.log('📝 Onboarding not completed, navigating to onboarding...');
+          navigate("/onboarding");
+        }
       } else {
         setError("No authentication token received from server");
       }

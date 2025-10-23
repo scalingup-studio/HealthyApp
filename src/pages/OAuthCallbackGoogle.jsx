@@ -15,7 +15,7 @@ import { useAuth } from '../api/AuthContext';
  */
 export default function OAuthCallbackGoogle() {
   const navigate = useNavigate();
-  const { refreshAuth, authToken, setAuthToken, setUser } = useAuth();
+  const { refreshAuth, authToken, setAuthToken, setUser, user } = useAuth();
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('Initializing...');
   const [debugInfo, setDebugInfo] = useState(null);
@@ -31,8 +31,18 @@ export default function OAuthCallbackGoogle() {
         
         // Check if we already have authToken
         if (authToken) {
-          console.log('✅ Auth token already present, redirecting...');
-          navigate('/dashboard', { replace: true });
+          console.log('✅ Auth token already present, checking onboarding status...');
+          console.log('👤 User data:', user);
+          console.log('📊 Onboarding completed:', user?.onboarding_completed);
+          
+          // Перевіряємо статус онбордингу і перенаправляємо відповідно
+          if (user?.onboarding_completed === true) {
+            console.log('🎯 Onboarding completed, navigating to dashboard...');
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.log('📝 Onboarding not completed, navigating to onboarding...');
+            navigate('/onboarding', { replace: true });
+          }
           return;
         }
         
@@ -59,13 +69,26 @@ export default function OAuthCallbackGoogle() {
         }
         
         console.log('✅ Authentication successful!');
-        setStatus('Success! Redirecting to dashboard...');
+        setStatus('Success! Checking onboarding status...');
         
         // Small delay so user sees success message
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Redirect to dashboard
-        navigate('/dashboard', { replace: true });
+        // Отримуємо дані користувача для перевірки онбордингу
+        const currentUser = useAuth().user;
+        console.log('👤 Current user data:', currentUser);
+        console.log('📊 Onboarding completed:', currentUser?.onboarding_completed);
+        
+        // Перевіряємо статус онбордингу і перенаправляємо відповідно
+        if (currentUser?.onboarding_completed === true) {
+          console.log('🎯 Onboarding completed, navigating to dashboard...');
+          setStatus('Success! Redirecting to dashboard...');
+          navigate('/dashboard', { replace: true });
+        } else {
+          console.log('📝 Onboarding not completed, navigating to onboarding...');
+          setStatus('Success! Redirecting to onboarding...');
+          navigate('/onboarding', { replace: true });
+        }
         
       } catch (err) {
         console.error('❌ OAuth callback error:', err);
