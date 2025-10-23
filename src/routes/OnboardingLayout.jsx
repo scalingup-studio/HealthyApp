@@ -17,6 +17,7 @@ const OnboardingLayout = () => {
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   const [formData, setFormData] = useState({
     // User ID for API calls
@@ -241,6 +242,9 @@ const OnboardingLayout = () => {
         // Test with alert to ensure notification works
         alert('Welcome to Anatomous! Your profile has been set up successfully.');
         
+        // Set state to trigger notification in render
+        setOnboardingCompleted(true);
+        
         // Add small delay to ensure notification is shown before navigation
         setTimeout(() => {
           console.log('🚀 Navigating to dashboard after delay...');
@@ -452,6 +456,19 @@ const OnboardingLayout = () => {
       loadOnboardingProgress(initialFormData);
     }
   }, [user, profile, profileLoading]);
+
+  // Show notification when onboarding is completed
+  useEffect(() => {
+    if (onboardingCompleted) {
+      console.log('🎉 Onboarding completed, showing notification...');
+      showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+      
+      // Reset state after showing notification
+      setTimeout(() => {
+        setOnboardingCompleted(false);
+      }, 100);
+    }
+  }, [onboardingCompleted, showSuccess]);
 
   // Track current step changes (only log in development)
   useEffect(() => {
