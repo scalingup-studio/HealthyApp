@@ -16,12 +16,9 @@ import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
 import OnboardingPage from "./routes/OnboardingLayout.jsx";
-import HealthDataPage from "./routes/pages/HealthDataPage-TEST.jsx";
 import Logout from "./pages/Logout.jsx";
 
 import "./index.css";
-import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
-import MedicalRecordsPage from "./routes/pages/MedicalRecordsPage-TEST.jsx";
 
 // 🔐 Component for authorization verification
 function PrivateRoute({ children }) {
@@ -118,9 +115,6 @@ function AppRouter() {
           <Route path="nutrition" element={<DashboardNutrition />} />
           <Route path="profile" element={<DashboardProfile />} />
           <Route path="settings" element={<DashboardSettings />} />
-          <Route path="health-history" element={<HealthHistoryPage />} />
-          <Route path="health-data" element={<HealthDataPage />} />
-          <Route path="medical_records" element={<MedicalRecordsPage />} />
         </Route>
 
         {/* Catch-all redirect */}
