@@ -260,4 +260,32 @@ export const OnboardingApi = {
     }
   },
 
+  /**
+   * Get current onboarding progress by calling welcome API
+   */
+  async getProgress(userId) {
+    try {
+      const payload = {
+        user_id: userId,
+        data_json: {}
+      };
+
+      console.log('📊 Getting onboarding progress via welcome API with payload:', payload);
+
+      const res = await authRequest(CUSTOM_ENDPOINTS.onboarding.step('welcome'), {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: payload,
+      });
+      
+      return res?.result ?? res;
+    } catch (error) {
+      console.error('Error getting onboarding progress via welcome API:', error);
+      throw error;
+    }
+  }
+
 };

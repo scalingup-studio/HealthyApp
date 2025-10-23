@@ -205,6 +205,163 @@ const OnboardingLayout = () => {
     });
   };
 
+  // Load onboarding progress from welcome API
+  const loadOnboardingProgress = async (currentFormData) => {
+    try {
+      console.log('📊 Loading onboarding progress from welcome API...');
+      
+      // Call welcome API to get onboarding progress
+      const response = await OnboardingApi.getProgress(currentFormData.user_id);
+      console.log('📊 Onboarding API response:', response);
+      
+      // Extract progress data from the response structure
+      const progress = response?.save_onboarding;
+      console.log('📊 Extracted progress data:', progress);
+      
+      // Check if progress has the expected structure
+      if (!progress || !progress.progress || !progress.progress.completed_steps) {
+        console.warn('⚠️ Unexpected progress structure:', progress);
+        console.log('📊 Available progress keys:', Object.keys(progress || {}));
+        if (progress?.progress) {
+          console.log('📊 Available progress.progress keys:', Object.keys(progress.progress));
+        }
+        return; // Exit early if structure is unexpected
+      }
+      
+      // Mark completed steps
+      const completedStepsSet = new Set();
+      
+      // Mark all completed steps
+      progress.progress.completed_steps.forEach(stepId => {
+        const stepIndex = steps.findIndex(step => step.id === stepId);
+        if (stepIndex !== -1) {
+          completedStepsSet.add(stepIndex);
+        }
+      });
+      
+      // Automatically mark welcome step as completed (index 0)
+      completedStepsSet.add(0);
+      console.log('✅ Automatically marking welcome step as completed');
+      
+      setCompletedSteps(completedStepsSet);
+      
+      // Set current step based on API response
+      let nextUncompletedStepIndex = -1;
+      
+      // Use current_step from API response to determine next step
+      if (progress.current_step) {
+        const currentStepIndex = steps.findIndex(step => step.id === progress.current_step);
+        if (currentStepIndex !== -1) {
+          nextUncompletedStepIndex = currentStepIndex;
+          console.log(`📍 API indicates next step: ${progress.current_step} (index: ${currentStepIndex})`);
+        } else {
+          console.warn(`⚠️ Unknown step ID from API: ${progress.current_step}`);
+        }
+      }
+      
+      // Fallback: Find the first uncompleted step if API step not found
+      if (nextUncompletedStepIndex === -1) {
+        for (let i = 1; i < steps.length; i++) {
+          const stepId = steps[i].id;
+          if (!progress.progress.completed_steps.includes(stepId)) {
+            nextUncompletedStepIndex = i;
+            break;
+          }
+        }
+      }
+      
+      console.log(`🔍 Debug step logic:`, {
+        apiCurrentStep: progress.current_step,
+        completedSteps: progress.progress.completed_steps,
+        completedStepsSet: [...completedStepsSet],
+        nextUncompletedStepIndex,
+        stepsLength: steps.length
+      });
+      
+      if (nextUncompletedStepIndex === -1) {
+        // All steps completed, check if onboarding is fully completed
+        if (progress.completed === true) {
+          console.log('✅ Onboarding completed, redirecting to profile...');
+          navigate('/profile');
+          return;
+        } else {
+          // All steps completed but onboarding not marked as completed, stay on last step
+          console.log(`📍 All steps completed but onboarding not finished, staying on last step: ${steps[steps.length - 1].id} (index: ${steps.length - 1})`);
+          setCurrentStep(steps.length - 1);
+        }
+      } else {
+        console.log(`📍 Setting current step to next uncompleted step: ${steps[nextUncompletedStepIndex].id} (index: ${nextUncompletedStepIndex})`);
+        setCurrentStep(nextUncompletedStepIndex);
+      }
+      
+      // Populate form data with completed step data
+      const populatedFormData = { ...currentFormData };
+      console.log('📝 Starting to populate form data from API response...');
+      
+      // Personal step data
+      if (progress.steps.personal?.completed && progress.steps.personal.data) {
+        console.log('👤 Populating personal step data:', progress.steps.personal.data);
+        const personalData = progress.steps.personal.data;
+        
+        populatedFormData.firstName = personalData.first_name || populatedFormData.firstName;
+        populatedFormData.lastName = personalData.last_name || populatedFormData.lastName;
+        populatedFormData.email = personalData.email || populatedFormData.email;
+        populatedFormData.phoneNumber = personalData.phone_number || populatedFormData.phoneNumber;
+        populatedFormData.dateOfBirth = personalData.dob || populatedFormData.dateOfBirth;
+        populatedFormData.genderIdentity = personalData.gender || populatedFormData.genderIdentity;
+        populatedFormData.sexAtBirth = personalData.sex_of_birth || populatedFormData.sexAtBirth;
+        populatedFormData.height = personalData.height ? personalData.height.toString() : populatedFormData.height;
+        populatedFormData.weight = personalData.weight ? personalData.weight.toString() : populatedFormData.weight;
+        populatedFormData.zipCode = personalData.zip_code || populatedFormData.zipCode;
+        
+        console.log('✅ Personal data populated from API');
+      }
+      
+      // Health snapshot data
+      if (progress.steps.health_snapshot?.completed && progress.steps.health_snapshot.data) {
+        const healthData = progress.steps.health_snapshot.data;
+        if (healthData.health_snapshot) {
+          populatedFormData.healthConditions = healthData.health_snapshot.health_conditions || populatedFormData.healthConditions;
+          populatedFormData.medications = healthData.health_snapshot.medications || populatedFormData.medications;
+          populatedFormData.allergies = healthData.health_snapshot.allergies || populatedFormData.allergies;
+        }
+      }
+      
+      // Lifestyle data
+      if (progress.steps.lifestyle?.completed && progress.steps.lifestyle.data) {
+        const lifestyleData = progress.steps.lifestyle.data;
+        if (lifestyleData.lifestyle?.habits) {
+          populatedFormData.lifestyleHabits = lifestyleData.lifestyle.habits || populatedFormData.lifestyleHabits;
+        }
+      }
+      
+      // Health goals data
+      if (progress.steps.health_goals?.completed && progress.steps.health_goals.data) {
+        const goalsData = progress.steps.health_goals.data;
+        populatedFormData.targetDate = goalsData.target_date || populatedFormData.targetDate;
+        populatedFormData.goalNotes = goalsData.description || populatedFormData.goalNotes;
+        populatedFormData.goalVisibility = goalsData.visibility_scope || populatedFormData.goalVisibility;
+      }
+      
+      // Privacy settings data
+      if (progress.steps.privacy?.completed && progress.steps.privacy.data) {
+        const privacyData = progress.steps.privacy.data;
+        if (privacyData.privacy) {
+          populatedFormData.dataVisibility = privacyData.privacy.data_visibility || populatedFormData.dataVisibility;
+          populatedFormData.emailNudges = privacyData.privacy.email_nudges !== undefined ? privacyData.privacy.email_nudges : populatedFormData.emailNudges;
+          populatedFormData.wearableSync = privacyData.privacy.wearable_sync !== undefined ? privacyData.privacy.wearable_sync : populatedFormData.wearableSync;
+        }
+      }
+      
+      console.log('📝 Populated form data from API:', populatedFormData);
+      setFormData(populatedFormData);
+      
+    } catch (error) {
+      console.error('❌ Error loading onboarding progress:', error);
+      // Continue with default initialization if API fails
+    }
+  };
+
 
   // Load user profile from database
   useEffect(() => {
@@ -245,6 +402,9 @@ const OnboardingLayout = () => {
 
       console.log('📝 Initial form data with profile info:', initialFormData);
       setFormData(initialFormData);
+      
+      // Load onboarding progress from welcome API
+      loadOnboardingProgress(initialFormData);
     }
   }, [user, profile, profileLoading]);
 
