@@ -60,14 +60,9 @@ export function LoginPage({ onOpenSignup }) {
         console.log('👤 User data:', response.user);
         console.log('📊 Onboarding completed:', response.user?.onboarding_completed);
         
-        // Перевіряємо статус онбордингу і перенаправляємо відповідно
-        if (response.user?.onboarding_completed === true) {
-          console.log('🎯 Onboarding completed, navigating to dashboard...');
-          navigate("/dashboard");
-        } else {
-          console.log('📝 Onboarding not completed, navigating to onboarding...');
-          navigate("/onboarding");
-        }
+        // Довіряємо централізованому AutoRedirectRoute
+        console.log('🔁 Redirecting to root for centralized routing...');
+        navigate("/");
       } else {
         setError("No authentication token received from server");
       }

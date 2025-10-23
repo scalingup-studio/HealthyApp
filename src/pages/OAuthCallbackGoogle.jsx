@@ -35,14 +35,9 @@ export default function OAuthCallbackGoogle() {
           console.log('👤 User data:', user);
           console.log('📊 Onboarding completed:', user?.onboarding_completed);
           
-          // Перевіряємо статус онбордингу і перенаправляємо відповідно
-          if (user?.onboarding_completed === true) {
-            console.log('🎯 Onboarding completed, navigating to dashboard...');
-            navigate('/dashboard', { replace: true });
-          } else {
-            console.log('📝 Onboarding not completed, navigating to onboarding...');
-            navigate('/onboarding', { replace: true });
-          }
+          // Централізований редірект через AutoRedirectRoute
+          console.log('🔁 Redirecting to root for centralized routing...');
+          navigate('/', { replace: true });
           return;
         }
         
@@ -81,13 +76,13 @@ export default function OAuthCallbackGoogle() {
         
         // Перевіряємо статус онбордингу і перенаправляємо відповідно
         if (currentUser?.onboarding_completed === true) {
-          console.log('🎯 Onboarding completed, navigating to dashboard...');
-          setStatus('Success! Redirecting to dashboard...');
-          navigate('/dashboard', { replace: true });
+          console.log('🎯 Onboarding completed. Redirecting to root...');
+          setStatus('Success! Redirecting...');
+          navigate('/', { replace: true });
         } else {
-          console.log('📝 Onboarding not completed, navigating to onboarding...');
-          setStatus('Success! Redirecting to onboarding...');
-          navigate('/onboarding', { replace: true });
+          console.log('📝 Onboarding not completed. Redirecting to root...');
+          setStatus('Success! Redirecting...');
+          navigate('/', { replace: true });
         }
         
       } catch (err) {
