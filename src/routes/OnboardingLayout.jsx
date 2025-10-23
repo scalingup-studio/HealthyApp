@@ -214,6 +214,16 @@ const OnboardingLayout = () => {
       const progress = await OnboardingApi.getProgress(currentFormData.user_id);
       console.log('📊 Onboarding progress:', progress);
       
+      // Check if progress has the expected structure
+      if (!progress || !progress.progress || !progress.progress.completed_steps) {
+        console.warn('⚠️ Unexpected progress structure:', progress);
+        console.log('📊 Available progress keys:', Object.keys(progress || {}));
+        if (progress?.progress) {
+          console.log('📊 Available progress.progress keys:', Object.keys(progress.progress));
+        }
+        return; // Exit early if structure is unexpected
+      }
+      
       // Mark completed steps and find the last completed step by order
       const completedStepsSet = new Set();
       let lastCompletedStepIndex = -1;
@@ -266,7 +276,7 @@ const OnboardingLayout = () => {
       
       if (nextUncompletedStepIndex === -1) {
         // All steps completed, check if onboarding is fully completed
-        if (progress.completed) {
+        if (progress.completed === true) {
           console.log('✅ Onboarding completed, redirecting to profile...');
           navigate('/profile');
           return;
