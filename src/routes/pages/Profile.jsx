@@ -40,14 +40,55 @@ export default function DashboardProfile() {
     sensitivities: [],
     family_history: [],
   });
+
+  // Track last updated timestamps for each section
+  const [lastUpdated, setLastUpdated] = useState({
+    medical_conditions: null,
+    medications: null,
+    allergies: null,
+    surgical_history: null,
+    vaccinations: null,
+    sensitivities: null,
+    family_history: null,
+  });
   const healthOptions = {
-    medical_conditions: ["Hypertension", "Diabetes", "Asthma", "Cardiovascular"],
-    medications: ["Metformin", "Lisinopril", "Atorvastatin", "Ibuprofen"],
-    allergies: ["Penicillin", "Peanuts", "Dust", "Pollen"],
-    surgical_history: ["Appendectomy", "C-section", "Knee surgery"],
-    vaccinations: ["COVID-19", "Influenza", "Tetanus"],
-    sensitivities: ["Gluten", "Lactose", "Latex", "Fragrances"],
-    family_history: ["Diabetes", "Heart disease", "Cancer"],
+    medical_conditions: [
+      "Hypertension", "Diabetes Type 1", "Diabetes Type 2", "Asthma", "COPD", 
+      "Cardiovascular Disease", "High Cholesterol", "Arthritis", "Depression", 
+      "Anxiety", "Migraine", "Epilepsy", "Thyroid Disorders", "Autoimmune Diseases"
+    ],
+    medications: [
+      "Metformin", "Lisinopril", "Atorvastatin", "Ibuprofen", "Aspirin", 
+      "Levothyroxine", "Metoprolol", "Omeprazole", "Sertraline", "Albuterol",
+      "Warfarin", "Furosemide", "Amlodipine", "Simvastatin", "Losartan"
+    ],
+    allergies: [
+      "Penicillin", "Sulfa drugs", "Peanuts", "Tree nuts", "Shellfish", 
+      "Dust mites", "Pollen", "Pet dander", "Latex", "Mold", "Eggs", "Milk",
+      "Soy", "Wheat", "Insect stings", "Contrast dye"
+    ],
+    surgical_history: [
+      "Appendectomy", "C-section", "Knee surgery", "Hip replacement", 
+      "Gallbladder removal", "Hernia repair", "Cataract surgery", 
+      "Tonsillectomy", "Cholecystectomy", "Hysterectomy", "Prostate surgery",
+      "Heart surgery", "Spine surgery", "Shoulder surgery"
+    ],
+    vaccinations: [
+      "COVID-19", "Influenza (Flu)", "Hepatitis A", "Hepatitis B", "MMR", 
+      "Tdap", "Varicella", "Pneumococcal", "Meningococcal", "HPV", 
+      "Shingles", "Polio", "Tetanus", "Diphtheria", "Pertussis"
+    ],
+    sensitivities: [
+      "Latex", "Nickel", "Fragrances", "Cleaning products", "Pesticides",
+      "Formaldehyde", "Dyes", "Preservatives", "Sulfites", "MSG",
+      "Artificial sweeteners", "Food additives", "Chemicals", "Smoke"
+    ],
+    family_history: [
+      "Heart disease", "Diabetes", "Cancer", "Alzheimer's", "Depression",
+      "High blood pressure", "Stroke", "Kidney disease", "Liver disease",
+      "Mental health disorders", "Autoimmune diseases", "Blood disorders",
+      "Genetic conditions", "Obesity", "Substance abuse"
+    ],
   };
 
 
@@ -450,22 +491,27 @@ const calculateAgeFromDOB = (dob) => {
           <div className="card" style={{ padding: 0 }}>
             <div style={{ padding:16, borderBottom:'1px solid var(--border)' }}>
               <h2 style={{ margin: 0 }}>Health History</h2>
+              <p style={{ color:'var(--muted)', margin: '8px 0 0 0', fontSize: '14px' }}>
+                Comprehensive health intake form. Each section can be collapsed/expanded for easy navigation.
+              </p>
             </div>
             <div style={{ padding:16 }}>
               {([
-                ['medical_conditions','Medical Conditions'],
-                ['medications','Current Medications'],
-                ['allergies','Known Allergies'],
-                ['surgical_history','Surgical History'],
-                ['vaccinations','Vaccination History'],
-                ['sensitivities','Environmental & Chemical Sensitivities'],
-                ['family_history','Family Health History'],
-              ]).map(([key,label]) => (
-                <Accordion
+                ['medical_conditions','Medical Conditions', 'Chronic conditions, diseases, and ongoing health issues'],
+                ['medications','Current Medications', 'Prescription and over-the-counter medications with dosage and frequency'],
+                ['allergies','Known Allergies', 'Medications, foods, and environmental triggers'],
+                ['surgical_history','Surgical History', 'Past surgeries, procedures, and hospitalizations'],
+                ['vaccinations','Vaccination History', 'Immunizations and vaccination records'],
+                ['sensitivities','Environmental & Chemical Sensitivities', 'Chemical, environmental, and other sensitivities'],
+                ['family_history','Family Health History', 'Genetic predispositions and family medical conditions'],
+              ]).map(([key,label,description]) => (
+                <HealthSection
                   key={key}
                   title={label}
+                  description={description}
                   options={healthOptions[key]}
                   values={healthHistory[key]}
+                  lastUpdated={lastUpdated[key]}
                   onToggle={(item) => setHealthHistory(prev => {
                     const set = new Set(prev[key]);
                     if (set.has(item)) set.delete(item); else set.add(item);
@@ -484,11 +530,21 @@ const calculateAgeFromDOB = (dob) => {
                         family_history: ENDPOINTS.familyHistory.create,
                       };
                       await authRequest(map[key], { method: 'POST', body: { user_id: user.id, items: healthHistory[key] } });
-                      showSuccess('Health data saved successfully!');
+                      setLastUpdated(prev => ({ ...prev, [key]: new Date().toISOString() }));
+                      showSuccess(`${label} saved successfully!`);
                     } catch (e) {
-                      showError(e.message || 'Failed to save health data');
+                      showError(e.message || `Failed to save ${label.toLowerCase()}`);
                     } finally {
                       setSaving(false);
+                    }
+                  }}
+                  onAddNew={() => {
+                    const newItem = prompt(`Add new ${label.toLowerCase().slice(0, -1)}:`);
+                    if (newItem && newItem.trim()) {
+                      setHealthHistory(prev => ({
+                        ...prev,
+                        [key]: [...prev[key], newItem.trim()]
+                      }));
                     }
                   }}
                   saving={saving}
@@ -503,31 +559,163 @@ const calculateAgeFromDOB = (dob) => {
   );
 }
 
-function Accordion({ title, options, values, onToggle, onSave, saving }) {
+function HealthSection({ title, description, options, values, lastUpdated, onToggle, onSave, onAddNew, saving }) {
   const [open, setOpen] = useState(false);
+  
+  const formatLastUpdated = (timestamp) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  };
+
   return (
-    <div style={{ borderTop: '1px solid var(--border)' }}>
+    <div style={{ 
+      borderTop: '1px solid var(--border)', 
+      backgroundColor: open ? 'var(--bg-subtle)' : 'transparent',
+      transition: 'background-color 0.2s ease'
+    }}>
       <button 
         onClick={() => setOpen(v => !v)} 
         className="btn ghost"
-        style={{ width: '100%', textAlign: 'left', padding: '12px 0', justifyContent: 'space-between' }}
+        style={{ 
+          width: '100%', 
+          textAlign: 'left', 
+          padding: '16px 0', 
+          justifyContent: 'space-between',
+          alignItems: 'flex-start'
+        }}
       >
-        <span style={{ fontWeight: 600 }}>{title}</span>
-        <span style={{ color:'var(--muted)' }}>{open ? '▾' : '▸'}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontWeight: 600, fontSize: '16px' }}>{title}</span>
+            <span style={{ 
+              color: 'var(--muted)', 
+              fontSize: '12px',
+              backgroundColor: 'var(--bg-subtle)',
+              padding: '2px 6px',
+              borderRadius: '4px'
+            }}>
+              {values.length} item{values.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <p style={{ 
+            color: 'var(--muted)', 
+            fontSize: '14px', 
+            margin: 0,
+            textAlign: 'left'
+          }}>
+            {description}
+          </p>
+          {lastUpdated && (
+            <p style={{ 
+              color: 'var(--muted)', 
+              fontSize: '12px', 
+              margin: '4px 0 0 0',
+              fontStyle: 'italic'
+            }}>
+              Last updated: {formatLastUpdated(lastUpdated)}
+            </p>
+          )}
+        </div>
+        <span style={{ 
+          color: 'var(--muted)', 
+          fontSize: '18px',
+          marginLeft: '16px',
+          flexShrink: 0
+        }}>
+          {open ? '▾' : '▸'}
+        </span>
       </button>
+      
       {open && (
-        <div style={{ paddingBottom: 12 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+        <div style={{ padding: '0 0 16px 0' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 8, 
+            marginBottom: 16,
+            minHeight: '40px',
+            alignItems: 'center'
+          }}>
+            {values.length === 0 ? (
+              <p style={{ 
+                color: 'var(--muted)', 
+                fontSize: '14px', 
+                fontStyle: 'italic',
+                margin: 0
+              }}>
+                No {title.toLowerCase()} added yet
+              </p>
+            ) : (
+              values.map(item => (
+                <div key={item} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '14px'
+                }}>
+                  <span>{item}</span>
+                  <button
+                    onClick={() => onToggle(item)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--muted)',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      fontSize: '12px'
+                    }}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 8, 
+            marginBottom: 16 
+          }}>
             {options.map(opt => (
-              <label key={opt} className="inline-checkbox">
-                <input type="checkbox" checked={values.includes(opt)} onChange={() => onToggle(opt)} />
+              <label key={opt} className="inline-checkbox" style={{
+                backgroundColor: values.includes(opt) ? 'var(--primary)' : 'transparent',
+                borderColor: values.includes(opt) ? 'var(--primary)' : 'var(--border)',
+                color: values.includes(opt) ? 'white' : 'var(--text)'
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={values.includes(opt)} 
+                  onChange={() => onToggle(opt)}
+                  style={{ display: 'none' }}
+                />
                 <span>{opt}</span>
               </label>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn primary" onClick={onSave} disabled={saving}>
+          
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button 
+              className="btn primary" 
+              onClick={onSave} 
+              disabled={saving}
+              style={{ minWidth: '80px' }}
+            >
               {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button 
+              className="btn outline" 
+              onClick={onAddNew}
+              style={{ minWidth: '100px' }}
+            >
+              + Add New
             </button>
           </div>
         </div>
