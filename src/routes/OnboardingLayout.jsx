@@ -554,11 +554,36 @@ const OnboardingLayout = () => {
         return;
       }
       
-      // Save the last step (privacy) if not already saved
-      if (currentStep === 6) {
-        console.log('💾 Saving privacy settings...');
-        await OnboardingApi.savePrivacySettings(formData);
+      // Save all edited steps before completing onboarding
+      console.log('💾 Saving all edited steps before completion...');
+      
+      // Save personal step if it has data (always save if we have basic info)
+      if (formData.firstName || formData.lastName || formData.email || formData.phoneNumber || formData.dateOfBirth) {
+        console.log('💾 Saving personal information...');
+        await OnboardingApi.savePersonalInfo(formData);
       }
+      
+      // Save health snapshot if it has any data
+      if (formData.healthConditions || formData.medications || formData.allergies) {
+        console.log('💾 Saving health snapshot...');
+        await OnboardingApi.saveHealthSnapshot(formData);
+      }
+      
+      // Save lifestyle if it has data
+      if (formData.lifestyleHabits && formData.lifestyleHabits.length > 0) {
+        console.log('💾 Saving lifestyle habits...');
+        await OnboardingApi.saveLifestyle(formData);
+      }
+      
+      // Save health goals if it has data
+      if (formData.healthGoals && formData.healthGoals.length > 0) {
+        console.log('💾 Saving health goals...');
+        await OnboardingApi.saveHealthGoals(formData);
+      }
+      
+      // Save privacy settings (always save if we're completing onboarding)
+      console.log('💾 Saving privacy settings...');
+      await OnboardingApi.savePrivacySettings(formData);
       
       // Complete onboarding
       console.log('✅ Completing onboarding...');
