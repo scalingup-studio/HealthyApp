@@ -419,9 +419,6 @@ const calculateAgeFromDOB = (dob) => {
                     `${formValues.first_name || ''} ${formValues.last_name || ''}`.trim() : 
                     "Loading...")))}
               </h2>
-              <p style={{ color:'var(--muted)' }}>
-                <strong style={{ color:'var(--text)' }}>Email:</strong> {profile?.email || user?.email || "No email"}
-              </p>
               
         
               
@@ -493,12 +490,6 @@ const calculateAgeFromDOB = (dob) => {
       </div>
       )}
 
-      {activeTab === 'personal' && (
-        <div className="card" style={{ height: 200, marginBottom: 24 }}>
-          <h3 style={{ marginTop:0 }}>Main Data / Stats</h3>
-          <p style={{ color:'var(--muted)' }}></p>
-        </div>
-      )}
 
       {activeTab === 'health_history' && (
         <div style={{ maxWidth: 920 }}>
