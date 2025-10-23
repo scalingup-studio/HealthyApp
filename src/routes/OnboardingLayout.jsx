@@ -224,6 +224,8 @@ const OnboardingLayout = () => {
       // Check if onboarding is 100% complete - redirect to dashboard
       if (progress?.progress?.percentage === 100) {
         console.log('🎯 Onboarding is 100% complete, redirecting to dashboard...');
+        console.log('📊 Progress percentage:', progress?.progress?.percentage);
+        console.log('📊 Progress completed:', progress?.completed);
         
         // Mark onboarding as completed in AuthContext
         await completeOnboarding();
@@ -233,10 +235,15 @@ const OnboardingLayout = () => {
         localStorage.removeItem('onboarding-step');
         localStorage.removeItem('onboarding-completed');
         
+        console.log('✅ Showing success notification...');
         showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+        
+        // Test with alert to ensure notification works
+        alert('Welcome to Anatomous! Your profile has been set up successfully.');
         
         // Add small delay to ensure notification is shown before navigation
         setTimeout(() => {
+          console.log('🚀 Navigating to dashboard after delay...');
           navigate('/dashboard');
         }, 1000);
         return;
