@@ -217,6 +217,8 @@ const OnboardingLayout = () => {
       // Extract progress data from the response structure
       const progress = response?.save_onboarding;
       console.log('📊 Extracted progress data:', progress);
+      console.log('📊 Progress completed status:', progress?.completed);
+      console.log('📊 Current user onboarding_completed:', user?.onboarding_completed);
       
       // Check if progress has the expected structure
       if (!progress || !progress.progress || !progress.progress.completed_steps) {
@@ -281,8 +283,18 @@ const OnboardingLayout = () => {
       if (nextUncompletedStepIndex === -1) {
         // All steps completed, check if onboarding is fully completed
         if (progress.completed === true) {
-          console.log('✅ Onboarding completed, redirecting to profile...');
-          navigate('/profile');
+          console.log('✅ Onboarding completed, updating auth context and redirecting to dashboard...');
+          
+          // Mark onboarding as completed in AuthContext
+          await completeOnboarding();
+          
+          // Clear saved progress
+          localStorage.removeItem('onboarding-progress');
+          localStorage.removeItem('onboarding-step');
+          localStorage.removeItem('onboarding-completed');
+          
+          showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+          navigate('/dashboard');
           return;
         } else {
           // All steps completed but onboarding not marked as completed, stay on last step
