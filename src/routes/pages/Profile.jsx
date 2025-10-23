@@ -21,9 +21,11 @@ export default function DashboardProfile() {
   const [formValues, setFormValues] = useState({
     first_name: "",
     last_name: "",
+    email: "",
     phone_number: "",
     dob: "",
     gender: "",
+    sex_of_birth: "",
     height_cm: "",
     weight_kg: "",
     zip_code: "",
@@ -116,9 +118,11 @@ const calculateAgeFromDOB = (dob) => {
         const formData = {
           first_name: dataToUse?.first_name || dataToUse?.firstName || "",
           last_name: dataToUse?.last_name || dataToUse?.lastName || "",
+          email: dataToUse?.email || user?.email || "",
           phone_number: dataToUse?.phone_number || dataToUse?.phone || "",
           dob: dataToUse?.dob || dataToUse?.date_of_birth || "",
           gender: dataToUse?.gender || "",
+          sex_of_birth: dataToUse?.sex_of_birth || "",
           height_cm: (dataToUse?.height_cm ?? "") === 0 ? "" : (dataToUse?.height_cm ?? ""),
           weight_kg: (dataToUse?.weight_kg ?? "") === 0 ? "" : (dataToUse?.weight_kg ?? ""),
           zip_code: dataToUse?.zip_code ?? "",
@@ -232,9 +236,11 @@ const calculateAgeFromDOB = (dob) => {
       const basePayload = {
         first_name: formValues.first_name?.trim(),
         last_name: formValues.last_name?.trim(),
+        email: formValues.email?.trim(),
         phone_number: formValues.phone_number?.trim(),
         dob: formValues.dob || null,
         gender: formValues.gender || "",
+        sex_of_birth: formValues.sex_of_birth || "",
         height_cm: formValues.height_cm === "" ? 0 : Number(formValues.height_cm),
         weight_kg: formValues.weight_kg === "" ? 0 : Number(formValues.weight_kg),
         zip_code: formValues.zip_code?.trim() || "",
@@ -381,6 +387,10 @@ const calculateAgeFromDOB = (dob) => {
                   <span>Last name</span>
                   <input name="last_name" value={formValues.last_name} onChange={handleChange} placeholder="Doe" />
                 </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Email</span>
+                  <input type="email" name="email" value={formValues.email} onChange={handleChange} placeholder="john@example.com" />
+                </label>
                 {/* User ID hidden from UI by request */}
                 <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
                   <span>Phone</span>
@@ -391,12 +401,24 @@ const calculateAgeFromDOB = (dob) => {
                   <input type="date" name="dob" value={formValues.dob || ""} onChange={handleChange} />
                 </label>
                 <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
-                  <span>Gender</span>
+                  <span>Gender Identity</span>
                   <select name="gender" value={formValues.gender || ""} onChange={handleChange}>
                     <option value="">Not specified</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
                     <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                </label>
+                <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
+                  <span>Sex at Birth</span>
+                  <select name="sex_of_birth" value={formValues.sex_of_birth || ""} onChange={handleChange}>
+                    <option value="">Not specified</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="intersex">Intersex</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
                   </select>
                 </label>
                 <label className="form-field" style={{ display: "flex", flexDirection: "column" }}>
