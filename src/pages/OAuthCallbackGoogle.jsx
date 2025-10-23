@@ -72,10 +72,11 @@ export default function OAuthCallbackGoogle() {
         // Отримуємо дані користувача для перевірки онбордингу
         const currentUser = useAuth().user;
         console.log('👤 Current user data:', currentUser);
-        console.log('📊 Onboarding completed:', currentUser?.onboarding_completed);
+        console.log('📊 Onboarding completed:', currentUser?.completed);
+        console.log('📊 Onboarding completed (legacy):', currentUser?.onboarding_completed);
         
         // Перевіряємо статус онбордингу і перенаправляємо відповідно
-        if (currentUser?.onboarding_completed === true) {
+        if (currentUser?.completed === true || currentUser?.onboarding_completed === true) {
           console.log('🎯 Onboarding completed. Redirecting to root...');
           setStatus('Success! Redirecting...');
           navigate('/', { replace: true });

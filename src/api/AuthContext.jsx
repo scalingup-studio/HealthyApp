@@ -176,7 +176,7 @@ export function AuthProvider({ children }) {
 
   // ✅ Added a function to check onboarding status
   const hasCompletedOnboarding = () => {
-    return user?.onboarding_completed === true;
+    return user?.completed === true || user?.onboarding_completed === true;
   };
 
   // ✅ Added a function to check if the token will expire soon

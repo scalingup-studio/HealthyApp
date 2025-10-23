@@ -49,6 +49,7 @@ function AutoRedirectRoute() {
     user: user ? {
       id: user.id,
       email: user.email,
+      completed: user.completed,
       onboarding_completed: user.onboarding_completed,
       hasCompletedOnboarding: hasCompletedOnboarding?.()
     } : null,

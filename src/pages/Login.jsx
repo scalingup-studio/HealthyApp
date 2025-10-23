@@ -58,7 +58,8 @@ export function LoginPage({ onOpenSignup }) {
         
         console.log('✅ Auth context updated, checking onboarding status...');
         console.log('👤 User data:', response.user);
-        console.log('📊 Onboarding completed:', response.user?.onboarding_completed);
+        console.log('📊 Onboarding completed:', response.user?.completed);
+        console.log('📊 Onboarding completed (legacy):', response.user?.onboarding_completed);
         
         // Довіряємо централізованому AutoRedirectRoute
         console.log('🔁 Redirecting to root for centralized routing...');
