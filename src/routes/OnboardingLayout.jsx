@@ -530,6 +530,30 @@ const OnboardingLayout = () => {
       setLoading(true);
       console.log('🎯 Starting onboarding completion process...');
       
+      // Check current progress before completing
+      console.log('📊 Checking current onboarding progress...');
+      const response = await OnboardingApi.getProgress(formData.user_id);
+      const progress = response?.save_onboarding;
+      
+      if (progress?.progress?.percentage === 100) {
+        console.log('✅ Onboarding is 100% complete, proceeding to dashboard...');
+        
+        // Mark onboarding as completed in AuthContext
+        console.log('🔐 Updating auth context...');
+        await completeOnboarding();
+        
+        // Clear saved progress
+        console.log('🧹 Clearing localStorage...');
+        localStorage.removeItem('onboarding-progress');
+        localStorage.removeItem('onboarding-step');
+        localStorage.removeItem('onboarding-completed');
+        
+        showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
+        console.log('🚀 Navigating to dashboard...');
+        navigate('/dashboard');
+        return;
+      }
+      
       // Save the last step (privacy) if not already saved
       if (currentStep === 6) {
         console.log('💾 Saving privacy settings...');
