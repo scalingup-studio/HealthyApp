@@ -17,6 +17,7 @@ import DashboardSettings from "./routes/pages/Settings.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage-TEST.jsx";
 import OnboardingPage from "./routes/OnboardingLayout.jsx";
 import HealthDataPage from "./routes/pages/HealthDataPage-TEST.jsx";
+import Logout from "./pages/Logout.jsx";
 
 import "./index.css";
 import HealthHistoryPage from "./routes/pages/HealthHistoryPage-TEST.jsx";
@@ -78,6 +79,7 @@ function AppRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage open />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/logout" element={<Logout />} />
 
         {/* ✅ Google OAuth callback route */}
         <Route path="/auth/callback/google" element={<OAuthCallbackGoogle />} />
