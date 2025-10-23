@@ -439,26 +439,30 @@ const OnboardingLayout = () => {
     }
   }, [user, profile, profileLoading]);
 
-  // Track current step changes
+  // Track current step changes (only log in development)
   useEffect(() => {
-    console.log(`🔄 Current step changed to: ${currentStep} (${steps[currentStep]?.id})`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔄 Current step changed to: ${currentStep} (${steps[currentStep]?.id})`);
+    }
   }, [currentStep]);
 
-  // Track form data changes
+  // Track form data changes (only log when step changes to avoid spam)
   useEffect(() => {
-    console.log(`📝 Form data updated:`, {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phoneNumber: formData.phoneNumber,
-      dateOfBirth: formData.dateOfBirth,
-      genderIdentity: formData.genderIdentity,
-      sexAtBirth: formData.sexAtBirth,
-      height: formData.height,
-      weight: formData.weight,
-      zipCode: formData.zipCode
-    });
-  }, [formData]);
+    if (process.env.NODE_ENV === 'development' && (formData.firstName || formData.lastName || formData.email)) {
+      console.log(`📝 Form data updated for step ${currentStep}:`, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
+        genderIdentity: formData.genderIdentity,
+        sexAtBirth: formData.sexAtBirth,
+        height: formData.height,
+        weight: formData.weight,
+        zipCode: formData.zipCode
+      });
+    }
+  }, [currentStep]); // Changed dependency from formData to currentStep
 
   // Save progress to localStorage
   const saveProgress = () => {
