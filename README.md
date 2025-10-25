@@ -229,16 +229,6 @@ npm install
 npm run dev
 ```
 
-### **Environment Variables**
-```env
-VITE_XANO_API_URL=https://xu6p-ejbd-2ew4.n7e.xano.io/api:5PA_dIPO
-VITE_OPENAI_API_KEY=your_openai_key
-VITE_SENDGRID_API_KEY=your_sendgrid_key
-VITE_UMAMI_WEBSITE_ID=your_umami_id
-```
-
----
-
 ## 🔮 Roadmap
 
 ### **Phase 1 (MVP)**
