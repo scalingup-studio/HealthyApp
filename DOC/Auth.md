@@ -9,7 +9,6 @@
 | 🔐 | `POST /auth/signup` | Реєстрація | ❌ |
 | 🔐 | `POST /auth/login` | Вхід | ❌ |
 | 🔐 | `POST /auth/logout` | Вихід | ❌ |
-| 🔐 | `GET /auth/check-auth` | Перевірка токена | ✅ |
 | 🔐 | `POST /auth/refresh` | Оновлення токена | ❌ |
 | 🔐 | `POST /auth/forgot-password` | Запит скидання пароля | ❌ |
 | 🔐 | `POST /auth/reset-password` | Скидання пароля | ❌ |
