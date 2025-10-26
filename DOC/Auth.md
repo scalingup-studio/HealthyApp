@@ -6,16 +6,16 @@
 
 | Метод | Endpoint | Призначення | Auth |
 |-------|----------|-------------|------|
-| 🔐 | `POST /auth/signup` | Реєстрація | ❌ |
+| 🔐 | `POST /auth/signup` | Реєстрація | ❌ 
 | 🔐 | `POST /auth/login` | Вхід | ❌ |
-| 🔐 | `POST /auth/logout` | Вихід | ❌ |
+| 🔐 | `POST /auth/logout` | Вихід | ❌  |
+| 🔐 | `POST /auth/check-auth` | Перевирка токен | ✅ |
 | 🔐 | `POST /auth/refresh` | Оновлення токена | ❌ |
 | 🔐 | `POST /auth/forgot-password` | Запит скидання пароля | ❌ |
 | 🔐 | `POST /auth/reset-password` | Скидання пароля | ❌ |
 | 🔐 | `GET /auth/google` | Google OAuth | ❌ |
 | 🔐 | `GET /auth/callback/google` | Google callback | ❌ |
 | 🔐 | `GET /auth/callback/apple` | Apple callback | ❌ |
-| 🔐 | `GET /auth/audit` | Логи активності | ❌ |
 
 ---
 
@@ -101,8 +101,8 @@
 **Response (Success 200):**
 ```json
 {
-  "cookie_header": "Set-Cookie: refresh_token=; ...",
-  "refresh_token_in_cookie": "cleared"
+  "success": true, 
+  "message": "Logged out successfully" 
 }
 ```
 
@@ -112,7 +112,7 @@
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
-
+**Request Body:** None
 **Response (Success 200):**
 ```json
 {
@@ -289,7 +289,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 1. POST /auth/signup {email, password, firstName, lastName}
    ↓
-2. Створюється user + profile
+2. Створюється user + profile + user_setting
    ↓  
 3. Повертається authToken
    ↓
