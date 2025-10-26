@@ -99,7 +99,6 @@ useEffect(() => {
   fetch('/api/comprehensive-alerts', {
     method: 'POST',
     body: JSON.stringify({
-      user_id: currentUser.id,
       metrics: getCachedMetrics()
     })
   });
@@ -117,7 +116,6 @@ const handleAddMetric = async (newMetric) => {
   const response = await fetch('/api/comprehensive-alerts', {
     method: 'POST',
     body: JSON.stringify({
-      user_id: user.id,
       metrics: [...existingMetrics, newMetric]
     })
   });
@@ -137,7 +135,6 @@ setInterval(() => {
     fetch('/api/comprehensive-alerts', {
       method: 'POST',
       body: JSON.stringify({
-        user_id: user.id,
         metrics: getLatestMetrics(),
         background_check: true
       })
@@ -159,7 +156,6 @@ app.post('/webhook/wearable-sync', async (req, res) => {
   await fetch('/api/comprehensive-alerts', {
     method: 'POST',
     body: JSON.stringify({
-      user_id: wearableData.user_id,
       metrics: wearableData.metrics,
       source: 'wearable_sync'
     })
@@ -181,7 +177,6 @@ cron.schedule('0 6 * * *', async () => {
     await fetch('/api/comprehensive-alerts', {
       method: 'POST',
       body: JSON.stringify({
-        user_id: user.id,
         metrics: overnightData,
         source: 'nightly_batch'
       })
