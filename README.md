@@ -512,19 +512,19 @@ Headers: Authorization: Bearer {token}
 }
 ```
 
-### **GET /goals/{user_id}** - Get Goals
+### **GET /goals/get/goals** - Get Goals
 **Purpose**: Retrieve all user goals
 
 ### **PATCH /goals/{goal_id}** - Update Goal
 **Purpose**: Edit existing goal
 
-### **DELETE /goals/{user_id}** - Delete Goal
+### **DELETE /goals/{goal_id}** - Delete Goal
 **Purpose**: Remove user goal
 
 ### **Goal Progress**
 - `POST /goal/progress` - Add progress
-- `GET /goal/progress{user_id}` - Get progress
-- `DELETE /goal/progress{user_id}` - Delete progress
+- `GET /goal/get/progress` - Get progress
+- `DELETE /goal/delete/progress` - Delete progress
 
 ### **Goal History**
 - `GET /goals/get/history` - Filter goals by status
