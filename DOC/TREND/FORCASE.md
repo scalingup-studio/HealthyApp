@@ -17,7 +17,6 @@
 // Аналізує історичні дані користувача за обраний період
 POST /metrics/trends
 {
-  "user_id": "uuid",
   "type_metric": "heart_rate", 
   "period": "day|week|month",
   "start_date": "2025-01-01",
