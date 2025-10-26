@@ -539,7 +539,6 @@ Headers: Authorization: Bearer {token}
 ```javascript
 {
   "query": "How to improve sleep?",
-  "user_id": "uuid",
   "metrics": { /* user metrics */ }
 }
 ```
@@ -550,7 +549,6 @@ Headers: Authorization: Bearer {token}
 {
   "type_metric": "heart_rate",
   "period": "7d",
-  "user_id": "uuid",
   "start_date": "2024-01-01",
   "end_date": "2024-01-07"
 }
