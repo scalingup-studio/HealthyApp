@@ -38,7 +38,7 @@
 
 ---
 
-### **GET /goals/{user_id}** - Отримання всіх цілей користувача
+### **GET /goals/get/goals** - Отримання всіх цілей користувача
 **Призначення**: Отримання списку всіх цілей користувача
 
 **Parameters**: none
@@ -172,12 +172,11 @@
 
 ---
 
-### **GET /goal/progress{user_id}** - Отримання прогресу за період
+### **GET /goal/get/progress** - Отримання прогресу за період
 **Призначення**: Отримання історії прогресу з фільтрацією за періодом
 
 **Query Parameters**:
 ```
-user_id: uuid (path, required)
 goal_id: uuid (query, required)
 range: string (query, required) - "7d" | "30d"
 mode: string (query, optional) - "average" | "total"
@@ -400,7 +399,7 @@ mood_tag: string (optional)
 }
 ```
 
-### **GET /notes/note{user_id}** - Отримання конкретної нотатки
+### **GET /notes/get/note** - Отримання конкретної нотатки
 **Призначення**: Отримання деталей конкретної нотатки
 
 **Query Parameters**:
