@@ -504,7 +504,6 @@ Headers: Authorization: Bearer {token}
 **Purpose**: Add new health goal
 ```javascript
 {
-  "user_id": "uuid",
   "title": "Lose weight",
   "description": "Lose 5kg in 3 months",
   "status": "on track",
