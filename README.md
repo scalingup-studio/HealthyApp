@@ -578,7 +578,6 @@ Query params: ?user_id={user_id}&type_metric={metric_type}
 **Purpose**: Analyze metrics and generate alerts
 ```javascript
 {
-  "user_id": "uuid",
   "metrics": [
     {
       "metric_type": "blood_pressure_diastolic",
@@ -669,7 +668,6 @@ Query params: ?file_id={file_id}&user_id={user_id}
 **Purpose**: Add new note or journal entry
 ```javascript
 {
-  "user_id": "uuid",
   "text": "Feeling great today",
   "mood_tag": "happy"
 }
