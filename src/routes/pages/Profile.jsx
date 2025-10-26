@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useAuthRequest } from "../../api/authRequest.js";
+// import { useAuthRequest } from "../../api/authRequest.js";
 import { useAuth } from "../../api/AuthContext.jsx";
 import { useNotifications } from "../../api/NotificationContext.jsx";
 import { ProfilesApi } from "../../api/profilesApi.js";
@@ -7,7 +7,7 @@ import { UploadFileApi } from "../../api/uploadFileApi.js";
 import { ENDPOINTS } from "../../api/apiConfig.js";
 
 export default function DashboardProfile() {
-  const authRequest = useAuthRequest();
+  // const authRequest = useAuthRequest();
   const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useNotifications();
   const [profile, setProfile] = useState(null);

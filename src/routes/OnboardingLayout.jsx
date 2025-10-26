@@ -7,9 +7,42 @@ import { ProfilesApi } from '../api/profilesApi.js';
 import { Logo } from '../components/Logo.jsx';
 import './OnboardingLayout.css';
 
+/**
+ * Force refresh user data from backend
+ * Call this after onboarding completion to ensure user object is up to date
+ */
+async function refreshUserData(userId, setUser) {
+  try {
+    console.log('🔄 Refreshing user data from backend...');
+
+    // Import the API module
+    const { UsersApi } = await import('../api/usersApi.js');
+
+    // Fetch fresh user data
+    const userData = await UsersApi.getById(userId);
+
+    console.log('✅ Fresh user data received:', {
+      id: userData.id,
+      email: userData.email,
+      onboarding_completed: userData.onboarding_completed,
+      completed: userData.completed,
+    });
+
+    // Update user in context
+    if (setUser) {
+      setUser(userData);
+    }
+
+    return userData;
+  } catch (error) {
+    console.error('❌ Failed to refresh user data:', error);
+    throw error;
+  }
+}
+
 const OnboardingLayout = () => {
   const navigate = useNavigate();
-  const { user, completeOnboarding } = useAuth();
+  const { user, completeOnboarding, setUser } = useAuth();
   const { showSuccess, showError } = useNotifications();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,7 +54,7 @@ const OnboardingLayout = () => {
   const [formData, setFormData] = useState({
     // User ID for API calls
     user_id: user?.id || '',
-    
+
     // Personal Info - will be populated from user profile
     firstName: user?.first_name || user?.firstName || '',
     lastName: user?.last_name || user?.lastName || '',
@@ -96,19 +129,19 @@ const OnboardingLayout = () => {
       console.log('❌ No user ID available for profile loading');
       return;
     }
-    
+
     try {
       setProfileLoading(true);
       console.log('🔍 Loading user profile for onboarding, user ID:', user.id);
       console.log('👤 User object:', user);
-      
+
       // Try to get profile by user_id
       let profileData = null;
       try {
         console.log('📡 Calling ProfilesApi.getById with user_id:', user.id);
         profileData = await ProfilesApi.getById(user.id);
         console.log('✅ Profile found by ID:', profileData);
-        
+
         if (profileData) {
           console.log('📝 Profile contains:', {
             first_name: profileData.first_name,
@@ -122,9 +155,9 @@ const OnboardingLayout = () => {
         // If not found by ID, try to get all profiles and filter by user_id
         const allProfilesResponse = await ProfilesApi.getAll();
         const allProfiles = allProfilesResponse?.result || allProfilesResponse;
-        
+
         console.log('📋 All profiles response:', allProfiles);
-        
+
         if (Array.isArray(allProfiles)) {
           profileData = allProfiles.find(p => p.user_id === user.id || p.id === user.id);
           console.log('🔍 Found profile in list:', profileData);
@@ -133,10 +166,10 @@ const OnboardingLayout = () => {
           console.log('🔍 Single profile found:', profileData);
         }
       }
-      
+
       setProfile(profileData);
       console.log('📊 Final profile data loaded:', profileData);
-      
+
       if (!profileData) {
         console.log('⚠️ No profile found for user_id:', user.id);
       } else {
@@ -144,7 +177,7 @@ const OnboardingLayout = () => {
         console.log('🔄 Profile loaded, updating form data...');
         updateFormWithProfileData(profileData);
       }
-      
+
     } catch (error) {
       console.warn('❌ Failed to load profile:', error.message);
       setProfile(null);
@@ -165,13 +198,13 @@ const OnboardingLayout = () => {
       weight_kg: profileData.weight_kg,
       zip_code: profileData.zip_code
     });
-    
+
     setFormData(prev => {
       console.log('📋 Previous form data:', {
         firstName: prev.firstName,
         lastName: prev.lastName
       });
-      
+
       const updated = {
         ...prev,
         user_id: user?.id || prev.user_id,
@@ -185,7 +218,7 @@ const OnboardingLayout = () => {
         weight: profileData.weight_kg ? profileData.weight_kg.toString() : prev.weight,
         zipCode: profileData.zip_code || prev.zipCode,
       };
-      
+
       console.log('📝 Updated form data:', {
         user_id: updated.user_id,
         firstName: updated.firstName,
@@ -198,9 +231,9 @@ const OnboardingLayout = () => {
         weight: updated.weight,
         zipCode: updated.zipCode
       });
-      
+
       console.log('✅ Form update complete! firstName:', updated.firstName, 'lastName:', updated.lastName);
-      
+
       return updated;
     });
   };
@@ -209,38 +242,38 @@ const OnboardingLayout = () => {
   const loadOnboardingProgress = async (currentFormData) => {
     try {
       console.log('📊 Loading onboarding progress from welcome API...');
-      
+
       // Call welcome API to get onboarding progress
       const response = await OnboardingApi.getProgress(currentFormData.user_id);
       console.log('📊 Onboarding API response:', response);
-      
+
       // Extract progress data from the response structure
       const progress = response?.save_onboarding;
       console.log('📊 Extracted progress data:', progress);
       console.log('📊 Progress completed status:', progress?.completed);
       console.log('📊 Progress percentage:', progress?.progress?.percentage);
       console.log('📊 Current user onboarding_completed:', user?.onboarding_completed);
-      
+
       // Check if onboarding is 100% complete - redirect to dashboard
       if (progress?.progress?.percentage === 100) {
         console.log('🎯 Onboarding is 100% complete, redirecting to dashboard...');
         console.log('📊 Progress percentage:', progress?.progress?.percentage);
         console.log('📊 Progress completed:', progress?.completed);
-        
+
         // Mark onboarding as completed in AuthContext
         await completeOnboarding();
-        
+
         // Clear saved progress
         localStorage.removeItem('onboarding-progress');
         localStorage.removeItem('onboarding-step');
         localStorage.removeItem('onboarding-completed');
-        
+
         // Navigate to dashboard without showing notification
         console.log('🚀 Navigating to dashboard...');
         navigate('/dashboard');
         return;
       }
-      
+
       // Check if progress has the expected structure
       if (!progress || !progress.progress || !progress.progress.completed_steps) {
         console.warn('⚠️ Unexpected progress structure:', progress);
@@ -250,10 +283,10 @@ const OnboardingLayout = () => {
         }
         return; // Exit early if structure is unexpected
       }
-      
+
       // Mark completed steps
       const completedStepsSet = new Set();
-      
+
       // Mark all completed steps
       progress.progress.completed_steps.forEach(stepId => {
         const stepIndex = steps.findIndex(step => step.id === stepId);
@@ -261,16 +294,16 @@ const OnboardingLayout = () => {
           completedStepsSet.add(stepIndex);
         }
       });
-      
+
       // Automatically mark welcome step as completed (index 0)
       completedStepsSet.add(0);
       console.log('✅ Automatically marking welcome step as completed');
-      
+
       setCompletedSteps(completedStepsSet);
-      
+
       // Set current step based on API response
       let nextUncompletedStepIndex = -1;
-      
+
       // Use current_step from API response to determine next step
       if (progress.current_step) {
         const currentStepIndex = steps.findIndex(step => step.id === progress.current_step);
@@ -281,7 +314,7 @@ const OnboardingLayout = () => {
           console.warn(`⚠️ Unknown step ID from API: ${progress.current_step}`);
         }
       }
-      
+
       // Fallback: Find the first uncompleted step if API step not found
       if (nextUncompletedStepIndex === -1) {
         for (let i = 1; i < steps.length; i++) {
@@ -292,7 +325,7 @@ const OnboardingLayout = () => {
           }
         }
       }
-      
+
       console.log(`🔍 Debug step logic:`, {
         apiCurrentStep: progress.current_step,
         completedSteps: progress.progress.completed_steps,
@@ -300,20 +333,20 @@ const OnboardingLayout = () => {
         nextUncompletedStepIndex,
         stepsLength: steps.length
       });
-      
+
       if (nextUncompletedStepIndex === -1) {
         // All steps completed, check if onboarding is fully completed
         if (progress.completed === true) {
           console.log('✅ Onboarding completed, updating auth context and redirecting to dashboard...');
-          
+
           // Mark onboarding as completed in AuthContext
           await completeOnboarding();
-          
+
           // Clear saved progress
           localStorage.removeItem('onboarding-progress');
           localStorage.removeItem('onboarding-step');
           localStorage.removeItem('onboarding-completed');
-          
+
           // Navigate to dashboard without showing notification
           navigate('/dashboard');
           return;
@@ -326,16 +359,16 @@ const OnboardingLayout = () => {
         console.log(`📍 Setting current step to next uncompleted step: ${steps[nextUncompletedStepIndex].id} (index: ${nextUncompletedStepIndex})`);
         setCurrentStep(nextUncompletedStepIndex);
       }
-      
+
       // Populate form data with completed step data
       const populatedFormData = { ...currentFormData };
       console.log('📝 Starting to populate form data from API response...');
-      
+
       // Personal step data
       if (progress.steps.personal?.completed && progress.steps.personal.data) {
         console.log('👤 Populating personal step data:', progress.steps.personal.data);
         const personalData = progress.steps.personal.data;
-        
+
         populatedFormData.firstName = personalData.first_name || populatedFormData.firstName;
         populatedFormData.lastName = personalData.last_name || populatedFormData.lastName;
         populatedFormData.email = personalData.email || populatedFormData.email;
@@ -346,10 +379,10 @@ const OnboardingLayout = () => {
         populatedFormData.height = personalData.height ? personalData.height.toString() : populatedFormData.height;
         populatedFormData.weight = personalData.weight ? personalData.weight.toString() : populatedFormData.weight;
         populatedFormData.zipCode = personalData.zip_code || populatedFormData.zipCode;
-        
+
         console.log('✅ Personal data populated from API');
       }
-      
+
       // Health snapshot data
       if (progress.steps.health_snapshot?.completed && progress.steps.health_snapshot.data) {
         const healthData = progress.steps.health_snapshot.data;
@@ -359,7 +392,7 @@ const OnboardingLayout = () => {
           populatedFormData.allergies = healthData.health_snapshot.allergies || populatedFormData.allergies;
         }
       }
-      
+
       // Lifestyle data
       if (progress.steps.lifestyle?.completed && progress.steps.lifestyle.data) {
         const lifestyleData = progress.steps.lifestyle.data;
@@ -367,7 +400,7 @@ const OnboardingLayout = () => {
           populatedFormData.lifestyleHabits = lifestyleData.lifestyle.habits || populatedFormData.lifestyleHabits;
         }
       }
-      
+
       // Health goals data
       if (progress.steps.health_goals?.completed && progress.steps.health_goals.data) {
         const goalsData = progress.steps.health_goals.data;
@@ -375,7 +408,7 @@ const OnboardingLayout = () => {
         populatedFormData.goalNotes = goalsData.description || populatedFormData.goalNotes;
         populatedFormData.goalVisibility = goalsData.visibility_scope || populatedFormData.goalVisibility;
       }
-      
+
       // Privacy settings data
       if (progress.steps.privacy?.completed && progress.steps.privacy.data) {
         const privacyData = progress.steps.privacy.data;
@@ -385,10 +418,10 @@ const OnboardingLayout = () => {
           populatedFormData.wearableSync = privacyData.privacy.wearable_sync !== undefined ? privacyData.privacy.wearable_sync : populatedFormData.wearableSync;
         }
       }
-      
+
       console.log('📝 Populated form data from API:', populatedFormData);
       setFormData(populatedFormData);
-      
+
     } catch (error) {
       console.error('❌ Error loading onboarding progress:', error);
       // Continue with default initialization if API fails
@@ -408,7 +441,7 @@ const OnboardingLayout = () => {
     if (user?.id && !profileLoading) {
       console.log('👤 Loading user data for onboarding:', user);
       console.log('📊 Profile data from database:', profile);
-      
+
       // Initialize form data with user profile data from database
       const initialFormData = {
         user_id: user?.id || '',
@@ -435,7 +468,7 @@ const OnboardingLayout = () => {
 
       console.log('📝 Initial form data with profile info:', initialFormData);
       setFormData(initialFormData);
-      
+
       // Load onboarding progress from welcome API
       loadOnboardingProgress(initialFormData);
     }
@@ -490,7 +523,7 @@ const OnboardingLayout = () => {
 
   const saveStepData = async (stepIndex) => {
     const stepId = steps[stepIndex].id;
-    
+
     switch (stepId) {
       case 'personal':
         await OnboardingApi.savePersonalInfo(formData);
@@ -520,7 +553,7 @@ const OnboardingLayout = () => {
         console.log('💾 Saving step data for step:', currentStep);
         // Save current step data to server
         await saveStepData(currentStep);
-        
+
         console.log('✅ Step data saved, moving to next step');
         setCompletedSteps(prev => new Set([...prev, currentStep]));
         setCurrentStep(prev => {
@@ -552,7 +585,7 @@ const OnboardingLayout = () => {
     console.log('⏸️ Finishing onboarding later...');
     console.log('💾 Saving current progress...');
     saveProgress();
-    
+
     showSuccess('Your progress has been saved. You can continue onboarding anytime from your dashboard.');
     console.log('🚀 Navigating to dashboard...');
     navigate('/dashboard');
@@ -562,65 +595,86 @@ const OnboardingLayout = () => {
     try {
       setLoading(true);
       console.log('🎯 Starting onboarding completion process...');
-      
-      // Check current progress before completing
-      console.log('📊 Checking current onboarding progress...');
-      const response = await OnboardingApi.getProgress(formData.user_id);
-      const progress = response?.save_onboarding;
-      
+
       // Save all edited steps before completing onboarding
       console.log('💾 Saving all edited steps before completion...');
-      
-      // Save personal step if it has data (always save if we have basic info)
+
+      // Save personal step if it has data
       if (formData.firstName || formData.lastName || formData.email || formData.phoneNumber || formData.dateOfBirth) {
         console.log('💾 Saving personal information...');
         await OnboardingApi.savePersonalInfo(formData);
       }
-      
+
       // Save health snapshot if it has any data
       if (formData.healthConditions || formData.medications || formData.allergies) {
         console.log('💾 Saving health snapshot...');
         await OnboardingApi.saveHealthSnapshot(formData);
       }
-      
+
       // Save lifestyle if it has data
       if (formData.lifestyleHabits && formData.lifestyleHabits.length > 0) {
         console.log('💾 Saving lifestyle habits...');
         await OnboardingApi.saveLifestyle(formData);
       }
-      
+
       // Save health goals if it has data
       if (formData.healthGoals && formData.healthGoals.length > 0) {
         console.log('💾 Saving health goals...');
         await OnboardingApi.saveHealthGoals(formData);
       }
-      
-      // Save privacy settings (always save if we're completing onboarding)
+
+      // Save privacy settings
       console.log('💾 Saving privacy settings...');
       await OnboardingApi.savePrivacySettings(formData);
-      
+
       // Complete onboarding
       console.log('✅ Completing onboarding...');
       const result = await OnboardingApi.completeOnboarding({
+        userId: formData.user_id,
         stepsCompleted: [...completedSteps, currentStep]
       });
-      
+
       console.log('📊 Onboarding completion result:', result);
-      
+
+      // ✅ FIX: Force refresh user data from backend
+      console.log('🔄 Refreshing user data to verify onboarding completion...');
+
+      try {
+        const freshUserData = await refreshUserData(formData.user_id, setUser);
+
+        // Verify onboarding is marked as complete
+        if (!freshUserData.onboarding_completed && !freshUserData.completed) {
+          console.warn('⚠️ Backend did not mark onboarding as completed, retrying...');
+
+          // Retry completion once
+          await OnboardingApi.completeOnboarding({
+            userId: formData.user_id,
+            stepsCompleted: [...completedSteps, currentStep]
+          });
+
+          // Refresh again
+          await refreshUserData(formData.user_id, setUser);
+        }
+
+      } catch (refreshError) {
+        console.error('❌ Failed to refresh user data:', refreshError);
+        // Continue anyway - completeOnboarding in context will handle it
+      }
+
       // Mark onboarding as completed in AuthContext
-      console.log('🔐 Updating auth context...');
+      console.log('📝 Updating auth context...');
       await completeOnboarding();
-      
+
       // Clear saved progress
       console.log('🧹 Clearing localStorage...');
       localStorage.removeItem('onboarding-progress');
       localStorage.removeItem('onboarding-step');
       localStorage.removeItem('onboarding-completed');
-      
+
       showSuccess('Welcome to Anatomous! Your profile has been set up successfully.');
       console.log('🚀 Navigating to dashboard...');
-      
-      // Add small delay to ensure notification is shown before navigation
+
+      // Add delay to ensure state is updated
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000);
@@ -634,14 +688,14 @@ const OnboardingLayout = () => {
 
   const renderStepContent = () => {
     console.log(`🎭 Rendering step content for currentStep: ${currentStep} (${steps[currentStep]?.id})`);
-    
+
     switch (currentStep) {
       case 0: // Welcome
         return (
           <div className="onboarding-step-content">
             <h2>Welcome to Anatomous</h2>
             <p className="step-description">
-              Let's set up your personalized health profile in just a few steps. 
+              Let's set up your personalized health profile in just a few steps.
               This will help us provide you with tailored insights and recommendations.
             </p>
             <div className="welcome-info">
@@ -669,13 +723,13 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Personal Information</h2>
             <p className="step-description">Tell us about yourself to personalize your experience.</p>
-            
+
             {profileLoading && (
-              <div style={{ 
-                padding: '16px', 
-                backgroundColor: 'var(--background)', 
-                border: '1px solid var(--border)', 
-                borderRadius: '8px', 
+              <div style={{
+                padding: '16px',
+                backgroundColor: 'var(--background)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
                 marginBottom: '16px',
                 textAlign: 'center',
                 color: 'var(--muted)'
@@ -683,8 +737,8 @@ const OnboardingLayout = () => {
                 <span>Loading your profile data...</span>
               </div>
             )}
-            
-            
+
+
             <div className="form-grid">
               <div className="form-field">
                 <label>First Name *</label>
@@ -697,7 +751,7 @@ const OnboardingLayout = () => {
                   required
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Last Name *</label>
                 {console.log('🎯 Rendering Last Name field with value:', formData.lastName)}
@@ -709,7 +763,7 @@ const OnboardingLayout = () => {
                   required
                 />
               </div>
-              
+
               <div className="form-field" hidden={true}>
                 <label>Email Address *</label>
                 <input
@@ -720,7 +774,7 @@ const OnboardingLayout = () => {
                   required
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Phone Number</label>
                 <input
@@ -730,7 +784,7 @@ const OnboardingLayout = () => {
                   placeholder="Enter your phone number"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Date of Birth *</label>
                 <input
@@ -740,7 +794,7 @@ const OnboardingLayout = () => {
                   required
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Sex at Birth *</label>
                 <select
@@ -754,7 +808,7 @@ const OnboardingLayout = () => {
                   <option value="other">Other</option>
                 </select>
               </div>
-              
+
               <div className="form-field">
                 <label>Gender Identity</label>
                 <select
@@ -770,7 +824,7 @@ const OnboardingLayout = () => {
                   <option value="prefer-not-to-say">Prefer not to say</option>
                 </select>
               </div>
-              
+
               <div className="form-field">
                 <label>Height (cm)</label>
                 <input
@@ -780,7 +834,7 @@ const OnboardingLayout = () => {
                   placeholder="e.g., 175"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Weight (kg)</label>
                 <input
@@ -790,7 +844,7 @@ const OnboardingLayout = () => {
                   placeholder="e.g., 70"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>ZIP Code</label>
                 <input
@@ -801,11 +855,11 @@ const OnboardingLayout = () => {
                 />
               </div>
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn primary" 
+              <button
+                className="btn primary"
                 onClick={nextStep}
                 disabled={loading || !formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.sexAtBirth}
               >
@@ -820,7 +874,7 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Health Snapshot</h2>
             <p className="step-description">Help us understand your current health status.</p>
-            
+
             <div className="form-fields">
               <div className="form-field">
                 <label>Known Health Conditions</label>
@@ -831,7 +885,7 @@ const OnboardingLayout = () => {
                   rows={4}
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Current Medications (Optional)</label>
                 <textarea
@@ -841,7 +895,7 @@ const OnboardingLayout = () => {
                   rows={3}
                 />
               </div>
-              
+
               <div className="form-field">
                 <label>Known Allergies (Optional)</label>
                 <textarea
@@ -852,11 +906,11 @@ const OnboardingLayout = () => {
                 />
               </div>
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn primary" 
+              <button
+                className="btn primary"
                 onClick={nextStep}
                 disabled={loading}
               >
@@ -871,7 +925,7 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Lifestyle & Habits</h2>
             <p className="step-description">Select all that apply to your lifestyle.</p>
-            
+
             <div className="checkbox-grid">
               {lifestyleOptions.map((option) => (
                 <label key={option} className="checkbox">
@@ -884,11 +938,11 @@ const OnboardingLayout = () => {
                 </label>
               ))}
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn primary" 
+              <button
+                className="btn primary"
                 onClick={nextStep}
                 disabled={loading}
               >
@@ -903,7 +957,7 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Health Goals</h2>
             <p className="step-description">What would you like to achieve with Anatomous?</p>
-            
+
             <div className="checkbox-grid">
               {healthGoalOptions.map((goal) => (
                 <label key={goal} className="checkbox">
@@ -916,7 +970,7 @@ const OnboardingLayout = () => {
                 </label>
               ))}
             </div>
-            
+
             <div className="form-field">
               <label>Other Goals (Optional)</label>
               <textarea
@@ -926,7 +980,7 @@ const OnboardingLayout = () => {
                 rows={3}
               />
             </div>
-            
+
             <div className="form-field">
               <label>Target Date (Optional)</label>
               <input
@@ -936,7 +990,7 @@ const OnboardingLayout = () => {
                 placeholder="When would you like to achieve these goals?"
               />
             </div>
-            
+
             <div className="form-field">
               <label>Goal Notes (Optional)</label>
               <textarea
@@ -946,7 +1000,7 @@ const OnboardingLayout = () => {
                 rows={3}
               />
             </div>
-            
+
             <div className="form-field">
               <label>Goal Visibility</label>
               <div className="radio-group">
@@ -972,11 +1026,11 @@ const OnboardingLayout = () => {
                 </label>
               </div>
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn primary" 
+              <button
+                className="btn primary"
                 onClick={nextStep}
                 disabled={loading}
               >
@@ -991,7 +1045,7 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Privacy Settings</h2>
             <p className="step-description">Control how your data is used and shared.</p>
-            
+
             <div className="form-fields">
               <div className="form-field">
                 <label>Who can see my data?</label>
@@ -1004,7 +1058,7 @@ const OnboardingLayout = () => {
                   <option value="export-only">Export-only - I can export my data</option>
                 </select>
               </div>
-              
+
               <div className="checkbox">
                 <input
                   type="checkbox"
@@ -1013,7 +1067,7 @@ const OnboardingLayout = () => {
                 />
                 <span>Receive email nudges and insights</span>
               </div>
-              
+
               <div className="checkbox">
                 <input
                   type="checkbox"
@@ -1023,11 +1077,11 @@ const OnboardingLayout = () => {
                 <span>Enable wearable sync (coming soon)</span>
               </div>
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn primary" 
+              <button
+                className="btn primary"
                 onClick={nextStep}
                 disabled={loading}
               >
@@ -1042,7 +1096,7 @@ const OnboardingLayout = () => {
           <div className="onboarding-step-content">
             <h2>Review & Finish</h2>
             <p className="step-description">Review your information and complete your setup.</p>
-            
+
             <div className="review-sections">
               <div className="review-section">
                 <h3>Personal Information</h3>
@@ -1059,7 +1113,7 @@ const OnboardingLayout = () => {
                 </div>
                 <button className="btn ghost small" onClick={() => goToStep(1)}>Edit</button>
               </div>
-              
+
               <div className="review-section">
                 <h3>Health Information</h3>
                 <div className="review-content">
@@ -1069,7 +1123,7 @@ const OnboardingLayout = () => {
                 </div>
                 <button className="btn ghost small" onClick={() => goToStep(2)}>Edit</button>
               </div>
-              
+
               <div className="review-section">
                 <h3>Health Goals</h3>
                 <div className="review-content">
@@ -1083,7 +1137,7 @@ const OnboardingLayout = () => {
                 </div>
                 <button className="btn ghost small" onClick={() => goToStep(4)}>Edit</button>
               </div>
-              
+
               <div className="review-section">
                 <h3>Lifestyle & Habits</h3>
                 <div className="review-content">
@@ -1093,7 +1147,7 @@ const OnboardingLayout = () => {
                 </div>
                 <button className="btn ghost small" onClick={() => goToStep(3)}>Edit</button>
               </div>
-              
+
               <div className="review-section">
                 <h3>Privacy Settings</h3>
                 <div className="review-content">
@@ -1104,11 +1158,11 @@ const OnboardingLayout = () => {
                 <button className="btn ghost small" onClick={() => goToStep(5)}>Edit</button>
               </div>
             </div>
-            
+
             <div className="step-navigation">
               <button className="btn outline" onClick={prevStep}>Back</button>
-              <button 
-                className="btn success large" 
+              <button
+                className="btn success large"
                 onClick={completeOnboardingProcess}
                 disabled={loading}
               >
@@ -1130,19 +1184,19 @@ const OnboardingLayout = () => {
         <div className="header-left">
           <Logo height={32} />
         </div>
-        
+
         <div className="header-center">
           <div className="progress-indicator">
             Step {currentStep + 1} of {steps.length}
           </div>
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
         </div>
-        
+
         <div className="header-right">
           <button className="btn ghost small" onClick={finishLater}>
             Finish Later
