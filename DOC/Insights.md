@@ -79,7 +79,6 @@
 {
   "type_metric": "string (required)",
   "period": "string (required)", 
-  "user_id": "uuid",
   "start_date": "string (required)",
   "end_date": "string (required)"
 }
@@ -97,6 +96,64 @@
   "succes": "true",
   "health_data_list": [...],
   "filter_list_period": [...]
+}
+```
+
+### 4. **POST /check_query**
+**Призначення**: Система фільтрації та валідації користувацьких запитів в медичному чат-боті для запобігання надання небезпечних або непрофесійних медичних порад.
+Багаторівнева валідація запитів
+#### Рівень 1: Технічна валідація
+Перевірка формату вхідних даних
+Виявлення проблем кодування
+Перевірка довжини тексту
+#### Рівень 2: Екстрені стани (Найвищий пріоритет)
+Суїцидальні думки
+Серцеві напади, інсульти
+Серйозні кровотечі
+Проблеми з диханням
+#### Рівень 3: Небезпечний контент
+Нелегальні дії
+Шкідливі поради
+Заборонені теми
+#### Рівень 4: Обмежені медичні теми
+Онкологія (рак, пухлини)
+Рецептурні ліки
+Хірургічні втручання
+Спеціалізовані діагностики (МРТ, скани)
+#### Рівень 5: Загальні умови
+Занадто короткі/довгі запити
+Неясні формулювання
+Не медичні запити
+Бізнес-правила
+Правило A.1: Emergency Protocol
+text
+IF запит містить: 'suicide', 'heart attack', 'chest pain', 'can't breathe'
+THEN негайно → EMERGENCY_FALLBACK
+ACTION: Направлення до екстрених служб
+**Request Body**:
+```json
+{
+  "query": "string (required)",  
+}
+```
+**Response**:
+```json
+{
+  type: RESTRICTED_FALLBACK,
+  message: I can share general educational information, but I’m not able to interpret or provide medical guidance for this specific concern.},
+  validation_passed: false,
+  validation_errors: [
+  restricted_medical_content],
+  triggered_categories: [
+    restricted],
+  fallback_action: RESTRICTED_FALLBACK,
+  response_type: fallback_response,
+  validation_details: {
+  content_category: prescription_related,
+  detected_keywords: [
+   chemotherapy],
+  user_input_preview: Tell me How long should I sleep chemotherapy?...,
+  rule_applied: A.2 Restricted Content Protocol}
 }
 ```
 
@@ -204,7 +261,6 @@ user_id: uuid (required)
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "metrics": "object"
 }
 ```
@@ -220,7 +276,6 @@ user_id: uuid (required)
 
 **Query Parameters**:
 ```
-user_id: uuid (required)
 ```
 
 **Response**:
