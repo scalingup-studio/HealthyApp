@@ -8,7 +8,6 @@
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "title": "Run 5km without stopping",
   "description": "Improve cardiovascular health through running",
   "status": "on track",
@@ -42,10 +41,7 @@
 ### **GET /goals/{user_id}** - Отримання всіх цілей користувача
 **Призначення**: Отримання списку всіх цілей користувача
 
-**Parameters**:
-```
-user_id: uuid (path parameter, required)
-```
+**Parameters**: none
 
 **Business Logic**:
 1. Запит всіх записів з `goals` для конкретного user_id
@@ -57,13 +53,16 @@ user_id: uuid (path parameter, required)
 {
   "result": [
     {
-      "id": "goal_uuid",
-      "title": "Run 5km without stopping",
-      "description": "Improve cardiovascular health",
-      "status": "on track",
-      "target_date": "2024-03-31",
-      "type": "fitness",
-      "created_at": "2024-01-15T10:00:00Z"
+      id: 69db832b-b80d-41cc-9e23-65fc6131dbf3,
+      created_at: 1761474338198,
+      user_id: ca5a99b0-84c8-42d1-bcbf-7a8e2eaf03fa,
+      title: Test,
+      description: new test goal,
+      status: on track,
+      target_date: 2025-10-18,
+      visibility_scope: public,
+      updated_at: 0,
+      type: Habit test
     }
   ],
   "success": "true"
@@ -96,10 +95,16 @@ user_id: uuid (path parameter, required)
 ```json
 {
   "result": {
-    "id": "goal_uuid",
-    "title": "Run 10km without stopping",
-    "status": "completed",
-    "updated_at": "2024-01-20T14:30:00Z"
+    id: e6ea75a1-2bb8-424c-bf58-1b0f778f6b89,
+    created_at: 1761224685631,
+    user_id: ca5a99b0-84c8-42d1-bcbf-7a8e2eaf03fa,
+    title: Health Goals,
+    description: test test,
+    status: on track,
+    target_date: 2025-10-26,
+    visibility_scope: private,
+    updated_at: 0,
+    type: 
   },
   "success": "true"
 }
@@ -107,7 +112,7 @@ user_id: uuid (path parameter, required)
 
 ---
 
-### **DELETE /goals/{user_id}** - Видалення цілі
+### **DELETE /goals/{goal_id}** - Видалення цілі
 **Призначення**: Видалення цілі користувача
 
 **Request Body**:
@@ -119,8 +124,8 @@ user_id: uuid (path parameter, required)
 
 **Business Logic**:
 1. Перевірка що ціль належить користувачу
-2. М'яке видалення (встановлення deleted flag)
-3. Встановлення `deleted_at` timestamp
+2. Повне видалення
+
 
 **Response**:
 ```json
@@ -139,7 +144,6 @@ user_id: uuid (path parameter, required)
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "goal_id": "uuid (required)",
   "value": "5",
   "unit": "km",
@@ -188,39 +192,42 @@ mode: string (query, optional) - "average" | "total"
 **Response**:
 ```json
 {
-  "result": {
-    "progress_list": [
-      {
-        "date": "2024-01-10",
-        "value": 3,
-        "unit": "km"
-      },
-      {
-        "date": "2024-01-15", 
-        "value": 5,
-        "unit": "km"
-      }
-    ],
-    "summary": {
-      "total": 8,
-      "average": 4,
-      "count": 2
-    }
-  },
-  "success": "true"
+  result: [
+{
+   id: bff06611-82b6-4121-8152-41c87149d158,
+   created_at: 1761476871521,
+   goal_id: 41a9358e-2198-4de3-97e8-7e8b7210916c,
+   date: 2025-10-26,
+   value: 2,
+   user_id: ca5a99b0-84c8-42d1-bcbf-7a8e2eaf03fa,
+   unit:
+},
+{
+   id: 08f710c9-3dcc-4bbe-a309-859b3dd5a6c0,
+   created_at: 1761476877493,
+   goal_id: 41a9358e-2198-4de3-97e8-7e8b7210916c,
+   date: 2025-10-26,
+   value: 2,
+   user_id: ca5a99b0-84c8-42d1-bcbf-7a8e2eaf03fa,
+   unit:
+}],
+   calculateProgress: {
+   total: 4,
+   average: 2,
+   count: 2},
+   success: true
 }
 ```
 
 ---
 
-### **DELETE /goal/progress{user_id}** - Видалення прогресу
+### **DELETE /goal/progress{goal_progress_id}** - Видалення прогресу
 **Призначення**: Видалення запису прогресу
 
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
-  "progress_id": "uuid (required)"
+  "goal_progress_id": "uuid (required)"
 }
 ```
 
@@ -240,7 +247,6 @@ mode: string (query, optional) - "average" | "total"
 
 **Query Parameters**:
 ```
-user_id: uuid (required)
 status: string (required) - "Completed" | "Archived"
 start_date: string (optional)
 end_date: string (optional)
@@ -271,12 +277,28 @@ function getGoalsHistoryByPeriod(goals, startDate, endDate) {
       "title": "Run 5km without stopping",
       "status": "Completed",
       "completed_at": "2024-01-10T00:00:00Z",
-      "type": "fitness"
+      "type": "fitness"б
+      description: test test,
+      visibility_scope: private,
+      updated_at: 0,
+      user_id:
     }
   ],
   "success": "true",
-  "sort_goals_list": "sorted_by_date_desc"
-}
+  sort_goals_list: [
+{
+   id: e6ea75a1-2bb8-424c-bf58-1b0f778f6b89,
+   created_at: 1761224685631,
+   user_id: ca5a99b0-84c8-42d1-bcbf-7a8e2eaf03fa,
+   title: Health Goals,
+   description: test test,
+   status: archived,
+   target_date: 2025-10-26,
+   visibility_scope: private,
+   updated_at: 0,
+   type:
+},
+
 ```
 
 ---
@@ -287,7 +309,6 @@ function getGoalsHistoryByPeriod(goals, startDate, endDate) {
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "goal_id": "uuid (required)"
 }
 ```
@@ -321,7 +342,6 @@ function getGoalsHistoryByPeriod(goals, startDate, endDate) {
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "text": "Feeling great after morning run. Energy levels high throughout the day.",
   "mood_tag": "energetic"
 }
@@ -347,7 +367,6 @@ function getGoalsHistoryByPeriod(goals, startDate, endDate) {
 
 **Query Parameters**:
 ```
-user_id: uuid (required)
 start_date: string (optional)
 end_date: string (optional) 
 mood_tag: string (optional)
@@ -376,7 +395,6 @@ mood_tag: string (optional)
 **Request Body**:
 ```json
 {
-  "user_id": "uuid (required)",
   "text": "Updated note text with more details...",
   "mood_tag": "calm"
 }
@@ -387,7 +405,6 @@ mood_tag: string (optional)
 
 **Query Parameters**:
 ```
-user_id: uuid (path, required)
 note_id: uuid (query, required)
 ```
 
