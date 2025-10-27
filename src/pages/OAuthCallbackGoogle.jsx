@@ -168,7 +168,7 @@ export default function OAuthCallbackGoogle() {
       </div>
 
 
-      {debugInfo && (
+      {/* {debugInfo && (
         <details style={{ marginTop: 20, padding: 12, backgroundColor: '#1a1a1a', borderRadius: 4, textAlign: 'left' }}>
           <summary style={{ cursor: 'pointer', color: '#00bace', textAlign: 'center' }}>Debug Info</summary>
           <pre style={{ 
@@ -182,7 +182,7 @@ export default function OAuthCallbackGoogle() {
             {JSON.stringify(debugInfo, null, 2)}
           </pre>
         </details>
-      )}
+      )} */}
 
       
       <style>{`
