@@ -17,7 +17,7 @@ export function SignupPage({ onClose }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const navigate = useNavigate?.() || (()=>{});
-  const { login } = useAuth?.() || {};
+  const { signup } = useAuth?.() || {};
   const { showSuccess, showError } = useNotifications();
 
   async function onSubmit(e) {
@@ -40,27 +40,24 @@ export function SignupPage({ onClose }) {
     }
     try {
       setLoading(true);
-      const data = await AuthApi.signup({
-        firstName,
-        lastName,
-        email,
-        password,
-      });
-      console.log('📝 Signup response data:', data);
-      // Auto-login and redirect straight to profile for onboarding
-      try {
-        if (login) {
-          const res = await login(email, password);
-          if (!res?.success) throw new Error(res?.error || "Auto login failed");
-          console.log('🔐 Login after signup successful');
-        }
-      } catch (autoLoginErr) {
-        // Fallback: if auto-login fails, send to login
-        console.warn("Auto-login after signup failed:", autoLoginErr);
-        showSuccess("Account created. Please log in to continue.");
-        onClose?.();
-        navigate("/login");
-        return;
+      
+      // Use AuthContext signup function to properly set isNewUser flag
+      if (signup) {
+        const res = await signup(email, password, {
+          firstName,
+          lastName
+        });
+        if (!res?.success) throw new Error(res?.error || "Signup failed");
+        console.log('📝 Signup via AuthContext successful');
+      } else {
+        // Fallback to direct API call if AuthContext not available
+        const data = await AuthApi.signup({
+          firstName,
+          lastName,
+          email,
+          password,
+        });
+        console.log('📝 Signup response data:', data);
       }
 
       showSuccess("Account created successfully!");
@@ -69,7 +66,6 @@ export function SignupPage({ onClose }) {
       try {
         console.log('👤 Creating profile for new user...');
         const profileData = {
-          user_id: data.user?.id || data.id,
           first_name: firstName,
           last_name: lastName,
           email: email
@@ -84,9 +80,19 @@ export function SignupPage({ onClose }) {
         // Don't show error to user, they can create it manually later
       }
       
-      onClose?.();
       // Redirect new users to onboarding to complete their profile setup
+      console.log('🎯 Attempting to navigate to /onboarding...');
       navigate("/onboarding", { replace: true });
+      
+      // Fallback: if navigate doesn't work, try window.location
+      setTimeout(() => {
+        if (window.location.hash !== '#/onboarding') {
+          console.log('🔄 Navigate failed, using window.location fallback');
+          window.location.href = '#/onboarding';
+        }
+      }, 100);
+      
+      onClose?.();
     } catch (err) {
       const apiMessage = err?.data?.message || err?.message;
       setError(apiMessage || "Unexpected error during signup");

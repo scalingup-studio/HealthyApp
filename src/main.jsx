@@ -1,5 +1,5 @@
 // main.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/AuthContext.jsx";
@@ -39,19 +39,40 @@ function PrivateRoute({ children }) {
 
 // 🔄 Component for automatic redirection between onboarding and dashboard
 function AutoRedirectRoute() {
-  const { user, loading, hasCompletedOnboarding } = useAuth();
+  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
+  
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
   
   console.log('🔄 AutoRedirectRoute - Debug info:', {
     loading,
+    isNewUser,
     user: user ? {
       id: user.id,
       email: user.email,
       completed: user.completed,
       onboarding_completed: user.onboarding_completed,
-      hasCompletedOnboarding: hasCompletedOnboarding?.()
     } : null,
-    hasCompletedOnboardingResult: hasCompletedOnboarding?.()
+    hasCompletedOnboardingResult: onboardingCompleted,
+    willRedirectToOnboarding: !onboardingCompleted
   });
+  
+  // Track changes in onboarding status
+  useEffect(() => {
+    console.log('🔄 AutoRedirectRoute - useEffect triggered:', {
+      loading,
+      isNewUser,
+      onboardingCompleted,
+      willRedirect: !onboardingCompleted,
+      currentHash: window.location.hash
+    });
+    
+    // Force redirect if needed
+    if (!loading && !onboardingCompleted && window.location.hash !== '#/onboarding') {
+      console.log('🔄 AutoRedirectRoute - Force redirecting to onboarding...');
+      window.location.href = '#/onboarding';
+    }
+  }, [loading, onboardingCompleted, isNewUser]);
   
   if (loading) {
     console.log('⏳ AutoRedirectRoute - Still loading...');
@@ -59,13 +80,23 @@ function AutoRedirectRoute() {
   }
   
   // If onboarding is not completed - redirect to onboarding
-  if (!hasCompletedOnboarding?.() && !user?.onboarding_completed) {
+  if (!onboardingCompleted) {
     console.log('📝 AutoRedirectRoute - Onboarding not completed, redirecting to /onboarding');
+    console.log('🔄 AutoRedirectRoute - Rendering Navigate component to /onboarding');
+    
+    // Fallback: if Navigate doesn't work, try window.location
+    setTimeout(() => {
+      if (window.location.hash !== '#/onboarding') {
+        console.log('🔄 AutoRedirectRoute - Navigate failed, using window.location fallback');
+        window.location.href = '#/onboarding';
+      }
+    }, 100);
+    
     return <Navigate to="/onboarding" replace />;
   }
   
-  // If onboarding is complete - redirect to dashboard
-  console.log('🎯 AutoRedirectRoute - Onboarding completed, redirecting to /dashboard');
+  // Redirect to dashboard if onboarding is completed
+  console.log('🎯 AutoRedirectRoute - Redirecting to /dashboard (onboarding check enabled)');
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -126,16 +157,20 @@ function AppRouter() {
 
 // 🛡️ Захисник для onboarding - не дозволяє доступ якщо вже завершено
 function OnboardingGuard({ children }) {
-  const { user, loading, hasCompletedOnboarding } = useAuth();
+  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
+  
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
   
   console.log('🛡️ OnboardingGuard - Debug info:', {
     loading,
+    isNewUser,
     user: user ? {
       id: user.id,
       email: user.email,
       onboarding_completed: user.onboarding_completed
     } : null,
-    hasCompletedOnboardingResult: hasCompletedOnboarding?.()
+    hasCompletedOnboardingResult: onboardingCompleted
   });
   
   if (loading) {
@@ -144,7 +179,7 @@ function OnboardingGuard({ children }) {
   }
   
   // Якщо onboarding вже завершено - перенаправляємо на dashboard
-  if (hasCompletedOnboarding()) {
+  if (onboardingCompleted) {
     console.log('🎯 OnboardingGuard - Onboarding already completed, redirecting to /dashboard');
     return <Navigate to="/dashboard" replace />;
   }
@@ -154,16 +189,20 @@ function OnboardingGuard({ children }) {
 }
 
 function DashboardGuard({ children }) {
-  const { user, loading, hasCompletedOnboarding } = useAuth();
+  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
+  
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
   
   console.log('🛡️ DashboardGuard - Debug info:', {
     loading,
+    isNewUser,
     user: user ? {
       id: user.id,
       email: user.email,
       onboarding_completed: user.onboarding_completed
     } : null,
-    hasCompletedOnboardingResult: hasCompletedOnboarding?.()
+    hasCompletedOnboardingResult: onboardingCompleted
   });
   
   if (loading) {
@@ -172,12 +211,12 @@ function DashboardGuard({ children }) {
   }
   
   // Якщо onboarding не завершено - перенаправляємо на onboarding
-  if (!hasCompletedOnboarding()) {
+  if (!onboardingCompleted) {
     console.log('📝 DashboardGuard - Onboarding not completed, redirecting to /onboarding');
     return <Navigate to="/onboarding" replace />;
   }
   
-  console.log('🎯 DashboardGuard - Onboarding completed, allowing access to dashboard');
+  console.log('🎯 DashboardGuard - Allowing access to dashboard (onboarding check enabled)');
   return children;
 }
 // 🔒 Wrap entire app in AuthProvider and NotificationProvider

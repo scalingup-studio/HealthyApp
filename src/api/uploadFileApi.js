@@ -27,7 +27,7 @@ export const UploadFileApi = {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("user_id", userId);
-      const allowedCategories = new Set(['medical','insurance','lab','other']);
+      const allowedCategories = new Set(['medical','insurance','lab','other','Labs','profile']);
       const safeCategory = allowedCategories.has(category) ? category : 'other';
       formData.append("category", safeCategory);
       

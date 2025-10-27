@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false); // Track if this is a new user (signup)
 
   // ✅ We move refreshAuth to useCallback for link stability
   const refreshAuth = useCallback(async () => {
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
         // console.log('✅ Manual refresh successful');
         setAuthToken(refreshRes.authToken);
         setUser(refreshRes.user ?? null);
+        setIsNewUser(false); // Manual refresh means existing user
         return refreshRes.authToken;
       }
 
@@ -49,10 +51,14 @@ export function AuthProvider({ children }) {
         if (refreshRes?.authToken) {
           setAuthToken(refreshRes.authToken);
           setUser(refreshRes.user ?? null);
+          setIsNewUser(false); // Auto-refresh means existing user, not new signup
+          
+          console.log('🔄 Auto-authentication successful - existing user will go to dashboard');
         } else {
           console.log('ℹ️ No valid session found');
           setAuthToken(null);
           setUser(null);
+          setIsNewUser(false);
         }
       } catch (error) {
         if (error.message?.includes('expired') || error.message?.includes('Invalid')) {
@@ -129,9 +135,35 @@ export function AuthProvider({ children }) {
       const res = await AuthApi.login({ email, password });
       setAuthToken(res.authToken);
       setUser(res.user ?? null);
+      setIsNewUser(false); // This is a login, not a signup
+      
+      console.log('🔐 User logged in successfully - will redirect directly to dashboard');
+      console.log('🎯 Login redirect: Dashboard (no onboarding check)');
+      
       return { success: true };
     } catch (error) {
       console.error("Login error:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async function signup(email, password, userData = {}) {
+    try {
+      console.log('📝 Starting signup process...');
+      const res = await AuthApi.signup({ email, password, ...userData });
+      console.log('📝 AuthApi.signup response:', res);
+      
+      setAuthToken(res.authToken);
+      setUser(res.user ?? null);
+      setIsNewUser(true); // This is a signup, new user
+      
+      console.log('📝 New user signed up successfully - will redirect to onboarding');
+      console.log('🎯 Signup redirect: Onboarding (new user)');
+      console.log('📝 isNewUser set to:', true);
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Signup error:", error);
       return { success: false, error: error.message };
     }
   }
@@ -144,6 +176,7 @@ export function AuthProvider({ children }) {
     } finally {
       setAuthToken(null);
       setUser(null);
+      setIsNewUser(false);
     }
   }
 
@@ -152,12 +185,27 @@ export function AuthProvider({ children }) {
     try {
       console.log('🎯 Completing onboarding with status:', status);
       
-     // Update the user's state
+     // Update the user's state with both old and new structure
       setUser(prev => ({
         ...prev,
         onboarding_completed: true,
-        onboarding_status: status
+        completed: true,
+        onboarding_status: status,
+        save_onboarding: {
+          ...prev.save_onboarding,
+          onboarding_completed: true,
+          current_step: "completed",
+          progress: {
+            ...prev.save_onboarding?.progress,
+            percentage: 100
+          },
+          completed_at: new Date().toISOString()
+        }
       }));
+      
+      // Mark as no longer a new user
+      setIsNewUser(false);
+      
       // Here you can add an API call to update on the server if needed
 // await AuthApi.updateOnboardingStatus({ onboarding_completed: true });
       
@@ -169,6 +217,65 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // ✅ Added a function to load onboarding data from API
+  async function loadOnboardingData() {
+    try {
+      console.log('📊 Loading onboarding data from API...');
+      
+      // Import OnboardingApi dynamically to avoid circular dependency
+      const { OnboardingApi } = await import('./onboardingApi.js');
+      
+      if (!user?.id) {
+        console.log('⚠️ No user ID available for loading onboarding data');
+        return { success: false, error: 'No user ID' };
+      }
+      
+      const onboardingData = await OnboardingApi.getProgress(user.id);
+      console.log('📊 Onboarding data loaded:', onboardingData);
+      
+      // Update user state with onboarding data
+      setUser(prev => ({
+        ...prev,
+        save_onboarding: onboardingData?.save_onboarding || prev.save_onboarding
+      }));
+      
+      return { success: true, data: onboardingData };
+    } catch (error) {
+      console.error('Error loading onboarding data:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ✅ Added a function to reset onboarding status (for testing)
+  async function resetOnboarding() {
+    try {
+      console.log('🔄 Resetting onboarding status...');
+      
+     // Update the user's state with both old and new structure
+      setUser(prev => ({
+        ...prev,
+        onboarding_completed: false,
+        completed: false,
+        onboarding_status: "not_started",
+        save_onboarding: {
+          ...prev.save_onboarding,
+          onboarding_completed: false,
+          current_step: "personal",
+          progress: {
+            ...prev.save_onboarding?.progress,
+            percentage: 0
+          }
+        }
+      }));
+      
+      console.log('✅ Onboarding status reset in AuthContext');
+      return { success: true };
+    } catch (error) {
+      console.error("Error resetting onboarding:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Check if user is authenticated
   const isAuthenticated = () => {
     return !!authToken && !!user;
@@ -176,7 +283,31 @@ export function AuthProvider({ children }) {
 
   // ✅ Added a function to check onboarding status
   const hasCompletedOnboarding = () => {
-    return user?.completed === true || user?.onboarding_completed === true;
+    if (!user) {
+      console.log('🔍 hasCompletedOnboarding check: No user, returning false');
+      return false;
+    }
+    
+    console.log('🔍 hasCompletedOnboarding check - Current state:', {
+      isNewUser,
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        completed: user.completed,
+        onboarding_completed: user.onboarding_completed
+      } : null
+    });
+    
+    // If this is a new user (signup), always redirect to onboarding
+    if (isNewUser) {
+      console.log('🔍 hasCompletedOnboarding check: New user from signup, returning false');
+      return false;
+    }
+    
+    // For existing users (login), always consider onboarding completed
+    // This ensures they go directly to dashboard
+    console.log('🔍 hasCompletedOnboarding check: Existing user from login, returning true (direct to dashboard)');
+    return true;
   };
 
   // ✅ Added a function to check if the token will expire soon
@@ -203,19 +334,24 @@ export function AuthProvider({ children }) {
     user,
     loading,
     refreshLoading,
+    isNewUser,
 
     // Functions
     login,
+    signup,
     logout,
     refreshAuth,
     isAuthenticated,
     completeOnboarding,
+    resetOnboarding,
+    loadOnboardingData,
     hasCompletedOnboarding, 
     isTokenExpiringSoon, 
 
     // Setters (for manual updates if needed)
     setAuthToken,
     setUser,
+    setIsNewUser,
   };
 
   return (
