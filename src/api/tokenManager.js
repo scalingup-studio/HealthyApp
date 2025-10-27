@@ -1,7 +1,6 @@
-// src__api__tokenManager.js
 /**
  * Centralized Token Manager
- * Single source of truth for token refresh logic
+ * Supports metadata-based expiration (from backend)
  * Prevents race conditions and duplicate refresh requests
  */
 
@@ -12,30 +11,36 @@ class TokenManager {
         this.refreshPromise = null;
         this.authToken = null;
         this.tokenExpiryTimer = null;
+        this.expirationTimeMs = null; // <-- store backend-provided expiration
     }
 
     /**
-     * Get current auth token from localStorage
+     * Get current auth token from memory or localStorage
      */
     getToken() {
         if (this.authToken) return this.authToken;
 
         try {
-            const token = localStorage.getItem('authToken');
-            if (token) {
+            const stored = localStorage.getItem('authData');
+            if (stored) {
+                const { token, expiration } = JSON.parse(stored);
                 this.authToken = token;
+                this.expirationTimeMs = expiration;
                 return token;
             }
         } catch (error) {
             console.error('Failed to get token from localStorage:', error);
         }
+
         return null;
     }
 
     /**
-     * Store auth token
+     * Store auth token (with optional metadata)
+     * @param {string} token - The JWT token
+     * @param {object} metadata - Optional metadata ({ exp: <ms_timestamp> })
      */
-    setToken(token) {
+    setToken(token, metadata = {}) {
         if (!token) {
             this.clearToken();
             return;
@@ -43,19 +48,32 @@ class TokenManager {
 
         try {
             this.authToken = token;
-            localStorage.setItem('authToken', token);
-            this.scheduleTokenRefresh(token);
+            this.expirationTimeMs = metadata.exp || null;
+
+            // Persist token and expiration in localStorage
+            localStorage.setItem(
+                'authData',
+                JSON.stringify({ token, expiration: this.expirationTimeMs })
+            );
+
+            // Schedule refresh if we know expiration time
+            if (this.expirationTimeMs) {
+                this.scheduleTokenRefreshByMetadata(this.expirationTimeMs);
+            } else {
+                console.warn('⚠️ No expiration metadata provided — refresh scheduling disabled.');
+            }
         } catch (error) {
             console.error('Failed to store token:', error);
         }
     }
 
     /**
-     * Clear auth token
+     * Clear auth token from memory and storage
      */
     clearToken() {
         this.authToken = null;
         this.refreshPromise = null;
+        this.expirationTimeMs = null;
 
         if (this.tokenExpiryTimer) {
             clearTimeout(this.tokenExpiryTimer);
@@ -63,94 +81,70 @@ class TokenManager {
         }
 
         try {
-            localStorage.removeItem('authToken');
+            localStorage.removeItem('authData');
         } catch (error) {
             console.error('Failed to clear token:', error);
         }
     }
 
     /**
-     * Parse JWT token to get payload
+     * Check if token is expired using metadata (milliseconds)
      */
-    parseToken(token) {
-        console.log(token);
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(jsonPayload);
-        } catch (error) {
-            console.error('Failed to parse token:', error);
-            return null;
-        }
+    isTokenExpired() {
+        if (!this.expirationTimeMs) return true;
+
+        const now = Date.now();
+        return now >= this.expirationTimeMs;
     }
 
     /**
-     * Check if token is expired
+     * Get time until token expires (ms)
      */
-    isTokenExpired(token) {
-        const payload = this.parseToken(token);
-        if (!payload || !payload.exp) return true;
+    getTimeUntilExpiry() {
+        if (!this.expirationTimeMs) return 0;
 
-        const now = Math.floor(Date.now() / 1000);
-        return payload.exp <= now;
+        const now = Date.now();
+        return Math.max(this.expirationTimeMs - now, 0);
     }
 
     /**
-     * Get time until token expires (in milliseconds)
+     * Schedule token refresh based on backend metadata (ms)
      */
-    getTimeUntilExpiry(token) {
-        const payload = this.parseToken(token);
-        if (!payload || !payload.exp) return 0;
-
-        const now = Math.floor(Date.now() / 1000);
-        const timeUntilExpiry = payload.exp - now;
-        return timeUntilExpiry * 1000; // Convert to milliseconds
-    }
-
-    /**
-     * Schedule automatic token refresh before expiry
-     */
-    scheduleTokenRefresh(token) {
+    scheduleTokenRefreshByMetadata(expirationTimeMs) {
         // Clear existing timer
         if (this.tokenExpiryTimer) {
             clearTimeout(this.tokenExpiryTimer);
             this.tokenExpiryTimer = null;
         }
 
-        // If token is already expired, don't schedule
-        if (this.isTokenExpired(token)) {
-            console.warn('Token is already expired, not scheduling refresh');
+        const now = Date.now();
+        const timeUntilExpiry = expirationTimeMs - now;
+
+        if (timeUntilExpiry <= 0) {
+            console.warn('Token already expired, not scheduling refresh.');
             return;
         }
 
-        const timeUntilExpiry = this.getTimeUntilExpiry(token);
-
-        // Refresh 5 minutes before expiry, or at 80% of token lifetime
+        // Refresh 5 minutes before expiry, or at 80% of lifetime
         const refreshTime = Math.min(
-            Math.max(timeUntilExpiry * 0.8, 60000), // At least 1 minute
-            timeUntilExpiry - (5 * 60 * 1000) // 5 minutes before expiry
+            Math.max(timeUntilExpiry * 0.8, 60000), // at least 1 minute
+            timeUntilExpiry - 5 * 60 * 1000         // or 5 mins before expiry
         );
 
-        console.log(`🕐 Token refresh scheduled in ${Math.round(refreshTime / 1000 / 60)} minutes`);
+        console.log(`🕐 Scheduling refresh in ${Math.round(refreshTime / 1000 / 60)} minutes`);
 
         this.tokenExpiryTimer = setTimeout(() => {
-            console.log('🔄 Auto-refreshing token...');
+            console.log('🔄 Auto-refreshing token (metadata mode)...');
             this.refreshToken()
                 .catch(error => {
                     console.error('Auto-refresh failed:', error);
-                    // Will be handled by auth context
+                    // handled by auth context
                 });
         }, refreshTime);
     }
 
     /**
-     * Refresh auth token
+     * Refresh token logic (same as before)
      * Ensures only one refresh happens at a time
      */
     async refreshToken() {
@@ -212,8 +206,8 @@ class TokenManager {
                 throw new Error('No authToken in refresh response');
             }
 
-            // Store new token
-            this.setToken(data.authToken);
+            // Store new token and metadata
+            this.setToken(data.authToken, { exp: data.authTokenExpiresAt });
 
             console.log('✅ Token refreshed successfully');
 
@@ -232,7 +226,7 @@ class TokenManager {
     }
 
     /**
-     * Validate current token and refresh if needed
+     * Ensure valid token or refresh if expired
      */
     async ensureValidToken() {
         const token = this.getToken();
@@ -242,14 +236,14 @@ class TokenManager {
         }
 
         // If token is expired, refresh it
-        if (this.isTokenExpired(token)) {
+        if (this.isTokenExpired()) {
             console.log('Token expired, refreshing...');
             const result = await this.refreshToken();
             return result.authToken;
         }
 
         // If token expires in less than 1 minute, refresh it
-        const timeUntilExpiry = this.getTimeUntilExpiry(token);
+        const timeUntilExpiry = this.getTimeUntilExpiry();
         if (timeUntilExpiry < 60000) {
             console.log('Token expiring soon, refreshing...');
             const result = await this.refreshToken();

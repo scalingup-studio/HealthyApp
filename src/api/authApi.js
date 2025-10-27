@@ -44,8 +44,11 @@ export const AuthApi = {
         throw new Error('No authToken received from server');
       }
 
+      const metadata = {
+        exp: response.exp,
+      }
       // Store token using token manager
-      tokenManager.setToken(response.authToken);
+      tokenManager.setToken(response.authToken, metadata);
 
       console.log('✅ Login successful');
       return response;
@@ -193,7 +196,11 @@ export const AuthApi = {
 
       // Store token if received
       if (response.authToken) {
-        tokenManager.setToken(response.authToken);
+        const metadata = {
+          exp: response.exp,
+        }
+  
+        tokenManager.setToken(response.authToken, metadata);
       }
 
       console.log('✅ Google callback successful');
