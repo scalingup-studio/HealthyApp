@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Health Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Health Report</h1>
+  <p>Name: <%= first_name %> <%= last_name %></p>
+  <h2>Vitals</h2>
+  <table>
+    <tr><th>Height</th><th>Weight</th></tr>
+    <tr><td><%= height_cm %> cm</td><td><%= weight_kg %> kg</td></tr>
+  </table>
+</body>
+</html>
