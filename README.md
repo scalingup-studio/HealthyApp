@@ -464,6 +464,8 @@ Headers: Authorization: Bearer {token}
   "surgical_history": {},
   "vaccinations": {}
 }
+```
+
 ### **GET get/user-health-summary**
 ** Get health summary data
 ---
