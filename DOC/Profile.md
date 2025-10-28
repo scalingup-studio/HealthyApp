@@ -267,7 +267,35 @@
   "severity": "moderate"
 }
 ```
-
+### **POST /user-health-summary**
+**Додавати все health_history, medical_condition, allergies, family_history, medications, sensitivities, surgical_history, vaccinations одну таблицю 
+**Request Body**:
+```json
+{
+  "sections": "medications",
+  "medical_condition": {},
+  "allergies": {"0":"ggggg", "1":"bhhhhhh"},
+  "family_history": {},
+  "medications": {"0": "65656"},
+  "sensitivities": {},
+  "surgical_history": {},
+  "vaccinations": {}
+}
+```
+*** Result {
+     result: {
+         id: 1,
+         created_at: 1761643550648,
+         user_id: ece5adbb-317d-42a4-96a8-2e75c3f1ff92,
+         medical_conditions: {},
+         medications: [65656],
+         allergies: [ggggg, bhhhhhh],
+         family_history: {},
+         surgical_history: {},
+         vaccinations: {},
+        sensitivities: {}
+        },
+      success: true    
 ---
 
 ## 👤 **User Profile Endpoints**
