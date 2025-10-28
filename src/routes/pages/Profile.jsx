@@ -774,7 +774,13 @@ const calculateAgeFromDOB = (dob) => {
         }
         
         setProfile(profileData);
-        const preview = profileData?.profile_photo?.url || profileData?.profile_photo?.path || "";
+        const preview = (
+          profileData?.avatar_url ||
+          profileData?.avatar ||
+          profileData?.photo_url ||
+          (typeof profileData?.profile_photo === 'string' ? profileData?.profile_photo : (profileData?.profile_photo?.url || profileData?.profile_photo?.path)) ||
+          ""
+        );
         if (preview) setPhotoPreview(preview);
         
         // Use profile data if available, otherwise fallback to user data
@@ -808,6 +814,14 @@ const calculateAgeFromDOB = (dob) => {
         // Fallback to user data if API fails
         const profileData = user;
         setProfile(profileData);
+        const preview = (
+          profileData?.avatar_url ||
+          profileData?.avatar ||
+          profileData?.photo_url ||
+          (typeof profileData?.profile_photo === 'string' ? profileData?.profile_photo : (profileData?.profile_photo?.url || profileData?.profile_photo?.path)) ||
+          ""
+        );
+        if (preview) setPhotoPreview(preview);
         setFormValues({
           first_name: profileData?.first_name || profileData?.firstName || "",
           last_name: profileData?.last_name || profileData?.lastName || "",
@@ -871,7 +885,7 @@ const calculateAgeFromDOB = (dob) => {
           console.log('📦 User ID:', user.id);
           console.log('📦 Category:', 'profile');
           
-          const res = await UploadFileApi.uploadFile(pendingPhotoFile, user.id, 'profile');
+          const res = await UploadFileApi.uploadAvatar(pendingPhotoFile, 'profile');
           const uploaded = res?.result || res;
           const url = uploaded?.url || uploaded?.path || '';
           
@@ -955,6 +969,17 @@ const calculateAgeFromDOB = (dob) => {
       }
       
       setProfile(updated);
+      // Immediately reflect avatar URL from server in the UI after save
+      try {
+        const newPreview = (
+          updated?.avatar_url ||
+          updated?.avatar ||
+          updated?.photo_url ||
+          (typeof updated?.profile_photo === 'string' ? updated?.profile_photo : (updated?.profile_photo?.url || updated?.profile_photo?.path)) ||
+          ''
+        );
+        if (newPreview) setPhotoPreview(newPreview);
+      } catch {}
       const successMessage = uploadedPhotoData 
         ? "Profile updated and photo uploaded successfully!" 
         : "Profile updated successfully!";
@@ -971,6 +996,9 @@ const calculateAgeFromDOB = (dob) => {
 
   return (
     <div className="dashboard-profile">
+      <div className="dash-toolbar">
+        <h1 style={{ margin: 0 }}>Profile</h1>
+      </div>
       
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, paddingBottom:8, borderBottom: "1px solid var(--border)" }}>

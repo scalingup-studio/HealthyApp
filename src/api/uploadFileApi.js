@@ -46,6 +46,24 @@ export const UploadFileApi = {
     }
   },
 
+  /** Upload avatar image */
+  async uploadAvatar(file, category = 'profile', fileType = null) {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('category', category);
+      formData.append('file_type', fileType || (file.type || '').split('/')[1] || 'image');
+
+      return await authRequest(CUSTOM_ENDPOINTS.uploudFile.avatarUpload, {
+        method: 'POST',
+        body: formData,
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      throw error;
+    }
+  },
+
   /**
    * Get all uploaded files for a specific user
    */
