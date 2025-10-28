@@ -11,8 +11,8 @@ module.exports = (req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 
   // Перевірка авторизації для інших методів
-  if (req.headers.authorization !== `Bearer ${process.env.SECRET_KEY}`) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+  // if (req.headers.authorization !== `Bearer ${process.env.SECRET_KEY}`) {
+  //   return res.status(401).json({ error: "Unauthorized" });
+  // }
   next();
 };
