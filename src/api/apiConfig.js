@@ -63,8 +63,11 @@ export const CUSTOM_ENDPOINTS = {
   alertsInsight: {
     getAlertsInsight: `${API_BASE}/alerts_ai/{user_id}`
   },
+  comprehensiveAlerts: {
+    comprehensiveAlerts: `${API_BASE}/get-comprehensive-alerts`,
+  },
   uploudFile: {
-    uploudFile: `${API_BASE}/upload/avatar`,
+    uploudFile: `${API_BASE}/upload/attachment_file`,
     getUserUploudFiles: `${API_BASE}/upload/get_files`,
     downloadFile: `${API_BASE}/upload/download_file`,
     deleteFile: `${API_BASE}/upload/delete_file`

@@ -22,7 +22,7 @@ export const NotificationProvider = ({ children }) => {
     // Auto remove after duration
     if (duration > 0) {
       setTimeout(() => {
-        removeNotification(id);
+        setNotifications(prev => prev.filter(n => n.id !== id));
       }, duration);
     }
     
@@ -53,6 +53,10 @@ export const NotificationProvider = ({ children }) => {
     return addNotification(message, 'info', duration);
   }, [addNotification]);
 
+  const showNotification = useCallback((message, type = 'info', duration) => {
+    return addNotification(message, type, duration);
+  }, [addNotification]);
+
   const value = {
     notifications,
     addNotification,
@@ -61,7 +65,8 @@ export const NotificationProvider = ({ children }) => {
     showSuccess,
     showError,
     showWarning,
-    showInfo
+    showInfo,
+    showNotification
   };
 
   return (

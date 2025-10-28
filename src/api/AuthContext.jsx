@@ -85,11 +85,30 @@ export function AuthProvider({ children }) {
    // Function to calculate time to update
     const calculateRefreshTime = () => {
       try {
+        // Check if token has valid JWT structure (header.payload.signature)
+        const parts = authToken.split('.');
+        if (parts.length !== 3) {
+          console.log('📝 Token is not a standard JWT, using default refresh time');
+          return 10 * 60 * 1000; // 10 minutes default
+        }
+        
        // Parse the JWT token to get the expiration time
-        const payload = JSON.parse(atob(authToken.split('.')[1]));
+        const payload = JSON.parse(atob(parts[1]));
+        
+        // Check if exp exists in payload
+        if (!payload.exp) {
+          console.log('📝 Token does not have expiration time, using default refresh time');
+          return 10 * 60 * 1000; // 10 minutes default
+        }
+        
         const expiresAt = payload.exp * 1000; // Convert to milliseconds
         const now = Date.now();
         const timeUntilExpiry = expiresAt - now;
+        
+        if (timeUntilExpiry <= 0) {
+          console.log('📝 Token already expired, using default refresh time');
+          return 10 * 60 * 1000; // 10 minutes default
+        }
         
        // Update 10 minutes before the end, but no less than 1 minute later
         const refreshTime = Math.max(
@@ -102,8 +121,8 @@ export function AuthProvider({ children }) {
         
         return refreshTime;
       } catch (error) {
-        console.error('🔴 Error parsing token, using default refresh time');
-       // If the token could not be parsed, we use the default value
+        // Silent fail - using default refresh time
+        // If the token could not be parsed, we use the default value
         return 10 * 60 * 1000; // 10 minutes
       }
     };
