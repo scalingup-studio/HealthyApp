@@ -23,10 +23,6 @@ export function AuthProvider({ children }) {
         // console.log('✅ Manual refresh successful');
         setAuthToken(refreshRes.authToken);
         setUser(refreshRes.user ?? null);
-        try {
-          localStorage.setItem('authToken', refreshRes.authToken);
-          if (refreshRes.user) localStorage.setItem('user', JSON.stringify(refreshRes.user));
-        } catch {}
         setIsNewUser(false); // Manual refresh means existing user
         return refreshRes.authToken;
       }
@@ -55,10 +51,6 @@ export function AuthProvider({ children }) {
         if (refreshRes?.authToken) {
           setAuthToken(refreshRes.authToken);
           setUser(refreshRes.user ?? null);
-          try {
-            localStorage.setItem('authToken', refreshRes.authToken);
-            if (refreshRes.user) localStorage.setItem('user', JSON.stringify(refreshRes.user));
-          } catch {}
           setIsNewUser(false); // Auto-refresh means existing user, not new signup
           
           console.log('🔄 Auto-authentication successful - existing user will go to dashboard');
@@ -162,10 +154,6 @@ export function AuthProvider({ children }) {
       const res = await AuthApi.login({ email, password });
       setAuthToken(res.authToken);
       setUser(res.user ?? null);
-      try {
-        localStorage.setItem('authToken', res.authToken);
-        if (res.user) localStorage.setItem('user', JSON.stringify(res.user));
-      } catch {}
       setIsNewUser(false); // This is a login, not a signup
       
       console.log('🔐 User logged in successfully - will redirect directly to dashboard');
@@ -186,10 +174,6 @@ export function AuthProvider({ children }) {
       
       setAuthToken(res.authToken);
       setUser(res.user ?? null);
-      try {
-        localStorage.setItem('authToken', res.authToken);
-        if (res.user) localStorage.setItem('user', JSON.stringify(res.user));
-      } catch {}
       setIsNewUser(true); // This is a signup, new user
       
       console.log('📝 New user signed up successfully - will redirect to onboarding');
@@ -212,10 +196,6 @@ export function AuthProvider({ children }) {
       setAuthToken(null);
       setUser(null);
       setIsNewUser(false);
-      try {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      } catch {}
     }
   }
 

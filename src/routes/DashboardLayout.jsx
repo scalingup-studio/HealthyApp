@@ -40,8 +40,8 @@ export default function DashboardLayout() {
         </div>
         <div className="dash-nav" style={{ flex: 1 }}>
           <NavLink end className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard">Overview</NavLink>
+          <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/analytics">Analytics</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/insights">Insights</NavLink>
-          <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/goals">Goals</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/workouts">Workouts</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/nutrition">Nutrition</NavLink>
           <NavLink className={({ isActive }) => `dash-link ${isActive ? "active" : ""}`} to="/dashboard/profile">Profile</NavLink>
@@ -53,7 +53,9 @@ export default function DashboardLayout() {
       </aside>
       {menuOpen && <div className="dash-backdrop" onClick={() => setMenuOpen(false)} />}
       <section className="dash-content">
-        <div className="dash-toolbar" />
+        <div className="dash-toolbar">
+          <h1 style={{ margin: 0 }}>Dashboard</h1>
+        </div>
         <Outlet />
       </section>
       

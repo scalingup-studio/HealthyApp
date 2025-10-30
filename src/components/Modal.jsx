@@ -6,7 +6,7 @@ export function Modal({ open, title, children, onClose }) {
   return ReactDOM.createPortal(
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={title || "Dialog"} onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header" style={{ paddingBottom: 20 }}>
+        <div className="modal-header">
           <h2>{title}</h2>
           <button className="icon-btn" aria-label="Close" onClick={onClose}>×</button>
         </div>

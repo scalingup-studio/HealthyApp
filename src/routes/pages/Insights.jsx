@@ -559,9 +559,6 @@ export default function DashboardInsights() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="dash-toolbar">
-        <h1 style={{ margin: 0 }}>Insights</h1>
-      </div>
       {/* Sub-tabs navigation */}
       <div style={{ display: "flex", gap: 8, borderBottom: "1px solid var(--border)", paddingBottom: 8, marginBottom: 16 }}>
         {tabs.map((tab) => (

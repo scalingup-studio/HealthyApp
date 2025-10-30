@@ -9,9 +9,9 @@ import { SignupPage } from "./pages/Signup.jsx";
 import OAuthCallbackGoogle from "./pages/OAuthCallbackGoogle.jsx";
 import DashboardLayout from "./routes/DashboardLayout.jsx";
 import DashboardHome from "./routes/pages/Home.jsx";
+import DashboardAnalytics from "./routes/pages/Analytics.jsx";
 import DashboardInsights from "./routes/pages/Insights.jsx";
 import DashboardWorkouts from "./routes/pages/Workouts.jsx";
-import DashboardGoals from "./routes/pages/Goals.jsx";
 import DashboardNutrition from "./routes/pages/Nutrition.jsx";
 import DashboardProfile from "./routes/pages/Profile.jsx";
 import DashboardSettings from "./routes/pages/Settings.jsx";
@@ -142,9 +142,8 @@ function AppRouter() {
           }
         >
           <Route index element={<DashboardHome />} />
-          {/* Analytics route removed */}
+          <Route path="analytics" element={<DashboardAnalytics />} />
           <Route path="insights" element={<DashboardInsights />} />
-          <Route path="goals" element={<DashboardGoals />} />
           <Route path="workouts" element={<DashboardWorkouts />} />
           <Route path="nutrition" element={<DashboardNutrition />} />
           <Route path="profile" element={<DashboardProfile />} />
