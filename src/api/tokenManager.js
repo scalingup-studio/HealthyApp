@@ -14,6 +14,24 @@ class TokenManager {
         this.expirationTimeMs = null; // <-- store backend-provided expiration
     }
 
+
+    parseToken(token) {
+        try {
+          if (!token) return null;
+          
+          // JWT tokens are in format: header.payload.signature
+          const payload = token.split('.')[1];
+          if (!payload) return null;
+          
+          // Base64 decode and parse JSON
+          const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+          return JSON.parse(decodedPayload);
+        } catch (error) {
+          console.error('Error parsing token:', error);
+          return null;
+        }
+      }
+
     /**
      * Get current auth token from memory or localStorage
      */

@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
   const [authToken, setAuthToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   /**
    * Initialize auth on mount
@@ -86,6 +87,7 @@ export function AuthProvider({ children }) {
 
       setAuthToken(res.authToken);
       setUser(res.user ?? null);
+      setIsNewUser(false);
 
       return { success: true };
     } catch (error) {
@@ -98,10 +100,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Logout function
+   * Signup function
    */
-  const logout = useCallback(async () => {
-  async function signup(email, password, userData = {}) {
+  const signup = useCallback(async (email, password, userData = {}) => {
     try {
       console.log('📝 Starting signup process...');
       const res = await AuthApi.signup({ email, password, ...userData });
@@ -120,9 +121,12 @@ export function AuthProvider({ children }) {
       console.error("Signup error:", error);
       return { success: false, error: error.message };
     }
-  }
+  }, []);
 
-  async function logout() {
+  /**
+   * Logout function
+   */
+  const logout = useCallback(async () => {
     try {
       await AuthApi.logout();
     } catch (error) {
@@ -130,6 +134,7 @@ export function AuthProvider({ children }) {
     } finally {
       setAuthToken(null);
       setUser(null);
+      setIsNewUser(false);
     }
   }, []);
 
@@ -192,11 +197,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Check if user is authenticated
+   * Load onboarding data from API
    */
-  const isAuthenticated = useCallback(() => {
-  // ✅ Added a function to load onboarding data from API
-  async function loadOnboardingData() {
+  const loadOnboardingData = useCallback(async () => {
     try {
       console.log('📊 Loading onboarding data from API...');
 
@@ -222,14 +225,16 @@ export function AuthProvider({ children }) {
       console.error('Error loading onboarding data:', error);
       return { success: false, error: error.message };
     }
-  }
+  }, [user?.id]);
 
-  // ✅ Added a function to reset onboarding status (for testing)
-  async function resetOnboarding() {
+  /**
+   * Reset onboarding status (for testing)
+   */
+  const resetOnboarding = useCallback(async () => {
     try {
       console.log('🔄 Resetting onboarding status...');
 
-     // Update the user's state with both old and new structure
+      // Update the user's state with both old and new structure
       setUser(prev => ({
         ...prev,
         onboarding_completed: false,
@@ -252,10 +257,12 @@ export function AuthProvider({ children }) {
       console.error("Error resetting onboarding:", error);
       return { success: false, error: error.message };
     }
-  }
+  }, []);
 
-  // Check if user is authenticated
-  const isAuthenticated = () => {
+  /**
+   * Check if user is authenticated
+   */
+  const isAuthenticated = useCallback(() => {
     return !!authToken && !!user;
   }, [authToken, user]);
 
@@ -282,6 +289,7 @@ export function AuthProvider({ children }) {
     authToken,
     user,
     loading,
+    isNewUser,
 
     // Functions
     login,
@@ -298,6 +306,7 @@ export function AuthProvider({ children }) {
     // Setters (for manual updates if needed)
     setAuthToken,
     setUser,
+    setIsNewUser,
   };
 
   return (

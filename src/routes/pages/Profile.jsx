@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-// import { useAuthRequest } from "../../api/authRequest.js";
+import { authRequest } from "../../api/apiClient";
 // import { useAuthRequest } from "../../api/authRequest.js";
 import { useAuth } from "../../api/AuthContext.jsx";
 import { useNotifications } from "../../api/NotificationContext.jsx";

@@ -27,7 +27,7 @@ export function SignupPage({ onClose }) {
   const [error, setError] = React.useState("");
 
   const navigate = useNavigate?.() || (() => { });
-  const { signup } = useAuth?.() || {};
+  const { signup, login } = useAuth?.() || {}; // Додано login тут
   const { showSuccess, showError } = useNotifications();
 
   async function onSubmit(e) {
