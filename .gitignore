@@ -301,7 +301,11 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# build directory
 dist/
+
+# application temporary directory
+backend_node/pdfs/
 
 # Visual Studio 6 build log
 *.plg
