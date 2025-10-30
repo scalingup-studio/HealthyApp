@@ -27,7 +27,7 @@ export function SignupPage({ onClose }) {
   const [error, setError] = React.useState("");
 
   const navigate = useNavigate?.() || (() => { });
-  const { signup, login } = useAuth?.() || {}; // Додано login тут
+  const { signup, login } = useAuth?.() || {}; 
   const { showSuccess, showError } = useNotifications();
 
   async function onSubmit(e) {
@@ -109,7 +109,7 @@ export function SignupPage({ onClose }) {
       if (onClose) {
         onClose();
       }
-
+      // navigate("/login", { replace: true })
       // Navigate to onboarding
       setTimeout(() => {
         navigate("/onboarding", { replace: true });

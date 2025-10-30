@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
 
           // Optionally fetch user data here if not in token
           // For now, we'll set user from token payload
-          const payload = tokenManager.parseToken(existingToken);
+          // const payload = tokenManager.parseToken(existingToken);
           if (payload) {
             setUser({
               id: payload.user_id || payload.sub || payload.id,
