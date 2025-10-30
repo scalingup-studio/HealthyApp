@@ -29,9 +29,9 @@ async function refreshUserData(userId, setUser) {
     });
 
     // Update user in context
-    if (setUser) {
-      setUser(userData);
-    }
+    // if (setUser) {
+    //   setUser(userData);
+    // }
 
     return userData;
   } catch (error) {
