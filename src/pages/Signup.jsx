@@ -27,7 +27,7 @@ export function SignupPage({ onClose }) {
   const [error, setError] = React.useState("");
 
   const navigate = useNavigate?.() || (() => { });
-  const { login } = useAuth?.() || {};
+  const { signup } = useAuth?.() || {};
   const { showSuccess, showError } = useNotifications();
 
   async function onSubmit(e) {
@@ -56,11 +56,11 @@ export function SignupPage({ onClose }) {
 
       // Step 1: Signup
       const signupData = await AuthApi.signup({
-        firstName,
-        lastName,
-        email,
-        password,
-      });
+          firstName,
+          lastName,
+          email,
+          password,
+        });
 
       console.log('✅ Signup successful:', signupData);
 
@@ -226,3 +226,5 @@ export function SignupPage({ onClose }) {
     </Modal>
   );
 }
+
+

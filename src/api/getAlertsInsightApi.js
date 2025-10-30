@@ -1,32 +1,22 @@
-// import { CUSTOM_ENDPOINTS } from "./apiConfig";
+import { authRequest } from "./apiClient";
+import { CUSTOM_ENDPOINTS } from "./apiConfig";
 
-// /**
-//  * Get AI-generated alert insights for a user
-//  * @param {string} userId - The ID of the user
-//  * @returns {Promise<Object>} Alert insights data from backend
-//  */
-// export const getAlertsInsightApi = async (userId) => {
-//     try {
-//       const url = CUSTOM_ENDPOINTS.alertsInsight.getAlertsInsight.replace("{user_id}", userId);
-  
-//       const response = await fetch(url, {
-//         method: "GET",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       });
-  
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-  
-//       return await response.json();
-//     } catch (error) {
-//       console.error("Error fetching alert insights:", error);
-//       throw error;
-//     }
-//   };
+export const GetAlertsInsightApi = {
+  /**
+   * Get AI-generated alerts for a specific user
+   * @param {string} userId - User ID
+   */
+  async getAlertsInsight(userId) {
+    try {
+      const endpoint = CUSTOM_ENDPOINTS.alertsInsight.getAlertsInsight.replace('{user_id}', userId);
+      const response = await authRequest(endpoint, {
+        method: "GET",
+      });
 
-// export default {
-//   getAlertsInsightApi,
-// };
+      return response;
+    } catch (error) {
+      console.error('Error getting alerts insight:', error);
+      throw error;
+    }
+  },
+};

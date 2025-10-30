@@ -3,19 +3,20 @@ import { CUSTOM_ENDPOINTS } from "./apiConfig";
 
 /**
  * Map MIME types to allowed file types
+ * Note: Server expects: 'pdf' as the only allowable value for file_type
  */
 const getFileType = (mimeType) => {
   const typeMap = {
     'application/pdf': 'pdf',
-    'image/jpeg': 'image',
-    'image/jpg': 'image',
-    'image/png': 'image',
-    'application/msword': 'doc',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-    'text/plain': 'txt'
+    'image/jpeg': 'pdf', // Map images to pdf as per API requirements
+    'image/jpg': 'pdf',
+    'image/png': 'pdf',
+    'application/msword': 'pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'pdf',
+    'text/plain': 'pdf'
   };
   
-  return typeMap[mimeType] || 'file';
+  return typeMap[mimeType] || 'pdf';
 };
 
 export const UploadFileApi = {
@@ -27,7 +28,7 @@ export const UploadFileApi = {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("user_id", userId);
-      const allowedCategories = new Set(['medical','insurance','lab','other']);
+      const allowedCategories = new Set(['medical','insurance','lab','other','Labs','profile']);
       const safeCategory = allowedCategories.has(category) ? category : 'other';
       formData.append("category", safeCategory);
       
@@ -70,9 +71,21 @@ export const UploadFileApi = {
       
       url += `?${params.toString()}`;
 
-      const response = await authRequest(url);
-      
-      // Обробка блоба для завантаження
+      // Використовуємо нативний fetch для блоба
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed with status: ${response.status}`);
+      }
+
+      // Отримуємо блоб з відповіді
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

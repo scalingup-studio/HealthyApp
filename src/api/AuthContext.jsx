@@ -101,6 +101,28 @@ export function AuthProvider({ children }) {
    * Logout function
    */
   const logout = useCallback(async () => {
+  async function signup(email, password, userData = {}) {
+    try {
+      console.log('📝 Starting signup process...');
+      const res = await AuthApi.signup({ email, password, ...userData });
+      console.log('📝 AuthApi.signup response:', res);
+
+      setAuthToken(res.authToken);
+      setUser(res.user ?? null);
+      setIsNewUser(true); // This is a signup, new user
+
+      console.log('📝 New user signed up successfully - will redirect to onboarding');
+      console.log('🎯 Signup redirect: Onboarding (new user)');
+      console.log('📝 isNewUser set to:', true);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Signup error:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async function logout() {
     try {
       await AuthApi.logout();
     } catch (error) {
@@ -147,8 +169,18 @@ export function AuthProvider({ children }) {
       setUser(prev => ({
         ...prev,
         onboarding_completed: true,
+        onboarding_status: status,
         completed: true,
-        onboarding_status: status
+        save_onboarding: {
+          ...prev.save_onboarding,
+          onboarding_completed: true,
+          current_step: "completed",
+          progress: {
+            ...prev.save_onboarding?.progress,
+            percentage: 100
+          },
+          completed_at: new Date().toISOString()
+        }
       }));
 
       console.log('✅ Onboarding marked as completed');
@@ -163,6 +195,67 @@ export function AuthProvider({ children }) {
    * Check if user is authenticated
    */
   const isAuthenticated = useCallback(() => {
+  // ✅ Added a function to load onboarding data from API
+  async function loadOnboardingData() {
+    try {
+      console.log('📊 Loading onboarding data from API...');
+
+      // Import OnboardingApi dynamically to avoid circular dependency
+      const { OnboardingApi } = await import('./onboardingApi.js');
+
+      if (!user?.id) {
+        console.log('⚠️ No user ID available for loading onboarding data');
+        return { success: false, error: 'No user ID' };
+      }
+
+      const onboardingData = await OnboardingApi.getProgress(user.id);
+      console.log('📊 Onboarding data loaded:', onboardingData);
+
+      // Update user state with onboarding data
+      setUser(prev => ({
+        ...prev,
+        save_onboarding: onboardingData?.save_onboarding || prev.save_onboarding
+      }));
+
+      return { success: true, data: onboardingData };
+    } catch (error) {
+      console.error('Error loading onboarding data:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ✅ Added a function to reset onboarding status (for testing)
+  async function resetOnboarding() {
+    try {
+      console.log('🔄 Resetting onboarding status...');
+
+     // Update the user's state with both old and new structure
+      setUser(prev => ({
+        ...prev,
+        onboarding_completed: false,
+        completed: false,
+        onboarding_status: "not_started",
+        save_onboarding: {
+          ...prev.save_onboarding,
+          onboarding_completed: false,
+          current_step: "personal",
+          progress: {
+            ...prev.save_onboarding?.progress,
+            percentage: 0
+          }
+        }
+      }));
+
+      console.log('✅ Onboarding status reset in AuthContext');
+      return { success: true };
+    } catch (error) {
+      console.error("Error resetting onboarding:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Check if user is authenticated
+  const isAuthenticated = () => {
     return !!authToken && !!user;
   }, [authToken, user]);
 
@@ -192,10 +285,13 @@ export function AuthProvider({ children }) {
 
     // Functions
     login,
+    signup,
     logout,
     refreshAuth,
     isAuthenticated,
     completeOnboarding,
+    resetOnboarding,
+    loadOnboardingData,
     hasCompletedOnboarding,
     isTokenExpiringSoon,
 

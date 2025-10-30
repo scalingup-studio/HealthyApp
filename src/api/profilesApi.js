@@ -74,4 +74,22 @@ export const ProfilesApi = {
       throw error;
     }
   },
+
+  /**
+   * Update profile photo
+   */
+  async updatePhoto(user_id, photoData) {
+    try {
+      const res = await authRequest(ENDPOINTS.profiles.update(user_id), {
+        method: "PATCH",
+        body: {
+          profile_photo: photoData
+        },
+      });
+      return res?.result ?? res;
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
+      throw error;
+    }
+  },
 };

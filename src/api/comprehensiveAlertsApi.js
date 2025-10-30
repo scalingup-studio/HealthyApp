@@ -34,10 +34,12 @@ export const ComprehensiveAlertsApi = {
    */
   async fetchComprehensiveAlerts(userId) {
     try {
-      const response = await authRequest(
-        `${CUSTOM_ENDPOINTS.comprehensiveAlerts.comprehensiveAlerts}?user_id=${userId}`,
-        { method: "GET" }
-      );
+      const response = await authRequest(CUSTOM_ENDPOINTS.comprehensiveAlerts.comprehensiveAlerts, {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       return response;
     } catch (error) {

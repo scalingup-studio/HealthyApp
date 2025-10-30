@@ -12,6 +12,9 @@ export { InsightApi } from "./insightApi";
 export { CheckThresholdApi } from "./checkThresholdApi";
 export { HealthHistoryApi } from "./healthHistoryApi";
 export { UploadFileApi } from "./uploadFileApi";
+export { ComprehensiveAlertsApi } from "./comprehensiveAlertsApi";
+export { TrendsApi } from "./trendsApi";
+export { GetAlertsInsightApi } from "./getAlertsInsightApi";
 
 // Utilities and helpers
 export { createCrudApi } from "./helpers";
@@ -30,4 +33,7 @@ export const Api = {
   CheckThreshold: CheckThresholdApi,
   HealthHistory: HealthHistoryApi,
   UploadFile: UploadFileApi,
+  ComprehensiveAlerts: ComprehensiveAlertsApi,
+  Trends: TrendsApi,
+  GetAlertsInsight: GetAlertsInsightApi,
 };

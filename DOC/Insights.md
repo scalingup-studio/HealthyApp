@@ -274,6 +274,7 @@ user_id: uuid (required)
 ### 8. **GET /get-comprehensive-alerts**
 **Призначення**: Отримання всіх активних алертів
 
+```
 **Query Parameters**:
 ```
 ```

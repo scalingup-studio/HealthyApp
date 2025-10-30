@@ -450,6 +450,26 @@ Headers: Authorization: Bearer {token}
 
 ## 🏥 Medical History
 
+### **POST /user-health-summary**
+**Add all health_history, medical_condition, allergies, family_history, medications, sensitivities, surgical_history, vaccinations to one table
+**Request Body**:
+```json
+{
+  "sections": "medications",
+  "medical_condition": {},
+  "allergies": {"0":"ggggg", "1":"bhhhhhh"},
+  "family_history": {},
+  "medications": {"0": "65656"},
+  "sensitivities": {},
+  "surgical_history": {},
+  "vaccinations": {}
+}
+```
+
+### **GET get/user-health-summary**
+** Get health summary data
+---
+
 ### **POST /health_history_summary** - Complete Medical History
 **Purpose**: Get all user medical records
 ```javascript

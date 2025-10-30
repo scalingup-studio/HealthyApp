@@ -1,9 +1,5 @@
-// src__main.jsx
-/**
- * Fixed Main Router with Improved Guards
- */
-
-import React from "react";
+// main.jsx
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/AuthContext.jsx";
@@ -14,6 +10,7 @@ import OAuthCallbackGoogle from "./pages/OAuthCallbackGoogle.jsx";
 import DashboardLayout from "./routes/DashboardLayout.jsx";
 import DashboardHome from "./routes/pages/Home.jsx";
 import DashboardAnalytics from "./routes/pages/Analytics.jsx";
+import DashboardInsights from "./routes/pages/Insights.jsx";
 import DashboardWorkouts from "./routes/pages/Workouts.jsx";
 import DashboardNutrition from "./routes/pages/Nutrition.jsx";
 import DashboardProfile from "./routes/pages/Profile.jsx";
@@ -256,6 +253,7 @@ function AppRouter() {
         >
           <Route index element={<DashboardHome />} />
           <Route path="analytics" element={<DashboardAnalytics />} />
+          <Route path="insights" element={<DashboardInsights />} />
           <Route path="workouts" element={<DashboardWorkouts />} />
           <Route path="nutrition" element={<DashboardNutrition />} />
           <Route path="profile" element={<DashboardProfile />} />
@@ -270,6 +268,71 @@ function AppRouter() {
 }
 
 // Wrap entire app
+// 🛡️ Захисник для onboarding - не дозволяє доступ якщо вже завершено
+function OnboardingGuard({ children }) {
+  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
+
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
+
+  console.log('🛡️ OnboardingGuard - Debug info:', {
+    loading,
+    isNewUser,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      onboarding_completed: user.onboarding_completed
+    } : null,
+    hasCompletedOnboardingResult: onboardingCompleted
+  });
+
+  if (loading) {
+    console.log('⏳ OnboardingGuard - Still loading...');
+    return <p>Loading…</p>;
+  }
+
+  // Якщо onboarding вже завершено - перенаправляємо на dashboard
+  if (onboardingCompleted) {
+    console.log('🎯 OnboardingGuard - Onboarding already completed, redirecting to /dashboard');
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  console.log('📝 OnboardingGuard - Onboarding not completed, allowing access to onboarding');
+  return children;
+}
+
+function DashboardGuard({ children }) {
+  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
+
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
+
+  console.log('🛡️ DashboardGuard - Debug info:', {
+    loading,
+    isNewUser,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      onboarding_completed: user.onboarding_completed
+    } : null,
+    hasCompletedOnboardingResult: onboardingCompleted
+  });
+
+  if (loading) {
+    console.log('⏳ DashboardGuard - Still loading...');
+    return <p>Loading…</p>;
+  }
+
+  // Якщо onboarding не завершено - перенаправляємо на onboarding
+  if (!onboardingCompleted) {
+    console.log('📝 DashboardGuard - Onboarding not completed, redirecting to /onboarding');
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  console.log('🎯 DashboardGuard - Allowing access to dashboard (onboarding check enabled)');
+  return children;
+}
+// 🔒 Wrap entire app in AuthProvider and NotificationProvider
 ReactDOM.createRoot(document.getElementById("root")).render(
   <AuthProvider>
     <NotificationProvider>
