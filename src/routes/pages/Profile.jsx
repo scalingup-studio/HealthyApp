@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useAuthRequest } from "../../api/authRequest.js";
+import { authRequest } from "../../api/apiClient";
+// import { useAuthRequest } from "../../api/authRequest.js";
 import { useAuth } from "../../api/AuthContext.jsx";
 import { useNotifications } from "../../api/NotificationContext.jsx";
 import { ProfilesApi } from "../../api/profilesApi.js";
@@ -11,7 +12,7 @@ import HealthHistoryCard from "../../components/HealthHistoryCard-TEST.jsx";
 import { ConfirmDeleteModal } from "../../components/ConfirmDeleteModal.jsx";
 
 export default function DashboardProfile() {
-  const authRequest = useAuthRequest();
+  // const authRequest = useAuthRequest();
   const { user } = useAuth();
   const { showSuccess, showError, showInfo } = useNotifications();
   const [profile, setProfile] = useState(null);
@@ -104,7 +105,7 @@ export default function DashboardProfile() {
         padding: 20px;
         animation: fadeIn 0.3s ease-out;
       `;
-      
+
       // Add CSS animation
       if (!document.getElementById('modal-styles')) {
         const style = document.createElement('style');
@@ -127,7 +128,7 @@ export default function DashboardProfile() {
         `;
         document.head.appendChild(style);
       }
-      
+
       // Create modal content
       const modalContent = document.createElement('div');
       modalContent.style.cssText = `
@@ -144,7 +145,7 @@ export default function DashboardProfile() {
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
       `;
-      
+
       modalContent.innerHTML = `
         <!-- Header -->
         <div style="padding: 24px 24px 20px; border-bottom: 1px solid #222222; background: linear-gradient(135deg, rgba(255, 76, 76, 0.1) 0%, rgba(17, 17, 17, 0.8) 100%); position: relative;">
@@ -241,21 +242,21 @@ export default function DashboardProfile() {
           </button>
         </div>
       `;
-      
+
       modal.appendChild(modalContent);
       document.body.appendChild(modal);
-      
+
       // Add event listeners
       const cancelBtn = document.getElementById('cancel-delete-btn');
       const confirmBtn = document.getElementById('confirm-delete-btn');
       const closeBtn = document.getElementById('close-modal-btn');
-      
+
       const closeModal = () => {
         setIsDeleteModalOpen(false);
         setRecordToDelete(null);
         modal.remove();
       };
-      
+
       cancelBtn.addEventListener('click', closeModal);
       closeBtn.addEventListener('click', closeModal);
       confirmBtn.addEventListener('click', async () => {
@@ -269,14 +270,14 @@ export default function DashboardProfile() {
           showError('Failed to delete health data record. Please try again.');
         }
       });
-      
+
       // Close on backdrop click
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
           closeModal();
         }
       });
-      
+
     } else if (!isDeleteModalOpen) {
       // Remove modal if exists
       const existingModal = document.getElementById('delete-confirmation-modal');
@@ -318,7 +319,7 @@ export default function DashboardProfile() {
   // Function to handle adding new items to test data
   const handleAddTestItem = async (itemData) => {
     console.log('Adding test item:', itemData);
-    
+
     // Determine which category based on the data structure
     let category = 'medical_conditions';
     if (itemData.name) category = 'medications';
@@ -327,18 +328,18 @@ export default function DashboardProfile() {
     else if (itemData.vaccine_name) category = 'vaccinations';
     else if (itemData.sensitivity_name) category = 'sensitivities';
     else if (itemData.family_member) category = 'family_history';
-    
+
     // Add new item with unique ID
     const newItem = {
       id: Date.now(), // Simple ID generation
       ...itemData
     };
-    
+
     setTestData(prev => ({
       ...prev,
       [category]: [...prev[category], newItem]
     }));
-    
+
     showSuccess(`${category.replace('_', ' ')} added successfully!`);
   };
 
@@ -359,11 +360,11 @@ export default function DashboardProfile() {
 
     try {
       setSaving(true);
-      
+
       // Validate data before sending
       const validateHealthData = (data) => {
         const errors = [];
-        
+
         if (data.heart_rate && (data.heart_rate < 30 || data.heart_rate > 200)) {
           errors.push('Heart rate should be between 30-200 bpm');
         }
@@ -391,10 +392,10 @@ export default function DashboardProfile() {
         if (data.activity_level && (data.activity_level < 1 || data.activity_level > 5)) {
           errors.push('Activity level should be between 1-5');
         }
-        
+
         return errors;
       };
-      
+
       // Prepare data for API
       const healthDataPayload = {
         user_id: user.id,
@@ -412,7 +413,7 @@ export default function DashboardProfile() {
         fasting_glucose: healthData.fasting_glucose ? parseFloat(healthData.fasting_glucose) : null,
         body_temperature: healthData.body_temperature ? parseFloat(healthData.body_temperature) : null,
       };
-      
+
       // Validate data
       const validationErrors = validateHealthData(healthDataPayload);
       if (validationErrors.length > 0) {
@@ -435,7 +436,7 @@ export default function DashboardProfile() {
       };
 
       setHealthDataRecords(prev => [newRecord, ...prev]);
-      
+
       // Reset form
       setHealthData({
         date: new Date().toISOString().split('T')[0],
@@ -529,7 +530,7 @@ export default function DashboardProfile() {
 
     try {
       setSaving(true);
-      
+
       // Prepare data for API
       const healthDataPayload = {
         user_id: user.id,
@@ -586,7 +587,7 @@ export default function DashboardProfile() {
       console.log('Loading health data from API...');
       console.log('API URL:', ENDPOINTS.healthData.getAll);
       console.log('User ID:', user?.id);
-      
+
       // First, let's test if the API is working with a known endpoint
       try {
         console.log('Testing API with users endpoint...');
@@ -595,7 +596,7 @@ export default function DashboardProfile() {
       } catch (testError) {
         console.error('Users API test failed:', testError);
       }
-      
+
       // Try to get health data by user ID first
       let response;
       try {
@@ -606,15 +607,15 @@ export default function DashboardProfile() {
         response = await HealthApi.getAll();
         console.log('Health data getAll response:', response);
       }
-      
+
       // Handle API response format: { result: [...], succes: true }
       const healthDataArray = response?.result || response;
-      
+
       if (healthDataArray && Array.isArray(healthDataArray)) {
         // Filter out records with all zero values (empty records)
         const filteredRecords = healthDataArray.filter(record => {
-          const hasValidData = record.heart_rate > 0 || 
-                              record.blood_pressure_systolic > 0 || 
+          const hasValidData = record.heart_rate > 0 ||
+                              record.blood_pressure_systolic > 0 ||
                               record.blood_pressure_diastolic > 0 ||
                               record.weekly_activity_minutes > 0 ||
                               record.hydration_liters > 0 ||
@@ -626,7 +627,7 @@ export default function DashboardProfile() {
                               (record.body_weight_trend && record.body_weight_trend.trim() !== '');
           return hasValidData;
         });
-        
+
         setHealthDataRecords(filteredRecords);
         console.log('Health data loaded successfully:', filteredRecords.length, 'valid records out of', healthDataArray.length, 'total');
       } else {
@@ -641,7 +642,7 @@ export default function DashboardProfile() {
         status: error.status,
         url: ENDPOINTS.healthData.getAll
       });
-      
+
       // Try alternative endpoints
       console.log('Trying alternative health data endpoints...');
       try {
@@ -652,8 +653,8 @@ export default function DashboardProfile() {
         if (altHealthDataArray && Array.isArray(altHealthDataArray)) {
           // Filter out records with all zero values (empty records)
           const filteredAltRecords = altHealthDataArray.filter(record => {
-            const hasValidData = record.heart_rate > 0 || 
-                                record.blood_pressure_systolic > 0 || 
+            const hasValidData = record.heart_rate > 0 ||
+                                record.blood_pressure_systolic > 0 ||
                                 record.blood_pressure_diastolic > 0 ||
                                 record.weekly_activity_minutes > 0 ||
                                 record.hydration_liters > 0 ||
@@ -665,14 +666,14 @@ export default function DashboardProfile() {
                                 (record.body_weight_trend && record.body_weight_trend.trim() !== '');
             return hasValidData;
           });
-          
+
           setHealthDataRecords(filteredAltRecords);
           return;
         }
       } catch (altError) {
         console.error('Alternative endpoint also failed:', altError);
       }
-      
+
       // Don't show error to user as this is background loading
       setHealthDataRecords([]);
     } finally {
@@ -681,29 +682,29 @@ export default function DashboardProfile() {
   };
   const healthOptions = {
     medical_conditions: [
-      "Hypertension", "Diabetes Type 1", "Diabetes Type 2", "Asthma", "COPD", 
-      "Cardiovascular Disease", "High Cholesterol", "Arthritis", "Depression", 
+      "Hypertension", "Diabetes Type 1", "Diabetes Type 2", "Asthma", "COPD",
+      "Cardiovascular Disease", "High Cholesterol", "Arthritis", "Depression",
       "Anxiety", "Migraine", "Epilepsy", "Thyroid Disorders", "Autoimmune Diseases"
     ],
     medications: [
-      "Metformin", "Lisinopril", "Atorvastatin", "Ibuprofen", "Aspirin", 
+      "Metformin", "Lisinopril", "Atorvastatin", "Ibuprofen", "Aspirin",
       "Levothyroxine", "Metoprolol", "Omeprazole", "Sertraline", "Albuterol",
       "Warfarin", "Furosemide", "Amlodipine", "Simvastatin", "Losartan"
     ],
     allergies: [
-      "Penicillin", "Sulfa drugs", "Peanuts", "Tree nuts", "Shellfish", 
+      "Penicillin", "Sulfa drugs", "Peanuts", "Tree nuts", "Shellfish",
       "Dust mites", "Pollen", "Pet dander", "Latex", "Mold", "Eggs", "Milk",
       "Soy", "Wheat", "Insect stings", "Contrast dye"
     ],
     surgical_history: [
-      "Appendectomy", "C-section", "Knee surgery", "Hip replacement", 
-      "Gallbladder removal", "Hernia repair", "Cataract surgery", 
+      "Appendectomy", "C-section", "Knee surgery", "Hip replacement",
+      "Gallbladder removal", "Hernia repair", "Cataract surgery",
       "Tonsillectomy", "Cholecystectomy", "Hysterectomy", "Prostate surgery",
       "Heart surgery", "Spine surgery", "Shoulder surgery"
     ],
     vaccinations: [
-      "COVID-19", "Influenza (Flu)", "Hepatitis A", "Hepatitis B", "MMR", 
-      "Tdap", "Varicella", "Pneumococcal", "Meningococcal", "HPV", 
+      "COVID-19", "Influenza (Flu)", "Hepatitis A", "Hepatitis B", "MMR",
+      "Tdap", "Varicella", "Pneumococcal", "Meningococcal", "HPV",
       "Shingles", "Polio", "Tetanus", "Diphtheria", "Pertussis"
     ],
     sensitivities: [
@@ -722,16 +723,16 @@ export default function DashboardProfile() {
 
 const calculateAgeFromDOB = (dob) => {
   if (!dob) return null;
-  
+
   const today = new Date();
   const birthDate = new Date(dob);
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  
+
   return age;
 };
   useEffect(() => {
@@ -747,7 +748,7 @@ const calculateAgeFromDOB = (dob) => {
       try {
         setLoading(true);
         console.log('🔍 Fetching profile for user ID:', user.id);
-        
+
         // Try to get profile by user_id using ProfilesApi
         let profileData = null;
         try {
@@ -759,11 +760,11 @@ const calculateAgeFromDOB = (dob) => {
           // If not found by ID, try to get all profiles and filter by user_id
           const allProfilesResponse = await ProfilesApi.getAll();
           console.log('📋 All profiles response:', allProfilesResponse);
-          
+
           // Handle API response format: { result: [...], success: true }
           const allProfiles = allProfilesResponse?.result || allProfilesResponse;
           console.log('📋 All profiles array:', allProfiles);
-          
+
           if (Array.isArray(allProfiles)) {
             profileData = allProfiles.find(p => p.user_id === user.id || p.id === user.id);
             console.log('🔍 Found profile in list:', profileData);
@@ -772,17 +773,17 @@ const calculateAgeFromDOB = (dob) => {
             console.log('🔍 Single profile found:', profileData);
           }
         }
-        
+
         setProfile(profileData);
         const preview = profileData?.profile_photo?.url || profileData?.profile_photo?.path || "";
         if (preview) setPhotoPreview(preview);
-        
+
         // Use profile data if available, otherwise fallback to user data
         const dataToUse = profileData || user;
         console.log('📊 Data to use for form:', dataToUse);
         console.log('📊 Profile data:', profileData);
         console.log('📊 User data:', user);
-        
+
         const formData = {
           first_name: dataToUse?.first_name || dataToUse?.firstName || "",
           last_name: dataToUse?.last_name || dataToUse?.lastName || "",
@@ -795,11 +796,11 @@ const calculateAgeFromDOB = (dob) => {
           zip_code: dataToUse?.zip_code ?? "",
           user_id: dataToUse?.user_id || user?.id || "",
         };
-        
+
         console.log('📊 Form data to set:', formData);
         setFormValues(formData);
         setError(null);
-        
+
         if (!profileData) {
           console.log('ℹ️ No profile found, using user data as fallback');
         }
@@ -855,7 +856,7 @@ const calculateAgeFromDOB = (dob) => {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Handle photo upload separately if user selected a new photo
       let uploadedPhotoData = null;
       if (pendingPhotoFile) {
@@ -870,14 +871,14 @@ const calculateAgeFromDOB = (dob) => {
           });
           console.log('📦 User ID:', user.id);
           console.log('📦 Category:', 'profile');
-          
+
           const res = await UploadFileApi.uploadFile(pendingPhotoFile, user.id, 'profile');
           const uploaded = res?.result || res;
           const url = uploaded?.url || uploaded?.path || '';
-          
+
           console.log('✅ Photo upload response:', uploaded);
           console.log('🔗 Photo URL:', url);
-          
+
           // Store photo data for profile update
           uploadedPhotoData = {
             access: uploaded?.access || 'public',
@@ -889,7 +890,7 @@ const calculateAgeFromDOB = (dob) => {
             meta: uploaded?.meta || {},
             url,
           };
-          
+
           // Update photo preview
           setPhotoPreview(url);
           showSuccess("Photo uploaded successfully!");
@@ -926,13 +927,13 @@ const calculateAgeFromDOB = (dob) => {
         // For CREATE we keep user_id
         payload = { user_id: formValues.user_id || user.id, ...basePayload };
       }
-      
+
       console.log('💾 Saving profile with payload (no photo):', payload);
       console.log('📸 Photo handling:', {
         uploadedPhotoData: uploadedPhotoData ? 'Photo uploaded separately' : 'No new photo',
         existingPhoto: profile?.profile_photo ? 'Preserved in UI' : 'No existing photo'
       });
-      
+
       let updated;
       if (profile && profile.id) {
         // Update existing profile using user_id
@@ -940,7 +941,7 @@ const calculateAgeFromDOB = (dob) => {
         console.log('📍 Endpoint:', `PATCH ${ENDPOINTS.profiles.update(user.id)}`);
         console.log('📦 Request Body:', JSON.stringify(payload, null, 2));
         console.log('📦 Request Body (formatted):', payload);
-        
+
         updated = await ProfilesApi.update(user.id, payload);
         console.log('✅ Profile updated successfully:', updated);
       } else {
@@ -949,14 +950,14 @@ const calculateAgeFromDOB = (dob) => {
         console.log('📍 Endpoint:', `POST ${ENDPOINTS.profiles.create}`);
         console.log('📦 Request Body:', JSON.stringify(payload, null, 2));
         console.log('📦 Request Body (formatted):', payload);
-        
+
         updated = await ProfilesApi.create(payload);
         console.log('✅ Profile created successfully:', updated);
       }
-      
+
       setProfile(updated);
-      const successMessage = uploadedPhotoData 
-        ? "Profile updated and photo uploaded successfully!" 
+      const successMessage = uploadedPhotoData
+        ? "Profile updated and photo uploaded successfully!"
         : "Profile updated successfully!";
       showSuccess(successMessage);
     } catch (err) {
@@ -971,39 +972,39 @@ const calculateAgeFromDOB = (dob) => {
 
   return (
     <div className="dashboard-profile">
-      
+
       {/* Tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, paddingBottom:8, borderBottom: "1px solid var(--border)" }}>
-        <button 
-          onClick={() => setActiveTab('personal')} 
+        <button
+          onClick={() => setActiveTab('personal')}
           className={`btn ${activeTab === 'personal' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
           Personal Info
         </button>
-        <button 
-          onClick={() => setActiveTab('health_history')} 
+        <button
+          onClick={() => setActiveTab('health_history')}
           className={`btn ${activeTab === 'health_history' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
           Health History
         </button>
-        <button 
-          onClick={() => setActiveTab('health_data')} 
+        <button
+          onClick={() => setActiveTab('health_data')}
           className={`btn ${activeTab === 'health_data' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
           Health Data
         </button>
-        <button 
-          onClick={() => setActiveTab('medical_records')} 
+        <button
+          onClick={() => setActiveTab('medical_records')}
           className={`btn ${activeTab === 'medical_records' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
           Medical Records
         </button>
-        <button 
-          onClick={() => setActiveTab('test_card')} 
+        <button
+          onClick={() => setActiveTab('test_card')}
           className={`btn ${activeTab === 'test_card' ? 'primary' : 'outline'}`}
           style={{ width:'auto', padding:'8px 16px', height:38 }}
         >
@@ -1013,7 +1014,7 @@ const calculateAgeFromDOB = (dob) => {
 
       {activeTab === 'personal' && (
       <div className="card" style={{ display: "flex", gap: 16, marginBottom: 24,  alignItems:'flex-start' }}>
-        <div 
+        <div
           style={{ width: 120, height: 120, backgroundColor: "#0b0b0b", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, border:'1px solid var(--border)', overflow:'hidden', cursor:'pointer', position:'relative' }}
           onClick={() => fileInputRef.current?.click()}
           role="button"
@@ -1028,9 +1029,9 @@ const calculateAgeFromDOB = (dob) => {
           {uploadingPhoto && (
             <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.45)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12 }}>Uploading…</div>
           )}
-          <input 
+          <input
             ref={fileInputRef}
-            type="file" 
+            type="file"
             accept="image/*"
             style={{ display:'none' }}
             onChange={async (e) => {
@@ -1057,20 +1058,20 @@ const calculateAgeFromDOB = (dob) => {
           ) : (
             <>
               <h2 style={{ marginTop:0 }}>
-                {profile?.name || 
-                 (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : 
-                  profile?.first_name || profile?.last_name || 
-                  user?.name || 
-                  (user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 
+                {profile?.name ||
+                 (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` :
+                  profile?.first_name || profile?.last_name ||
+                  user?.name ||
+                  (user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` :
                    user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` :
-                   user?.first_name || user?.last_name || user?.firstName || user?.lastName || 
-                   (formValues.first_name || formValues.last_name ? 
-                    `${formValues.first_name || ''} ${formValues.last_name || ''}`.trim() : 
+                   user?.first_name || user?.last_name || user?.firstName || user?.lastName ||
+                   (formValues.first_name || formValues.last_name ?
+                    `${formValues.first_name || ''} ${formValues.last_name || ''}`.trim() :
                     "Loading...")))}
               </h2>
-              
-        
-              
+
+
+
               {error && (
                 <p style={{ color: "var(--error)", fontSize: "14px", marginTop: "8px" }}>
                   ⚠️ {error}
@@ -1222,8 +1223,8 @@ const calculateAgeFromDOB = (dob) => {
               <div className="card" style={{ marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h3 style={{ marginTop: 0, marginBottom: 0 }}>Health Data Management</h3>
-                  <button 
-                    className="btn primary" 
+                  <button
+                    className="btn primary"
                     onClick={() => setIsHealthDataModalOpen(true)}
                     style={{ fontSize: '14px', padding: '8px 16px' }}
                   >
@@ -1237,7 +1238,7 @@ const calculateAgeFromDOB = (dob) => {
 
               {/* Health Data Modal */}
               {isHealthDataModalOpen && (
-                <div 
+                <div
                   style={{
                     position: 'fixed',
                     top: 0,
@@ -1250,7 +1251,7 @@ const calculateAgeFromDOB = (dob) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    
+
                     zIndex: 1000,
                     padding: '20px'
                   }}
@@ -1272,10 +1273,10 @@ const calculateAgeFromDOB = (dob) => {
                     flexDirection: 'column'
                   }}>
                     {/* Fixed Header */}
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                       padding: '24px 24px 16px 24px',
                       borderBottom: '1px solid var(--border)',
                       backgroundColor: 'var(--bg)',
@@ -1287,8 +1288,8 @@ const calculateAgeFromDOB = (dob) => {
                       <h2 style={{ margin: 0 }}>
                         {editingRecord ? 'Edit Health Data' : 'Add New Health Data'}
                       </h2>
-                      <button 
-                        className="btn outline" 
+                      <button
+                        className="btn outline"
                         onClick={() => {
                           setIsHealthDataModalOpen(false);
                           setEditingRecord(null);
@@ -1298,26 +1299,26 @@ const calculateAgeFromDOB = (dob) => {
                         ✕
                       </button>
                     </div>
-                    
+
                     {/* Scrollable Content */}
-                    <div style={{ 
+                    <div style={{
                       padding: '24px',
                       overflowY: 'auto',
                       flex: 1
                     }}>
                       <form onSubmit={(e) => { e.preventDefault(); handleSaveHealthData(); }} className="form" style={{ maxWidth: '100%' }}>
-  
+
                         {/* Two Column Layout */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-                          
+
                           {/* Left Column */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {/* Date */}
                     <label className="form-field">
                       <span>Date</span>
-                      <input 
-                        type="date" 
-                        value={healthData.date} 
+                      <input
+                        type="date"
+                        value={healthData.date}
                         onChange={(e) => handleHealthDataChange('date', e.target.value)}
                         required
                       />
@@ -1326,9 +1327,9 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Heart Rate */}
                     <label className="form-field">
                       <span>Heart Rate (bpm)</span>
-                      <input 
-                        type="number" 
-                        value={healthData.heart_rate} 
+                      <input
+                        type="number"
+                        value={healthData.heart_rate}
                         onChange={(e) => handleHealthDataChange('heart_rate', e.target.value)}
                         placeholder="72"
                         min="30" max="200"
@@ -1338,9 +1339,9 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Blood Pressure */}
                     <label className="form-field">
                       <span>Blood Pressure Systolic</span>
-                      <input 
-                        type="number" 
-                        value={healthData.blood_pressure_systolic} 
+                      <input
+                        type="number"
+                        value={healthData.blood_pressure_systolic}
                         onChange={(e) => handleHealthDataChange('blood_pressure_systolic', e.target.value)}
                         placeholder="120"
                         min="70" max="250"
@@ -1349,9 +1350,9 @@ const calculateAgeFromDOB = (dob) => {
 
                     <label className="form-field">
                       <span>Blood Pressure Diastolic</span>
-                      <input 
-                        type="number" 
-                        value={healthData.blood_pressure_diastolic} 
+                      <input
+                        type="number"
+                        value={healthData.blood_pressure_diastolic}
                         onChange={(e) => handleHealthDataChange('blood_pressure_diastolic', e.target.value)}
                         placeholder="80"
                         min="40" max="150"
@@ -1361,10 +1362,10 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Activity */}
                     <label className="form-field">
                       <span>Weekly Activity (minutes)</span>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.1"
-                        value={healthData.weekly_activity_minutes} 
+                        value={healthData.weekly_activity_minutes}
                         onChange={(e) => handleHealthDataChange('weekly_activity_minutes', e.target.value)}
                         placeholder="150"
                         min="0" max="10080"
@@ -1373,8 +1374,8 @@ const calculateAgeFromDOB = (dob) => {
 
                     <label className="form-field">
                       <span>Activity Level (1-5)</span>
-                      <select 
-                        value={healthData.activity_level} 
+                      <select
+                        value={healthData.activity_level}
                         onChange={(e) => handleHealthDataChange('activity_level', e.target.value)}
                       >
                         <option value="">Select Level</option>
@@ -1389,27 +1390,27 @@ const calculateAgeFromDOB = (dob) => {
   {/* Body Temperature */}
   <label className="form-field">
                       <span>Body Temperature (°C)</span>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.1"
-                        value={healthData.body_temperature} 
+                        value={healthData.body_temperature}
                         onChange={(e) => handleHealthDataChange('body_temperature', e.target.value)}
                         placeholder="36.6"
                         min="30" max="45"
                       />
                     </label>
                           </div>
-                          
+
                           {/* Right Column */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
                     {/* Hydration */}
                     <label className="form-field">
                       <span>Hydration (liters)</span>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.1"
-                        value={healthData.hydration_liters} 
+                        value={healthData.hydration_liters}
                         onChange={(e) => handleHealthDataChange('hydration_liters', e.target.value)}
                         placeholder="2.5"
                         min="0" max="10"
@@ -1419,9 +1420,9 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Pulse Oximetry */}
                     <label className="form-field">
                       <span>Pulse Oximetry (%)</span>
-                      <input 
-                        type="number" 
-                        value={healthData.pulse_oximetry} 
+                      <input
+                        type="number"
+                        value={healthData.pulse_oximetry}
                         onChange={(e) => handleHealthDataChange('pulse_oximetry', e.target.value)}
                         placeholder="98"
                         min="70" max="100"
@@ -1431,9 +1432,9 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Respiratory Rate */}
                     <label className="form-field">
                       <span>Respiratory Rate (breaths/min)</span>
-                      <input 
-                        type="number" 
-                        value={healthData.respiratory_rate} 
+                      <input
+                        type="number"
+                        value={healthData.respiratory_rate}
                         onChange={(e) => handleHealthDataChange('respiratory_rate', e.target.value)}
                         placeholder="16"
                         min="8" max="40"
@@ -1443,8 +1444,8 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Body Weight Trend */}
                     <label className="form-field">
                       <span>Body Weight Trend</span>
-                      <select 
-                        value={healthData.body_weight_trend} 
+                      <select
+                        value={healthData.body_weight_trend}
                         onChange={(e) => handleHealthDataChange('body_weight_trend', e.target.value)}
                       >
                         <option value="">Select Trend</option>
@@ -1458,10 +1459,10 @@ const calculateAgeFromDOB = (dob) => {
                     {/* BMI */}
                     <label className="form-field">
                       <span>Body Mass Index</span>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.1"
-                        value={healthData.body_mass_index} 
+                        value={healthData.body_mass_index}
                         onChange={(e) => handleHealthDataChange('body_mass_index', e.target.value)}
                         placeholder="22.5"
                         min="10" max="60"
@@ -1471,23 +1472,23 @@ const calculateAgeFromDOB = (dob) => {
                     {/* Fasting Glucose */}
                     <label className="form-field">
                       <span>Fasting Glucose (mg/dL)</span>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.1"
-                        value={healthData.fasting_glucose} 
+                        value={healthData.fasting_glucose}
                         onChange={(e) => handleHealthDataChange('fasting_glucose', e.target.value)}
                         placeholder="85"
                         min="50" max="500"
                       />
                     </label>
 
-                  
+
 
                     {/* Visibility Scope */}
                     <label className="form-field">
                       <span>Visibility Scope</span>
-                      <select 
-                        value={healthData.visibility_scope} 
+                      <select
+                        value={healthData.visibility_scope}
                         onChange={(e) => handleHealthDataChange('visibility_scope', e.target.value)}
                       >
                         <option value="private">Private</option>
@@ -1501,16 +1502,16 @@ const calculateAgeFromDOB = (dob) => {
 
                         {/* Action Buttons */}
                         <div style={{ marginTop: 24, display: 'flex', gap: 8, justifyContent: 'center' }}>
-                    <button 
-                      type="submit" 
-                      className="btn primary" 
+                    <button
+                      type="submit"
+                      className="btn primary"
                       disabled={saving}
                     >
                       {saving ? (editingRecord ? 'Updating...' : 'Saving...') : (editingRecord ? 'Update Health Data' : 'Save Health Data')}
                     </button>
-                    <button 
-                      type="button" 
-                      className="btn outline" 
+                    <button
+                      type="button"
+                      className="btn outline"
                       onClick={() => {
                         // Fill form with test data
                         setHealthData({
@@ -1547,40 +1548,40 @@ const calculateAgeFromDOB = (dob) => {
                   <h3 style={{ margin: 0 }}>
                     Recent Health Data Records
                     {healthDataRecords.length > 0 && (
-                      <span style={{ 
-                        fontSize: '14px', 
-                        fontWeight: 'normal', 
-                        color: 'var(--muted)', 
-                        marginLeft: '8px' 
+                      <span style={{
+                        fontSize: '14px',
+                        fontWeight: 'normal',
+                        color: 'var(--muted)',
+                        marginLeft: '8px'
                       }}>
                         ({healthDataRecords.length} records)
                       </span>
                     )}
                   </h3>
-                
+
                 </div>
                 {loadingHealthData ? (
                   <div style={{ textAlign: 'center', padding: '20px 0' }}>
                     <p style={{ color: 'var(--muted)', margin: 0 }}>Loading health data...</p>
                   </div>
                 ) : healthDataRecords.length > 0 ? (
-                  <div style={{ 
-                    overflowX: 'auto', 
-                    overflowY: 'auto', 
+                  <div style={{
+                    overflowX: 'auto',
+                    overflowY: 'auto',
                     height: 'calc(100vh - 520px)',
                     minHeight: '300px',
                     border: '1px solid var(--border)',
                     borderRadius: '6px'
                   }}>
-                    <table style={{ 
-                      width: '100%', 
+                    <table style={{
+                      width: '100%',
                       borderCollapse: 'collapse',
                       minWidth: '800px'
                     }}>
-                      <thead style={{ 
-                        position: 'sticky', 
-                        top: 0, 
-                        backgroundColor: 'var(--card)', 
+                      <thead style={{
+                        position: 'sticky',
+                        top: 0,
+                        backgroundColor: 'var(--card)',
                         zIndex: 10
                       }}>
                         <tr style={{ borderBottom: '1px solid var(--border)' , backgroundColor: 'var(--border)' }}>
@@ -1602,8 +1603,8 @@ const calculateAgeFromDOB = (dob) => {
                               {record.heart_rate ? `${record.heart_rate} bpm` : '-'}
                             </td>
                             <td style={{ padding: '12px', fontSize: '14px' }}>
-                              {record.blood_pressure_systolic && record.blood_pressure_diastolic 
-                                ? `${record.blood_pressure_systolic}/${record.blood_pressure_diastolic}` 
+                              {record.blood_pressure_systolic && record.blood_pressure_diastolic
+                                ? `${record.blood_pressure_systolic}/${record.blood_pressure_diastolic}`
                                 : '-'}
                             </td>
                             <td style={{ padding: '12px', fontSize: '14px' }}>
@@ -1623,8 +1624,8 @@ const calculateAgeFromDOB = (dob) => {
                                 <button
                                   className="btn outline"
                                   onClick={() => handleEditHealthData(record)}
-                                  style={{ 
-                                    padding: '4px 8px', 
+                                  style={{
+                                    padding: '4px 8px',
                                     fontSize: '12px',
                                     minWidth: 'auto'
                                   }}
@@ -1639,8 +1640,8 @@ const calculateAgeFromDOB = (dob) => {
                                     handleDeleteHealthData(record.id);
                                   }}
                                   disabled={deletingRecordId === record.id}
-                                  style={{ 
-                                    padding: '4px 8px', 
+                                  style={{
+                                    padding: '4px 8px',
                                     fontSize: '12px',
                                     minWidth: 'auto',
                                     color: deletingRecordId === record.id ? 'var(--muted)' : '#ff4444'
@@ -1682,11 +1683,11 @@ const calculateAgeFromDOB = (dob) => {
               </p>
             </div>
             <div style={{ padding:16 }}>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                 gap: 16,
-                marginBottom: 24 
+                marginBottom: 24
               }}>
                 <div className="card" style={{ padding: 16 }}>
                   <h3 style={{ marginTop: 0, marginBottom: 12 }}>Lab Reports</h3>
@@ -1741,9 +1742,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.medical_conditions}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1762,7 +1763,7 @@ const calculateAgeFromDOB = (dob) => {
                   </div>
                 )}
               />
-              
+
               <HealthHistoryCard
                 title="Medications"
                 lastUpdated="2024-01-10"
@@ -1771,9 +1772,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.medications}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1802,9 +1803,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.allergies}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1831,9 +1832,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.surgical_history}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1862,9 +1863,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.vaccinations}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1892,9 +1893,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.sensitivities}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1922,9 +1923,9 @@ const calculateAgeFromDOB = (dob) => {
                 data={testData.family_history}
                 onAdd={handleAddTestItem}
                 renderItem={(item) => (
-                  <div key={item.id} style={{ 
-                    padding: '12px', 
-                    border: '1px solid var(--border)', 
+                  <div key={item.id} style={{
+                    padding: '12px',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     backgroundColor: 'var(--bg-subtle)'
                   }}>
@@ -1955,7 +1956,7 @@ const calculateAgeFromDOB = (dob) => {
 
 function HealthSection({ title, description, options, values, lastUpdated, onToggle, onSave, onAddNew, saving }) {
   const [open, setOpen] = useState(false);
-  
+
   const formatLastUpdated = (timestamp) => {
     if (!timestamp) return null;
     const date = new Date(timestamp);
@@ -1963,19 +1964,19 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
   };
 
   return (
-    <div style={{ 
-      borderTop: '1px solid var(--border)', 
+    <div style={{
+      borderTop: '1px solid var(--border)',
       backgroundColor: open ? 'var(--bg-subtle)' : 'transparent',
       transition: 'background-color 0.2s ease'
     }}>
-      <button 
-        onClick={() => setOpen(v => !v)} 
+      <button
+        onClick={() => setOpen(v => !v)}
         className="btn ghost"
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          textAlign: 'left', 
-          padding: '16px 8px', 
+        style={{
+          width: '100%',
+          height: '100%',
+          textAlign: 'left',
+          padding: '16px 8px',
           justifyContent: 'space-between',
           alignItems: 'flex-start'
         }}
@@ -1985,9 +1986,9 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
             <span style={{ fontWeight: 600, fontSize: '16px' }}>{title}</span>
           </div>
           {lastUpdated && (
-            <p style={{ 
-              color: 'var(--muted)', 
-              fontSize: '12px', 
+            <p style={{
+              color: 'var(--muted)',
+              fontSize: '12px',
               margin: '0px 0 0 0',
               fontStyle: 'italic'
             }}>
@@ -1995,8 +1996,8 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
             </p>
           )}
         </div>
-        <span style={{ 
-          color: 'var(--muted)', 
+        <span style={{
+          color: 'var(--muted)',
           fontSize: '18px',
           marginLeft: '16px',
           flexShrink: 0
@@ -2004,21 +2005,21 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
           {open ? '▾' : '▸'}
         </span>
       </button>
-      
+
       {open && (
         <div style={{ padding: '0 0 16px 0' }}>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 8, 
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
             marginBottom: 16,
             minHeight: '40px',
             alignItems: 'center'
           }}>
             {values.length === 0 ? (
-              <p style={{ 
-                color: 'var(--muted)', 
-                fontSize: '14px', 
+              <p style={{
+                color: 'var(--muted)',
+                fontSize: '14px',
                 fontStyle: 'italic',
                 margin: 0
               }}>
@@ -2055,12 +2056,12 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
               ))
             )}
           </div>
-          
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 8, 
-            marginBottom: 16 
+
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginBottom: 16
           }}>
             {options.map(opt => (
               <label key={opt} className="inline-checkbox" style={{
@@ -2068,9 +2069,9 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
                 borderColor: values.includes(opt) ? 'var(--primary)' : 'var(--border)',
                 color: values.includes(opt) ? 'white' : 'var(--text)'
               }}>
-                <input 
-                  type="checkbox" 
-                  checked={values.includes(opt)} 
+                <input
+                  type="checkbox"
+                  checked={values.includes(opt)}
                   onChange={() => onToggle(opt)}
                   style={{ display: 'none' }}
                 />
@@ -2078,18 +2079,18 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
               </label>
             ))}
           </div>
-          
+
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button 
-              className="btn primary" 
-              onClick={onSave} 
+            <button
+              className="btn primary"
+              onClick={onSave}
               disabled={saving}
               style={{ minWidth: '80px' }}
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
-            <button 
-              className="btn outline" 
+            <button
+              className="btn outline"
               onClick={onAddNew}
               style={{ minWidth: '100px' }}
             >
@@ -2098,7 +2099,7 @@ function HealthSection({ title, description, options, values, lastUpdated, onTog
           </div>
         </div>
       )}
-      
+
 
 
     </div>

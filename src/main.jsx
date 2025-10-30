@@ -1,5 +1,5 @@
 // main.jsx
-import React, { useEffect } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./api/AuthContext.jsx";
@@ -21,116 +21,256 @@ import Logout from "./pages/Logout.jsx";
 
 import "./index.css";
 
-// 🔐 Component for authorization verification
+/**
+ * Private Route - Requires Authentication
+ */
 function PrivateRoute({ children }) {
-  const { authToken, loading, user } = useAuth();
+  const { authToken, loading, isAuthenticated } = useAuth();
 
-  // console.log('PrivateRoute - authToken:', authToken);
-  // console.log('PrivateRoute - loading:', loading);
-  // console.log('PrivateRoute - user:', user);
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-  if (loading) return <p>Loading…</p>;
-  if (!authToken) {
-    console.log('No authToken - redirecting to login');
+  if (!isAuthenticated()) {
+    console.log('⚠️ Not authenticated - redirecting to login');
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 }
 
-// 🔄 Component for automatic redirection between onboarding and dashboard
+/**
+ * Auto Redirect Route - Smart routing based on auth/onboarding status
+ */
 function AutoRedirectRoute() {
+  const { user, loading, isAuthenticated, hasCompletedOnboarding } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Not authenticated - go to login
+  if (!isAuthenticated()) {
+    console.log('⚠️ Not authenticated, redirecting to /login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Authenticated but onboarding incomplete - go to onboarding
+  if (!hasCompletedOnboarding()) {
+    console.log('📝 Onboarding not completed, redirecting to /onboarding');
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // All good - go to dashboard
+  console.log('✅ All checks passed, redirecting to /dashboard');
+  return <Navigate to="/dashboard" replace />;
+}
+
+/**
+ * Onboarding Guard - Only allow access if onboarding is NOT complete
+ */
+function OnboardingGuard({ children }) {
   const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
-  
+
   // Check onboarding status once
   const onboardingCompleted = hasCompletedOnboarding();
-  
-  console.log('🔄 AutoRedirectRoute - Debug info:', {
+
+  console.log('🛡️ OnboardingGuard - Debug info:', {
     loading,
     isNewUser,
     user: user ? {
       id: user.id,
       email: user.email,
-      completed: user.completed,
-      onboarding_completed: user.onboarding_completed,
+      onboarding_completed: user.onboarding_completed
     } : null,
-    hasCompletedOnboardingResult: onboardingCompleted,
-    willRedirectToOnboarding: !onboardingCompleted
+    hasCompletedOnboardingResult: onboardingCompleted
   });
-  
-  // Track changes in onboarding status
-  useEffect(() => {
-    console.log('🔄 AutoRedirectRoute - useEffect triggered:', {
-      loading,
-      isNewUser,
-      onboardingCompleted,
-      willRedirect: !onboardingCompleted,
-      currentHash: window.location.hash
-    });
-    
-    // Force redirect if needed
-    if (!loading && !onboardingCompleted && window.location.hash !== '#/onboarding') {
-      console.log('🔄 AutoRedirectRoute - Force redirecting to onboarding...');
-      window.location.href = '#/onboarding';
-    }
-  }, [loading, onboardingCompleted, isNewUser]);
-  
+
   if (loading) {
-    console.log('⏳ AutoRedirectRoute - Still loading...');
-    return <p>Loading…</p>;
+    console.log('⏳ OnboardingGuard - Still loading...');
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
   }
-  
-  // If onboarding is not completed - redirect to onboarding
+
+  // If onboarding is complete, redirect to dashboard
+  if (onboardingCompleted) {
+    console.log('🎯 OnboardingGuard - Onboarding already completed, redirecting to /dashboard');
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  console.log('📝 OnboardingGuard - Onboarding not completed, allowing access to onboarding');
+  return children;
+}
+
+/**
+ * Dashboard Guard - Requires both auth and completed onboarding
+ */
+function DashboardGuard({ children }) {
+  const { user, loading, isAuthenticated, hasCompletedOnboarding, isNewUser } = useAuth();
+
+  // Check onboarding status once
+  const onboardingCompleted = hasCompletedOnboarding();
+
+  console.log('🛡️ DashboardGuard - Debug info:', {
+    loading,
+    isNewUser,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      onboarding_completed: user.onboarding_completed
+    } : null,
+    hasCompletedOnboardingResult: onboardingCompleted
+  });
+
+  if (loading) {
+    console.log('⏳ DashboardGuard - Still loading...');
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Not authenticated
+  if (!isAuthenticated()) {
+    console.log('⚠️ Not authenticated, redirecting to /login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Onboarding not complete
   if (!onboardingCompleted) {
-    console.log('📝 AutoRedirectRoute - Onboarding not completed, redirecting to /onboarding');
-    console.log('🔄 AutoRedirectRoute - Rendering Navigate component to /onboarding');
-    
-    // Fallback: if Navigate doesn't work, try window.location
-    setTimeout(() => {
-      if (window.location.hash !== '#/onboarding') {
-        console.log('🔄 AutoRedirectRoute - Navigate failed, using window.location fallback');
-        window.location.href = '#/onboarding';
-      }
-    }, 100);
-    
+    console.log('📝 DashboardGuard - Onboarding not completed, redirecting to /onboarding');
     return <Navigate to="/onboarding" replace />;
   }
-  
-  // Redirect to dashboard if onboarding is completed
-  console.log('🎯 AutoRedirectRoute - Redirecting to /dashboard (onboarding check enabled)');
-  return <Navigate to="/dashboard" replace />;
+
+  console.log('🎯 DashboardGuard - Allowing access to dashboard (onboarding check enabled)');
+  return children;
+}
+
+/**
+ * Public Only Route - Redirect if authenticated
+ */
+function PublicOnlyRoute({ children }) {
+  const { loading, isAuthenticated } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (isAuthenticated()) {
+    console.log('ℹ️ Already authenticated, redirecting to root');
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }
 
 function AppRouter() {
   return (
     <HashRouter>
       <Routes>
-        {/* Public pages */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage open />} />
+        {/* Public pages - redirect if already authenticated */}
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <LoginPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute>
+              <SignupPage open />
+            </PublicOnlyRoute>
+          }
+        />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/logout" element={<Logout />} />
 
-        {/* ✅ Google OAuth callback route */}
+        {/* OAuth callback routes */}
         <Route path="/auth/callback/google" element={<OAuthCallbackGoogle />} />
         <Route path="/auth/success" element={<OAuthCallbackGoogle />} />
 
-        {/* 🔐 Onboarding page - only for non-completed users */}
-        <Route 
-          path="/onboarding" 
+        {/* Onboarding page - only for non-completed users */}
+        <Route
+          path="/onboarding"
           element={
             <PrivateRoute>
               <OnboardingGuard>
                 <OnboardingPage />
               </OnboardingGuard>
             </PrivateRoute>
-          } 
+          }
         />
 
-       {/* Automatic redirect from root */}
-        <Route path="/" element={<PrivateRoute><AutoRedirectRoute /></PrivateRoute>} />
+        {/* Root - smart redirect */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <AutoRedirectRoute />
+            </PrivateRoute>
+          }
+        />
 
-       {/* 🔐 Protected Dashboard - for advanced users only */}
+        {/* Protected Dashboard */}
         <Route
           path="/dashboard/*"
           element={
@@ -157,75 +297,13 @@ function AppRouter() {
   );
 }
 
-// 🛡️ Захисник для onboarding - не дозволяє доступ якщо вже завершено
-function OnboardingGuard({ children }) {
-  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
-  
-  // Check onboarding status once
-  const onboardingCompleted = hasCompletedOnboarding();
-  
-  console.log('🛡️ OnboardingGuard - Debug info:', {
-    loading,
-    isNewUser,
-    user: user ? {
-      id: user.id,
-      email: user.email,
-      onboarding_completed: user.onboarding_completed
-    } : null,
-    hasCompletedOnboardingResult: onboardingCompleted
-  });
-  
-  if (loading) {
-    console.log('⏳ OnboardingGuard - Still loading...');
-    return <p>Loading…</p>;
-  }
-  
-  // Якщо onboarding вже завершено - перенаправляємо на dashboard
-  if (onboardingCompleted) {
-    console.log('🎯 OnboardingGuard - Onboarding already completed, redirecting to /dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  console.log('📝 OnboardingGuard - Onboarding not completed, allowing access to onboarding');
-  return children;
-}
-
-function DashboardGuard({ children }) {
-  const { user, loading, hasCompletedOnboarding, isNewUser } = useAuth();
-  
-  // Check onboarding status once
-  const onboardingCompleted = hasCompletedOnboarding();
-  
-  console.log('🛡️ DashboardGuard - Debug info:', {
-    loading,
-    isNewUser,
-    user: user ? {
-      id: user.id,
-      email: user.email,
-      onboarding_completed: user.onboarding_completed
-    } : null,
-    hasCompletedOnboardingResult: onboardingCompleted
-  });
-  
-  if (loading) {
-    console.log('⏳ DashboardGuard - Still loading...');
-    return <p>Loading…</p>;
-  }
-  
-  // Якщо onboarding не завершено - перенаправляємо на onboarding
-  if (!onboardingCompleted) {
-    console.log('📝 DashboardGuard - Onboarding not completed, redirecting to /onboarding');
-    return <Navigate to="/onboarding" replace />;
-  }
-  
-  console.log('🎯 DashboardGuard - Allowing access to dashboard (onboarding check enabled)');
-  return children;
-}
 // 🔒 Wrap entire app in AuthProvider and NotificationProvider
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <AuthProvider>
-    <NotificationProvider>
-      <AppRouter />
-    </NotificationProvider>
-  </AuthProvider>
+  <React.StrictMode>
+    <AuthProvider>
+      <NotificationProvider>
+        <AppRouter />
+      </NotificationProvider>
+    </AuthProvider>
+  </React.StrictMode>
 );

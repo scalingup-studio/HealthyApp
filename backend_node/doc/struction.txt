@@ -1,0 +1,29 @@
+backend_node/
+├─ package.json            # залежності та скрипти
+├─ server.js               # точка входу (Express сервер)
+├─ routes/                 # HTTP роутінг
+│  └─ pdf.js               # маршрути для PDF (POST /generate, GET /download, etc.)
+├─ controllers/            # логіка обробки запитів
+│  └─ pdfController.js
+├─ utils/                  # допоміжні функції
+│  └─ generatePdf.js       # створення PDF з JSON
+├─ templates/              # EJS або інші шаблони для PDF
+│  └─ report.ejs
+├─ pdfs/                   # тимчасове/постійне зберігання PDF
+├─ services/               # інші сервіси, якщо з'являться (наприклад, email, analytics)
+│  └─ emailService.js
+└─ config/                 # налаштування сервера, шляхи, ключі
+   └─ index.js
+
+
+Основні моменти:
+
+routes/ – лише маршрути, вони викликають контролери.
+
+controllers/ – обробляють бізнес-логіку, отримують JSON від Xano, формують PDF через utils/generatePdf.js.
+
+utils/ – чисто допоміжні функції, наприклад конвертація JSON → PDF.
+
+services/ – інші майбутні сервіси (email, інтеграції, аналіз).
+
+pdfs/ – тимчасове або постійне сховище PDF перед відправкою назад.

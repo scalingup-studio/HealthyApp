@@ -1,9 +1,17 @@
+// src__pages__Login.jsx
+/**
+ * Fixed Login Page
+ * Key changes:
+ * 1. Use tokenManager for token storage
+ * 2. Simplified login flow
+ * 3. Better error handling
+ */
+
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Logo } from "../components/Logo.jsx";
 import { SignupPage } from "./Signup.jsx";
 import { ForgotPasswordModal } from "../components/ForgotPasswordModal.jsx";
-import { AuthApi } from "../api/authApi";
 import { useAuth } from "../api/AuthContext";
 import { useNotifications } from "../api/NotificationContext.jsx";
 import NotificationSystem from "../components/NotificationSystem.jsx";
@@ -19,15 +27,16 @@ export function LoginPage({ onOpenSignup }) {
   const [passwordHint, setPasswordHint] = React.useState("");
   const [forgotOpen, setForgotOpen] = React.useState(false);
   const [signupOpen, setSignupOpen] = React.useState(false);
-  
+
   const navigate = useNavigate();
-  const { login, authToken, setAuthToken, setUser, hasCompletedOnboarding } = useAuth();
-  const { notifications, removeNotification, showSuccess, showError } = useNotifications(); 
+  const { login } = useAuth();
+  const { notifications, removeNotification, showSuccess, showError } = useNotifications();
 
   function validate() {
     let ok = true;
     setEmailHint("");
     setPasswordHint("");
+
     if (!email || !/^([^\s@]+)@([^\s@]+)\.[^\s@]+$/.test(email)) {
       setEmailHint("Please enter a valid email");
       ok = false;
@@ -42,36 +51,55 @@ export function LoginPage({ onOpenSignup }) {
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
+
     if (!validate()) return;
-    
+
     try {
       setLoading(true);
-      
-      // ✅ Використовуємо AuthApi напряму для більшого контролю
-      const response = await AuthApi.login({ email, password });
-      console.log('🔍 API Login response:', response);
-      
-      if (response.authToken) {
-        // ✅ Оновлюємо контекст вручну
-        setAuthToken(response.authToken);
-        setUser(response.user ?? null);
-        
-        console.log('✅ Auth context updated, checking onboarding status...');
-        console.log('👤 User data:', response.user);
-        console.log('📊 Onboarding completed:', response.user?.completed);
-        console.log('📊 Onboarding completed (legacy):', response.user?.onboarding_completed);
-        
-        // Довіряємо централізованому AutoRedirectRoute
-        console.log('🔁 Redirecting to root for centralized routing...');
-        navigate("/");
-      } else {
-        setError("No authentication token received from server");
+      console.log('🔐 Attempting login...');
+
+      // Use login from AuthContext - it handles token storage via tokenManager
+      const result = await login(email, password);
+
+      if (!result.success) {
+        throw new Error(result.error || "Login failed");
       }
-      
+
+      console.log('✅ Login successful, redirecting to root...');
+
+      // Navigate to root - AutoRedirectRoute will handle the rest
+      navigate("/", { replace: true });
+
     } catch (err) {
       console.error('❌ Login error:', err);
-      setError(err.message || "Login failed");
+      setError(err.message || "Login failed. Please check your credentials.");
+      showError(err.message || "Login failed");
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setLoading(true);
+      console.log('🔗 Starting Google OAuth...');
+
+      // Import AuthApi dynamically
+      const { AuthApi } = await import('../api/authApi.js');
+
+      const url = await AuthApi.getGoogleAuthUrl();
+
+      if (!url) {
+        throw new Error('Failed to get Google OAuth URL');
+      }
+
+      console.log('✅ Redirecting to Google...');
+      window.location.href = url;
+
+    } catch (err) {
+      console.error('❌ Google login failed:', err);
+      setError('Failed to start Google login. Please try again.');
+      showError('Failed to start Google login');
       setLoading(false);
     }
   }
@@ -83,109 +111,118 @@ export function LoginPage({ onOpenSignup }) {
           <Logo height={56} className="logo-anatomous" />
         </div>
         <h1 className="auth-title">Log In</h1>
+
         <form className="form" onSubmit={onSubmit} noValidate>
           <div className="form-field">
             <label htmlFor="email">Email address</label>
-            <input 
-              id="email" 
-              name="email" 
-              type="email" 
-              placeholder="Enter your email" 
-              autoComplete="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Enter your email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
             />
-            <p className="field-hint">{emailHint}</p>
+            {emailHint && <p className="field-hint">{emailHint}</p>}
           </div>
 
           <div className="form-field password">
             <label htmlFor="password">Password</label>
-            <input 
-              id="password" 
-              name="password" 
-              type={showPassword ? "text" : "password"} 
-              placeholder="Enter your password" 
-              autoComplete="current-password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
             />
-            <button 
-              type="button" 
-              className="toggle-visibility" 
-              aria-label="Toggle password visibility" 
+            <button
+              type="button"
+              className="toggle-visibility"
+              aria-label="Toggle password visibility"
               onClick={() => setShowPassword(s => !s)}
+              disabled={loading}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
-            <p className="field-hint">{passwordHint}</p>
+            {passwordHint && <p className="field-hint">{passwordHint}</p>}
           </div>
-          
-          <button type="submit" className="btn primary" disabled={loading}>
-            {loading ? "Loading…" : "Log In"}
-          </button>
 
           <div className="form-row between">
             <label className="checkbox">
-              <input 
-                id="remember" 
-                name="remember" 
-                type="checkbox" 
-                checked={remember} 
-                onChange={(e) => setRemember(e.target.checked)} 
+              <input
+                id="remember"
+                name="remember"
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                disabled={loading}
               />
               <span>Remember me</span>
             </label>
-            <a 
-              className="link" 
-              href="#" 
-              onClick={(e) => { 
-                e.preventDefault(); 
-                setForgotOpen(true); 
+            <a
+              className="link"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setForgotOpen(true);
               }}
             >
               Forgot Password?
             </a>
           </div>
 
+          <button
+            type="submit"
+            className="btn primary"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Log In"}
+          </button>
+
           <div className="divider"><span>or</span></div>
 
           <div className="social-buttons">
-            <button 
-              type="button" 
-              className="btn outline" 
-              onClick={async () => {
-                try {
-                  const url = await AuthApi.getGoogleAuthUrl();
-                  window.location.href = url;
-                } catch (err) {
-                  console.error('Failed to initiate Google OAuth', err);
-                  setError('Failed to start Google login. Please try again.');
-                }
-              }}
+            <button
+              type="button"
+              className="btn outline"
+              onClick={handleGoogleLogin}
+              disabled={loading}
             >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+              />
               <span>Log in with Google</span>
             </button>
-            
-            <button 
-              type="button" 
-              className="btn outline" 
+
+            <button
+              type="button"
+              className="btn outline"
               onClick={() => alert("Apple Sign-In integration depends on your backend")}
+              disabled={loading}
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" />
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg"
+                alt="Apple"
+              />
               <span>Log in with Apple</span>
             </button>
           </div>
-          
+
           <p className="alt-action">
             No account yet? {(
-              <a 
-                className="link" 
-                href="#" 
-                onClick={(e) => { 
-                  e.preventDefault(); 
+              <a
+                className="link"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
                   setSignupOpen(true);
                 }}
               >
@@ -193,23 +230,27 @@ export function LoginPage({ onOpenSignup }) {
               </a>
             )}
           </p>
-          
-          {error ? <div className="alert">{error}</div> : null}
+
+          {error && <div className="alert">{error}</div>}
         </form>
 
-        <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
+        <ForgotPasswordModal
+          open={forgotOpen}
+          onClose={() => setForgotOpen(false)}
+        />
+
         {signupOpen && (
           <SignupPage onClose={() => setSignupOpen(false)} />
         )}
       </section>
-      
+
       <aside className="artwork">
         <img src="/images/login_image.avif" alt="Artwork" />
       </aside>
-      
-      <NotificationSystem 
-        notifications={notifications} 
-        onRemove={removeNotification} 
+
+      <NotificationSystem
+        notifications={notifications}
+        onRemove={removeNotification}
       />
     </div>
   );

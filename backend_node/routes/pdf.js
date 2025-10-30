@@ -19,6 +19,6 @@ router.use((req, res, next) => {
 router.post("/generate", authMiddleware, pdfController.generatePdf);
 router.get("/list", authMiddleware, pdfController.listPdfs);
 router.delete("/:filename", authMiddleware, pdfController.deletePdf);
-router.get("/download", authMiddleware, pdfController.downloadPdf); 
+router.get("/download", authMiddleware, pdfController.downloadPdf);
 
 module.exports = router;

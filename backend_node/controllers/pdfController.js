@@ -7,7 +7,7 @@ exports.generatePdf = async (req, res) => {
   try {
     const result = req.body;
     console.log('result', result);
-    
+
     const pdfDir = path.join(__dirname, "../pdfs");
     const templateDir = path.join(__dirname, "../templates");
 
@@ -17,14 +17,14 @@ exports.generatePdf = async (req, res) => {
     const pdfPath = path.join(pdfDir, `report-${Date.now()}.pdf`);
 
     // Визначаємо тип шаблону
-    const templateType = result.pdf_data?.export_settings?.template_type || 
-                        (result.pdf_data?.sections?.insights || 
-                         result.pdf_data?.sections?.goals || 
+    const templateType = result.pdf_data?.export_settings?.template_type ||
+                        (result.pdf_data?.sections?.insights ||
+                         result.pdf_data?.sections?.goals ||
                          result.pdf_data?.sections?.uploads ? "detailed" : "simple");
 
     // Вибираємо відповідний шаблон
     const templateName = templateType === "detailed" ? "report-advanced.ejs" : "report-basic.ejs";
-    
+
     // Перевіряємо чи існує складний шаблон
     let finalTemplate;
     if (templateType === "detailed") {
@@ -63,7 +63,7 @@ exports.generatePdf = async (req, res) => {
 
     // Генеруємо PDF
     await renderPdf(finalTemplate, data, pdfPath);
-  
+
 
     // Відправляємо файл клієнту
     res.setHeader("Content-Type", "application/pdf");
@@ -93,11 +93,11 @@ exports.generatePdfSimple = async (req, res) => {
     const pdfPath = path.join(pdfDir, `report-${Date.now()}.pdf`);
 
     // Просто визначаємо тип шаблону без перевірки існування файлів
-    const hasAdditionalSections = 
+    const hasAdditionalSections =
       (result.pdf_data?.sections?.insights && result.pdf_data.sections.insights.length > 0) ||
       (result.pdf_data?.sections?.goals && result.pdf_data.sections.goals.length > 0) ||
       (result.pdf_data?.sections?.uploads && result.pdf_data.sections.uploads.length > 0);
-    
+
     const templateName = hasAdditionalSections ? "report-advanced" : "report-basic";
 
     // Підготовка даних
@@ -158,11 +158,11 @@ exports.generatePdfWithTemplate = async (req, res) => {
       templateName = "report-advanced";
     } else {
       // Автоматичний вибір
-      const hasAdditionalSections = 
+      const hasAdditionalSections =
         (result.pdf_data?.sections?.insights && result.pdf_data.sections.insights.length > 0) ||
         (result.pdf_data?.sections?.goals && result.pdf_data.sections.goals.length > 0) ||
         (result.pdf_data?.sections?.uploads && result.pdf_data.sections.uploads.length > 0);
-      
+
       templateName = hasAdditionalSections ? "report-advanced" : "report-basic";
     }
 
@@ -212,7 +212,7 @@ exports.listPdfs = async (req, res) => {
   try {
     const pdfDir = path.join(__dirname, "../pdfs");
     const files = await fs.readdir(pdfDir);
-    
+
     const pdfFiles = files.filter(file => file.endsWith('.pdf'));
     res.json(pdfFiles);
   } catch (err) {
@@ -261,20 +261,20 @@ exports.downloadPdf = async (req, res) => {
 exports.deletePdf = async (req, res) => {
   try {
     const { filename } = req.params;
-    
+
     if (!filename.endsWith('.pdf')) {
       return res.status(400).json({ error: "Invalid file type" });
     }
-    
+
     const pdfPath = path.join(__dirname, "../pdfs", filename);
-    
+
     // Перевіряємо чи файл існує
     try {
       await fs.access(pdfPath);
     } catch (error) {
       return res.status(404).json({ error: "PDF file not found" });
     }
-    
+
     await fs.remove(pdfPath);
     res.json({ success: true, message: `PDF ${filename} deleted successfully` });
   } catch (err) {
@@ -287,7 +287,7 @@ exports.deletePdf = async (req, res) => {
 //   try {
 //     const result = req.body;
 //     console.log('result', result);
-    
+
 //     const pdfDir = path.join(__dirname, "../pdfs");
 //     const templateDir = path.join(__dirname, "../templates");
 
@@ -297,14 +297,14 @@ exports.deletePdf = async (req, res) => {
 //     const pdfPath = path.join(pdfDir, `report-${Date.now()}.pdf`);
 
 //     // Визначаємо тип шаблону
-//     const templateType = result.pdf_data?.export_settings?.template_type || 
-//                         (result.pdf_data?.sections?.insights || 
-//                          result.pdf_data?.sections?.goals || 
+//     const templateType = result.pdf_data?.export_settings?.template_type ||
+//                         (result.pdf_data?.sections?.insights ||
+//                          result.pdf_data?.sections?.goals ||
 //                          result.pdf_data?.sections?.uploads ? "detailed" : "simple");
 
 //     // Вибираємо відповідний шаблон
 //     const templateName = templateType === "detailed" ? "report-advanced.ejs" : "report-basic.ejs";
-    
+
 //     // Перевіряємо чи існує складний шаблон
 //     let finalTemplate;
 //     if (templateType === "detailed") {
